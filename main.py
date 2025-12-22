@@ -473,7 +473,7 @@ class ArchivedDialog(QDialog):
                 
                 QMessageBox.information(self, _("success", "Sucesso"), _("exported_success", "Exportado {count} cards para:\n{filename}").format(count=len(self.filtered_cards), filename=filename))
             except Exception as e:
-                QMessageBox.critical(self, "Erro", f"Erro ao exportar: {e}")
+                QMessageBox.critical(self, _("error", "Erro"), _("error", "Erro ao exportar:") + f" {e}")
                 
     def clear_archive(self):
         """Limpa todo o arquivo"""
@@ -1422,7 +1422,7 @@ class PostItCard(QFrame):
         # Salvar
         self.parent_column.window.save_data()
         
-        QMessageBox.information(self, "Alerta Lido", "Alerta marcado como lido!\n\nO card parou de piscar e o alerta foi removido.")
+        QMessageBox.information(self, _("alert_read", "Alerta Lido"), _("alert_read_msg", "Alerta marcado como lido! O card parou de piscar e o alerta foi removido."))
     
     def apply_card_size(self):
         """Aplica tamanho do card (padrão ou personalizado)"""
@@ -1672,7 +1672,7 @@ class PostItCard(QFrame):
         self.parent_column.cards_container.updateGeometry()
         
         self.parent_column.window.save_data()
-        QMessageBox.information(self, "Tamanho Alterado", f"Card alterado para: {size.title()}\n\nDica: Você também pode arrastar a borda/canto do card para redimensionar livremente!")
+        QMessageBox.information(self, _("size_changed", "Tamanho Alterado"), _("size_changed_msg", "Card alterado para: {size}").format(size=size.title()) + "\n\n" + _("resize_tip", "Dica: Você também pode arrastar a borda/canto do card para redimensionar livremente!"))
     
     def toggle_bold(self):
         """Toggle negrito"""
@@ -1774,7 +1774,7 @@ class PostItCard(QFrame):
         new_data["data_criacao"] = datetime.now().strftime("%d/%m/%Y %H:%M")
         self.parent_column.add_card(new_data)
         self.parent_column.window.save_data()
-        QMessageBox.information(self, "Duplicado", "Card duplicado com sucesso!")
+        QMessageBox.information(self, _("card_duplicated", "Duplicado"), _("card_duplicated_msg", "Card duplicado com sucesso!"))
         
     def edit_card(self):
         """Abre dialog para editar"""
@@ -1786,7 +1786,7 @@ class PostItCard(QFrame):
             if VALIDATION_ENABLED:
                 is_valid, message, sanitized_data = InputValidator.validate_card_data(new_data)
                 if not is_valid:
-                    QMessageBox.warning(self, "Dados Inválidos", f"Não foi possível salvar:\n{message}")
+                    QMessageBox.warning(self, _("invalid_data", "Dados Inválidos"), _("cannot_save", "Não foi possível salvar:") + f"\n{message}")
                     return
                 new_data = sanitized_data
             
@@ -1927,7 +1927,7 @@ class PostItCard(QFrame):
     def open_folder(self):
         """Abre a pasta onde o arquivo está localizado"""
         if not self.caminho or not os.path.exists(self.caminho):
-            QMessageBox.warning(self, "Aviso", "Caminho não existe!")
+            QMessageBox.warning(self, _("warning", "Aviso"), _("error", "Caminho não existe!"))
             return
         
         # Se é pasta, abre ela
@@ -1941,8 +1941,8 @@ class PostItCard(QFrame):
             
     def archive_card(self):
         """Arquiva este card"""
-        reply = QMessageBox.question(self, "Arquivar", 
-                                     f"Arquivar '{self.titulo}'?",
+        reply = QMessageBox.question(self, _("archive", "Arquivar"), 
+                                     _("confirm_archive", "Arquivar '{title}'?").format(title=self.titulo),
                                      QMessageBox.Yes | QMessageBox.No)
         if reply == QMessageBox.Yes:
             # Adicionar data de arquivamento
@@ -1968,7 +1968,7 @@ class PostItCard(QFrame):
             # Remover da coluna
             self.parent_column.remove_card(self)
             
-            QMessageBox.information(self, "Arquivado", f"'{self.titulo}' foi arquivado!")
+            QMessageBox.information(self, _("card_archived", "Arquivado"), _("card_archived_msg", "'{title}' foi arquivado!").format(title=self.titulo))
     
     def keyPressEvent(self, event):
         """Navegação por teclado no card"""
@@ -2053,8 +2053,8 @@ class PostItCard(QFrame):
             
     def remove_self(self):
         """Remove este cartão"""
-        reply = QMessageBox.question(self, "Confirmar", 
-                                     f"Remover card '{self.titulo}'?",
+        reply = QMessageBox.question(self, _("confirm", "Confirmar"), 
+                                     _("confirm_delete_card", "Remover card '{title}'?").format(title=self.titulo),
                                      QMessageBox.Yes | QMessageBox.No)
         if reply == QMessageBox.Yes:
             self.parent_column.remove_card(self)
@@ -2461,7 +2461,7 @@ class KanbanColumn(QFrame):
                         }}
                     """)
         self.window.save_data()
-        QMessageBox.information(self, "✅ Cor Alterada", f"Cor da coluna '{self.titulo}' alterada com sucesso!")
+        QMessageBox.information(self, _("column_color_changed", "✅ Cor Alterada"), _("column_color_changed_msg", "Cor da coluna '{title}' alterada com sucesso!").format(title=self.titulo))
         dialog.accept()
     
     def remove_column(self):
@@ -4080,14 +4080,14 @@ class KanbanWindow(QMainWindow):
         layout = QVBoxLayout()
         
         # Nome
-        layout.addWidget(QLabel("Nome da coluna:"))
+        layout.addWidget(QLabel(_("new_column_name_label", "Nome da Coluna:")))
         name_input = QLineEdit()
-        name_input.setText("Nova Coluna")
+        name_input.setText(_("new_column", "Nova Coluna"))
         name_input.selectAll()
         layout.addWidget(name_input)
         
         # Cor - Grid de cores simples
-        layout.addWidget(QLabel("Escolha uma cor:"))
+        layout.addWidget(QLabel(_("select_color", "Escolha uma cor:")))
         
         colors_layout = QHBoxLayout()
         color_buttons = []
@@ -4857,8 +4857,8 @@ class KanbanWindow(QMainWindow):
         except Exception as e:
             QMessageBox.critical(
                 self,
-                "❌ Erro ao abrir Gantt",
-                f"Erro ao abrir Gantt Chart:\n{str(e)}\n\nDetalhes técnicos:\n{type(e).__name__}"
+                _("error", "❌ Erro ao abrir Gantt"),
+                _("error", "Erro ao abrir Gantt Chart:") + f"\n{str(e)}\n\n" + _("error", "Detalhes técnicos:") + f"\n{type(e).__name__}"
             )
             print(f"ERRO GANTT: {e}")
             import traceback
