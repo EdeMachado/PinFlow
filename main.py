@@ -4946,11 +4946,15 @@ class KanbanWindow(QMainWindow):
         
     def toggle_always_on_top(self, checked):
         """Toggle always on top"""
+        # Usar setWindowFlag ao invés de setWindowFlags para preservar todos os flags padrão
+        # Isso garante que o botão de fechar sempre permaneça habilitado
+        self.setWindowFlag(Qt.WindowStaysOnTopHint, checked)
+        # Garantir explicitamente que o botão de fechar sempre esteja habilitado
+        self.setWindowFlag(Qt.WindowCloseButtonHint, True)
+        
         if checked:
-            self.setWindowFlags(self.windowFlags() | Qt.WindowStaysOnTopHint)
             self.toggle_btn.setText(f"📌 {_('always_on_top_on', 'Always On Top: ON')}")
         else:
-            self.setWindowFlags(self.windowFlags() & ~Qt.WindowStaysOnTopHint)
             self.toggle_btn.setText(f"📌 {_('always_on_top_off', 'Always On Top: OFF')}")
         self.show()
         
