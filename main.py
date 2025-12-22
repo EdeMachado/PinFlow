@@ -3675,21 +3675,21 @@ class KanbanWindow(QMainWindow):
         buttons_layout = QHBoxLayout()
         
         # Always on top toggle
-        self.toggle_btn = QPushButton(_("always_on_top_on", "📌 Always On Top: ON"))
+        self.toggle_btn = QPushButton(f"📌 {_('always_on_top_on', 'Always On Top: ON')}")
         self.toggle_btn.setCheckable(True)
         self.toggle_btn.setChecked(True)
         self.toggle_btn.clicked.connect(self.toggle_always_on_top)
         
         # Limpar concluídos
-        self.clear_completed_btn = QPushButton(_("clear_completed", "🗑️ Limpar Concluídos"))
+        self.clear_completed_btn = QPushButton(f"🗑️ {_('clear_completed', 'Limpar Concluídos')}")
         self.clear_completed_btn.clicked.connect(self.clear_completed)
         
         # Ver arquivados
-        self.view_archived_btn = QPushButton(_("view_archived", "📂 Ver Arquivados"))
+        self.view_archived_btn = QPushButton(f"📂 {_('view_archived', 'Ver Arquivados')}")
         self.view_archived_btn.clicked.connect(self.view_archived)
         
         # Atalhos
-        self.shortcuts_btn = QPushButton(_("shortcuts_button", "⌨️ Atalhos"))
+        self.shortcuts_btn = QPushButton(f"⌨️ {_('shortcuts_button', 'Atalhos')}")
         self.shortcuts_btn.clicked.connect(self.show_shortcuts)
         
         # Estilo unificado: Gradiente azul marinho → prata
