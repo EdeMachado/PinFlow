@@ -3393,32 +3393,31 @@ class KanbanWindow(QMainWindow):
         # Header com logo
         header_layout = QHBoxLayout()
         
-        # Logo + Título no canto esquerdo - Mostrar nome do cliente ou PinFlow Pro
-        # Verificar se há licença ativada para mostrar nome do cliente
-        customer_name = None
+        # Logo + Título no canto esquerdo - SEMPRE PinFlow Pro
+        title_label = QLabel("📌➜ Pin<span style='color: #00C853; font-weight: bold;'>Flow</span> <span style='color: #888888; font-size: 14px;'>Pro</span>")
+        title_label.setFont(QFont("Segoe UI", 16, QFont.Bold))
+        title_label.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        title_label.setTextFormat(Qt.RichText)
+        title_label.setStyleSheet("color: #1e3a5f; padding: 10px;")  # Azul marinho escuro
+        
+        # Guardar referência para não mudar cor quando header mudar
+        self.title_label = title_label
+        
+        # Nome do cliente no lado direito (se houver licença)
+        customer_name_label = None
         if LICENSE_ENABLED and self.license_manager:
             license_info = self.license_manager.get_license_info()
             if license_info:
                 customer_name = license_info.get('customer_name', None)
-        
-        if customer_name:
-            title_text = f"<span style='color: #1e3a5f; font-weight: bold;'>{customer_name}</span>"
-            title_label = QLabel(title_text)
-            title_label.setFont(QFont("Segoe UI", 16, QFont.Bold))
-            title_label.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
-            title_label.setTextFormat(Qt.RichText)
-            title_label.setStyleSheet("color: #1e3a5f; padding: 10px; cursor: pointer;")  # Cursor pointer para indicar clicável
-            title_label.setCursor(Qt.PointingHandCursor)
-            title_label.mousePressEvent = lambda e: self.show_config_dialog()  # Clicável para abrir configurações
-        else:
-            title_label = QLabel("📌➜ Pin<span style='color: #00C853; font-weight: bold;'>Flow</span> <span style='color: #888888; font-size: 14px;'>Pro</span>")
-            title_label.setFont(QFont("Segoe UI", 16, QFont.Bold))
-            title_label.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
-            title_label.setTextFormat(Qt.RichText)
-            title_label.setStyleSheet("color: #1e3a5f; padding: 10px;")  # Azul marinho escuro
-        
-        # Guardar referência para não mudar cor quando header mudar
-        self.title_label = title_label
+                if customer_name:
+                    customer_name_text = f"<span style='color: #1e3a5f; font-weight: bold;'>{customer_name}</span>"
+                    customer_name_label = QLabel(customer_name_text)
+                    customer_name_label.setFont(QFont("Segoe UI", 14, QFont.Bold))
+                    customer_name_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+                    customer_name_label.setTextFormat(Qt.RichText)
+                    customer_name_label.setStyleSheet("color: #1e3a5f; padding: 10px; cursor: pointer;")  # Cursor pointer para indicar clicável
+                    customer_name_label.setCursor(Qt.PointingHandCursor)
+                    customer_name_label.mousePressEvent = lambda e: self.show_config_dialog()  # Clicável para abrir configurações
         
         # Logo e tema no canto superior direito (lado a lado)
         logo_theme_layout = QHBoxLayout()
