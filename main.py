@@ -2099,13 +2099,24 @@ class KanbanColumn(QFrame):
                         column_header_color = settings["column_header_color"]
                         color = QColor(column_header_color)
                         r, g, b = color.red(), color.green(), color.blue()
+                        # Calcular cor do texto baseado na luminosidade
+                        # Usar função do window se disponível, senão calcular aqui
+                        if hasattr(self.window, 'get_text_color_for_background'):
+                            text_color = self.window.get_text_color_for_background(color)
+                        else:
+                            # Fórmula de luminosidade relativa
+                            luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255.0
+                            text_color = "#ffffff" if luminance <= 0.5 else "#1e3a5f"
                         header_container.setStyleSheet(f"""
                             background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
                                 stop:0 rgb({r}, {g}, {b}), 
                                 stop:1 rgb({min(255, r+30)}, {min(255, g+30)}, {min(255, b+30)}));
                             border-radius: 8px;
                             padding: 8px;
+                            color: {text_color};
                         """)
+                        # Atualizar cor do título da coluna
+                        self.title_label.setStyleSheet(f"color: {text_color}; padding: 5px;")
                     else:
                         header_container.setStyleSheet("""
                             background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
@@ -2269,13 +2280,24 @@ class KanbanColumn(QFrame):
             if column_header_color_saved and hasattr(self, 'header_container'):
                 color = QColor(column_header_color_saved)
                 r, g, b = color.red(), color.green(), color.blue()
+                # Calcular cor do texto baseado na luminosidade
+                if hasattr(self.window, 'get_text_color_for_background'):
+                    text_color = self.window.get_text_color_for_background(color)
+                else:
+                    # Fórmula de luminosidade relativa
+                    luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255.0
+                    text_color = "#ffffff" if luminance <= 0.5 else "#1e3a5f"
                 self.header_container.setStyleSheet(f"""
                     background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
                         stop:0 rgb({r}, {g}, {b}), 
                         stop:1 rgb({min(255, r+30)}, {min(255, g+30)}, {min(255, b+30)}));
                     border-radius: 8px;
                     padding: 8px;
+                    color: {text_color};
                 """)
+                # Atualizar cor do título da coluna
+                if hasattr(self, 'title_label'):
+                    self.title_label.setStyleSheet(f"color: {text_color}; padding: 5px;")
             elif hasattr(self, 'header_container'):
                 # Se não houver cor salva, usar padrão azul marinho
                 self.header_container.setStyleSheet("""
@@ -4316,6 +4338,18 @@ class KanbanWindow(QMainWindow):
         dialog.setLayout(layout)
         dialog.exec()
     
+    def get_text_color_for_background(self, bg_color):
+        """Calcula cor do texto (branco ou preto) baseado na luminosidade do fundo"""
+        r, g, b = bg_color.red(), bg_color.green(), bg_color.blue()
+        # Fórmula de luminosidade relativa (W3C)
+        luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255.0
+        # Se a cor for clara (luminosidade > 0.5), usar texto escuro
+        # Se a cor for escura (luminosidade <= 0.5), usar texto branco
+        if luminance > 0.5:
+            return "#1e3a5f"  # Azul marinho escuro (texto escuro)
+        else:
+            return "#ffffff"  # Branco (texto claro)
+    
     def change_header_color(self, parent_dialog):
         """Altera cor do header"""
         from PySide6.QtWidgets import QColorDialog
@@ -4344,17 +4378,24 @@ class KanbanWindow(QMainWindow):
                 
                 # Aplicar cor imediatamente (mas manter logo/título com cor fixa)
                 r, g, b = color.red(), color.green(), color.blue()
+                # Calcular cor do texto baseado na luminosidade
+                text_color = self.get_text_color_for_background(color)
                 gradient_style = f"""
                     background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
                         stop:0 rgb({r}, {g}, {b}), 
                         stop:1 rgb({min(255, r+50)}, {min(255, g+50)}, {min(255, b+50)}));
                     border-radius: 8px;
                     padding: 10px;
+                    color: {text_color};
                 """
                 self.header_widget.setStyleSheet(gradient_style)
                 # Garantir que logo/título mantenha cor fixa (não muda com header)
                 if hasattr(self, 'title_label'):
                     self.title_label.setStyleSheet("color: #1e3a5f; padding: 10px;")
+                
+                # Atualizar cor do nome do cliente também (se houver)
+                if hasattr(self, 'customer_name_label'):
+                    self.customer_name_label.setStyleSheet(f"color: {text_color}; padding: 10px; cursor: pointer;")
                 
                 # Atualizar cor dos botões (tom mais escuro do header)
                 self.update_buttons_color(color)
@@ -4392,17 +4433,23 @@ class KanbanWindow(QMainWindow):
                 
                 # Aplicar cor imediatamente em todas as colunas
                 r, g, b = color.red(), color.green(), color.blue()
+                # Calcular cor do texto baseado na luminosidade
+                text_color = self.get_text_color_for_background(color)
                 gradient_style = f"""
                     background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
                         stop:0 rgb({r}, {g}, {b}), 
                         stop:1 rgb({min(255, r+30)}, {min(255, g+30)}, {min(255, b+30)}));
                     border-radius: 8px;
                     padding: 8px;
+                    color: {text_color};
                 """
                 # Aplicar em todas as colunas existentes IMEDIATAMENTE
                 for column in self.columns:
                     if hasattr(column, 'header_container'):
                         column.header_container.setStyleSheet(gradient_style)
+                        # Atualizar cor do texto do título da coluna também
+                        if hasattr(column, 'title_label'):
+                            column.title_label.setStyleSheet(f"color: {text_color}; padding: 5px;")
                         # Forçar atualização visual imediata
                         column.header_container.update()
                         column.header_container.repaint()
