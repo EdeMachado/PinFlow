@@ -43,7 +43,7 @@ class LicenseManager:
             print(f"Erro ao gerar HWID: {e}")
             return "DEFAULT_HWID"
     
-    def generate_license_key(self, customer_name="", customer_email="", days_valid=365):
+    def generate_license_key(self, customer_name="", customer_email="", days_valid=365, subscription_type="annual", monthly_billing=False):
         """
         Gera uma chave de licença
         
@@ -51,13 +51,22 @@ class LicenseManager:
             customer_name: Nome do cliente
             customer_email: Email do cliente
             days_valid: Dias de validade (padrão: 1 ano)
+            subscription_type: Tipo de assinatura ("annual" ou "monthly")
+            monthly_billing: Se True, é assinatura mensal (cobrança mensal, válida por 1 mês, renova automaticamente)
         
         Returns:
             str: Chave de licença
         """
         # Gerar dados da licença
         issue_date = datetime.now()
-        expiry_date = issue_date + timedelta(days=days_valid)
+        
+        # Se for assinatura mensal, validade de 1 mês (renova automaticamente)
+        if monthly_billing:
+            expiry_date = issue_date + timedelta(days=30)
+            next_billing_date = issue_date + timedelta(days=30)
+        else:
+            expiry_date = issue_date + timedelta(days=days_valid)
+            next_billing_date = None
         
         license_data = {
             "customer_name": customer_name,
@@ -65,7 +74,12 @@ class LicenseManager:
             "issue_date": issue_date.strftime("%Y-%m-%d"),
             "expiry_date": expiry_date.strftime("%Y-%m-%d"),
             "days_valid": days_valid,
-            "version": "3.0"
+            "version": "3.0",
+            "subscription_type": subscription_type,
+            "monthly_billing": monthly_billing,
+            "next_billing_date": next_billing_date.strftime("%Y-%m-%d") if next_billing_date else None,
+            "price_monthly": 9.99,  # R$ 9,99/mês (~US$ 2,00)
+            "price_currency": "BRL"
         }
         
         # Criar string para hash
@@ -200,7 +214,17 @@ class LicenseManager:
         if expiry_date_str:
             try:
                 expiry_date = datetime.strptime(expiry_date_str, "%Y-%m-%d")
-                if datetime.now() > expiry_date:
+                now = datetime.now()
+                
+                # Se for assinatura mensal, verificar se precisa renovar
+                if self.license_data.get("monthly_billing"):
+                    days_until_expiry = (expiry_date - now).days
+                    if days_until_expiry < 0:
+                        return False, "Assinatura expirada - Renovação necessária"
+                    elif days_until_expiry <= 7:
+                        return True, f"Assinatura válida - Renovação em {days_until_expiry} dias"
+                
+                if now > expiry_date:
                     return False, "Licença expirada"
             except:
                 pass
@@ -212,7 +236,7 @@ class LicenseManager:
         if not self.license_data:
             return None
         
-        return {
+        info = {
             "customer_name": self.license_data.get("customer_name", "N/A"),
             "customer_email": self.license_data.get("customer_email", "N/A"),
             "issue_date": self.license_data.get("issue_date", "N/A"),
@@ -221,17 +245,30 @@ class LicenseManager:
             "hwid": self.license_data.get("hwid", "N/A"),
             "version": self.license_data.get("version", "3.0")
         }
+        
+        # Adicionar informações de assinatura se disponível
+        if self.license_data.get("monthly_billing"):
+            info["subscription_type"] = "Assinatura Mensal"
+            info["price"] = f"R$ {self.license_data.get('price_monthly', 9.99):.2f}/mês"
+            info["next_billing_date"] = self.license_data.get("next_billing_date", "N/A")
+        else:
+            info["subscription_type"] = "Licença Anual"
+        
+        return info
 
 
-def generate_license_for_customer(customer_name, customer_email, days=365):
+def generate_license_for_customer(customer_name, customer_email, days=365, monthly_billing=False):
     """
     Função auxiliar para gerar licença para cliente
     
-    Uso: generate_license_for_customer("João Silva", "joao@email.com", 365)
+    Uso: 
+        - Licença anual: generate_license_for_customer("João Silva", "joao@email.com", 365)
+        - Assinatura mensal: generate_license_for_customer("João Silva", "joao@email.com", 30, monthly_billing=True)
     """
     manager = LicenseManager()
+    subscription_type = "monthly" if monthly_billing else "annual"
     license_key, license_data = manager.generate_license_key(
-        customer_name, customer_email, days
+        customer_name, customer_email, days, subscription_type, monthly_billing
     )
     
     # Salvar em arquivo de licenças válidas

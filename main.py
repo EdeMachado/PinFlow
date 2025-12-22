@@ -37,6 +37,38 @@ except ImportError:
     print("⚠️ Sistema de licenciamento não disponível")
     LICENSE_ENABLED = False
 
+# Sistema de Internacionalização (i18n)
+try:
+    from i18n_manager import I18nManager
+    I18N_ENABLED = True
+    # Carregar idioma salvo ou usar padrão
+    try:
+        if os.path.exists("settings.json"):
+            with open("settings.json", "r", encoding="utf-8") as f:
+                settings = json.load(f)
+                lang = settings.get("language", "pt_BR")
+                I18nManager.set_language(lang)
+    except:
+        pass
+except ImportError:
+    print("⚠️ Sistema de internacionalização não disponível")
+    I18N_ENABLED = False
+    # Fallback: criar função dummy
+    class I18nManager:
+        @staticmethod
+        def get_text(key, default=None, **kwargs):
+            return default if default else key
+        @staticmethod
+        def set_language(lang):
+            return True
+        @staticmethod
+        def get_current_language():
+            return "pt_BR"
+        @staticmethod
+        def get_language_name(code):
+            return code
+        LANGUAGES = {"pt_BR": "Português (Brasil)"}
+
 # Importar para personalizar cor da barra de título no Windows
 try:
     import ctypes
@@ -3948,6 +3980,45 @@ class KanbanWindow(QMainWindow):
         # === ABA 1: APARÊNCIA ===
         appearance_tab = QWidget()
         appearance_layout = QVBoxLayout()
+        
+        # Idioma
+        if I18N_ENABLED:
+            language_group = QGroupBox("🌍 Idioma / Language")
+            language_layout = QVBoxLayout()
+            
+            language_label = QLabel("Selecione o idioma / Select language:")
+            language_layout.addWidget(language_label)
+            
+            language_combo = QComboBox()
+            current_lang = I18nManager.get_current_language()
+            for code, name in I18nManager.LANGUAGES.items():
+                language_combo.addItem(name, code)
+                if code == current_lang:
+                    language_combo.setCurrentIndex(language_combo.count() - 1)
+            
+            def change_language():
+                lang_code = language_combo.currentData()
+                if I18nManager.set_language(lang_code):
+                    # Salvar preferência
+                    try:
+                        settings = {}
+                        if os.path.exists("settings.json"):
+                            with open("settings.json", "r", encoding="utf-8") as f:
+                                settings = json.load(f)
+                        settings["language"] = lang_code
+                        with open("settings.json", "w", encoding="utf-8") as f:
+                            json.dump(settings, f, ensure_ascii=False, indent=2)
+                        QMessageBox.information(dialog, "Idioma Alterado", 
+                            f"Idioma alterado para: {I18nManager.get_language_name(lang_code)}\n\n"
+                            "Recarregue o aplicativo para aplicar as mudanças.")
+                    except Exception as e:
+                        print(f"Erro ao salvar idioma: {e}")
+            
+            language_combo.currentIndexChanged.connect(change_language)
+            language_layout.addWidget(language_combo)
+            
+            language_group.setLayout(language_layout)
+            appearance_layout.addWidget(language_group)
         
         # Cores do sistema
         colors_group = QGroupBox("🎨 Cores do Sistema")
