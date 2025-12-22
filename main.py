@@ -216,9 +216,10 @@ class ArchivedDialog(QDialog):
         filters_layout.addWidget(QLabel(_("priority_filter", "Prioridade:")))
         self.priority_filter = QComboBox()
         self.priority_filter.addItem(_("all_priorities", "Todas"))
-        for priority in PRIORITIES.keys():
-            icon = PRIORITIES[priority]["icon"]
-            self.priority_filter.addItem(f"{icon} {priority}")
+        for priority_key in PRIORITIES.keys():
+            icon = PRIORITIES[priority_key]["icon"]
+            priority_name = _(PRIORITIES[priority_key].get("key", priority_key.lower()), priority_key)
+            self.priority_filter.addItem(f"{icon} {priority_name}", priority_key)
         self.priority_filter.currentTextChanged.connect(self.apply_filters)
         filters_layout.addWidget(self.priority_filter)
         
@@ -256,7 +257,7 @@ class ArchivedDialog(QDialog):
         # Botões inferiores
         buttons_layout = QHBoxLayout()
         
-        export_btn = QPushButton("📤 Exportar CSV")
+        export_btn = QPushButton(_("export_csv_archived", "📤 Exportar CSV"))
         export_btn.clicked.connect(self.export_csv)
         
         clear_btn = QPushButton(_("clear_archive", "🗑️ Limpar Arquivo"))
@@ -368,7 +369,8 @@ class ArchivedDialog(QDialog):
             # Prioridade
             priority = card.get("prioridade", "Normal")
             icon = PRIORITIES[priority]["icon"]
-            priority_item = QTableWidgetItem(f"{icon} {priority}")
+            priority_name = _(PRIORITIES[priority].get("key", priority.lower()), priority)
+            priority_item = QTableWidgetItem(f"{icon} {priority_name}")
             priority_item.setBackground(QColor(PRIORITIES[priority]["postit_color"]))
             self.table.setItem(row, 1, priority_item)
             
@@ -388,7 +390,7 @@ class ArchivedDialog(QDialog):
             actions_layout.setContentsMargins(5, 2, 5, 2)
             
             restore_btn = QPushButton("↩️")
-            restore_btn.setToolTip("Restaurar")
+            restore_btn.setToolTip(_("restore_tooltip", "Restaurar"))
             restore_btn.setMaximumWidth(40)
             restore_btn.clicked.connect(lambda checked, r=row: self.restore_card(r))
             
@@ -502,10 +504,27 @@ class CardDialog(QDialog):
     def __init__(self, parent=None, card_data=None):
         super().__init__(parent)
         self.card_data = card_data
+        self.priority_combo = None  # Será criado em setup_ui
         self.setup_ui()
         
         if card_data:
             self.load_data(card_data)
+    
+    def update_priority_combo(self):
+        """Atualiza o combo de prioridade com textos traduzidos"""
+        if self.priority_combo:
+            current_data = self.priority_combo.currentData()
+            self.priority_combo.clear()
+            for priority_key in PRIORITIES.keys():
+                icon = PRIORITIES[priority_key]["icon"]
+                priority_name = _(PRIORITIES[priority_key].get("key", priority_key.lower()), priority_key)
+                self.priority_combo.addItem(f"{icon} {priority_name}", priority_key)
+            # Restaurar seleção anterior
+            if current_data:
+                for i in range(self.priority_combo.count()):
+                    if self.priority_combo.itemData(i) == current_data:
+                        self.priority_combo.setCurrentIndex(i)
+                        break
             
     def setup_ui(self):
         """Configura interface do dialog"""
@@ -600,7 +619,7 @@ class CardDialog(QDialog):
         
         # Data Início
         start_layout = QVBoxLayout()
-        start_layout.addWidget(QLabel("📅 Data Início:"))
+        start_layout.addWidget(QLabel(_("start_date_label_short", "📅 Data Início:")))
         self.start_date = QDateEdit()
         self.start_date.setCalendarPopup(True)
         self.start_date.setDate(QDate.currentDate())
@@ -724,10 +743,11 @@ class CardDialog(QDialog):
         # Prioridade (define cor automaticamente)
         layout.addWidget(QLabel(_("priority_label", "⚡ Prioridade (define a cor do post-it):")))
         self.priority_combo = QComboBox()
-        for priority in PRIORITIES.keys():
-            icon = PRIORITIES[priority]["icon"]
-            self.priority_combo.addItem(f"{icon} {priority}")
-        self.priority_combo.setCurrentText("⚪ Normal")
+        for priority_key in PRIORITIES.keys():
+            icon = PRIORITIES[priority_key]["icon"]
+            priority_name = _(PRIORITIES[priority_key].get("key", priority_key.lower()), priority_key)
+            self.priority_combo.addItem(f"{icon} {priority_name}", priority_key)
+        self.priority_combo.setCurrentIndex(1)  # Normal
         layout.addWidget(self.priority_combo)
         
         # Tags
@@ -916,7 +936,12 @@ class CardDialog(QDialog):
         
         priority = data.get("prioridade", "Normal")
         icon = PRIORITIES[priority]["icon"]
-        self.priority_combo.setCurrentText(f"{icon} {priority}")
+        priority_name = _(PRIORITIES[priority].get("key", priority.lower()), priority)
+        # Encontrar o índice correto
+        for i in range(self.priority_combo.count()):
+            if self.priority_combo.itemData(i) == priority:
+                self.priority_combo.setCurrentIndex(i)
+                break
         
         tags = data.get("tags", [])
         self.tags_input.setText(", ".join(tags))
@@ -929,7 +954,9 @@ class CardDialog(QDialog):
         
     def get_data(self):
         """Retorna dados do formulário"""
-        priority_text = self.priority_combo.currentText().split(" ", 1)[1]
+        priority_text = self.priority_combo.currentData()  # Retorna a chave (Baixa, Normal, etc)
+        if not priority_text:
+            priority_text = "Normal"  # Fallback
         tags_text = self.tags_input.text().strip()
         tags = [tag.strip() for tag in tags_text.split(",") if tag.strip()]
         
@@ -980,7 +1007,7 @@ class PostItCard(QFrame):
     def __init__(self, data, parent_column):
         super().__init__()
         self.data = data
-        self.titulo = data.get("titulo", "Sem título")
+        self.titulo = data.get("titulo", _("no_title", "Sem título"))
         self.caminho = data.get("caminho", "")
         self.notas = data.get("notas", "")
         self.alerta = data.get("alerta", "")
@@ -1047,7 +1074,7 @@ class PostItCard(QFrame):
         # Engrenagem (menu de opções) - CANTO SUPERIOR DIREITO
         self.gear_btn = QPushButton("⚙")
         self.gear_btn.setMaximumSize(QSize(20, 20))
-        self.gear_btn.setToolTip("Opções do Card")
+        self.gear_btn.setToolTip(_("card_options_tooltip", "Opções do Card"))
         self.gear_btn.setCursor(Qt.PointingHandCursor)
         # Garantir que o botão receba eventos de mouse
         self.gear_btn.setAttribute(Qt.WA_NoMouseReplay, False)
@@ -1564,7 +1591,10 @@ class PostItCard(QFrame):
                         }}
                     """)
                     btn.setCursor(Qt.PointingHandCursor)
-                    btn.setToolTip(color_name)
+                    # Traduzir nome da cor
+                    color_key = f"color_{color_name.lower().replace(' ', '_').replace('ê', 'e').replace('ç', 'c').replace('ã', 'a').replace('é', 'e').replace('í', 'i').replace('ó', 'o').replace('ú', 'u')}"
+                    translated_color_name = _(color_key, color_name)
+                    btn.setToolTip(translated_color_name)
                     btn.clicked.connect(lambda checked, c=color_hex, n=color_name: self.apply_color(c, n, dialog))
                     col_layout.addWidget(btn)
             grid.addLayout(col_layout)
@@ -2377,18 +2407,18 @@ class KanbanColumn(QFrame):
         colors_layout.setSpacing(8)
         
         column_colors = [
-            ("#2196F3", "Azul"),
-            ("#ff9800", "Laranja"),
-            ("#9c27b0", "Roxo"),
-            ("#00bcd4", "Ciano"),
-            ("#4caf50", "Verde"),
-            ("#f44336", "Vermelho"),
-            ("#607d8b", "Cinza"),
-            ("#e91e63", "Rosa"),
-            ("#795548", "Marrom"),
-            ("#ffc107", "Amarelo Ouro"),
-            ("#00e676", "Verde Neon"),
-            ("#1e88e5", "Azul Escuro")
+            ("#2196F3", _("color_blue", "Azul")),
+            ("#ff9800", _("color_orange", "Laranja")),
+            ("#9c27b0", _("color_purple", "Roxo")),
+            ("#00bcd4", _("color_cyan", "Ciano")),
+            ("#4caf50", _("color_green", "Verde")),
+            ("#f44336", _("color_red", "Vermelho")),
+            ("#607d8b", _("color_gray", "Cinza")),
+            ("#e91e63", _("color_pink", "Rosa")),
+            ("#795548", _("color_brown", "Marrom")),
+            ("#ffc107", _("color_gold_yellow", "Amarelo Ouro")),
+            ("#00e676", _("color_green", "Verde Neon")),
+            ("#1e88e5", _("color_blue", "Azul Escuro"))
         ]
         
         selected_color = {"value": self.cor}
@@ -2409,7 +2439,10 @@ class KanbanColumn(QFrame):
                 }}
             """)
             btn.setCursor(Qt.PointingHandCursor)
-            btn.setToolTip(color_name)
+            # Traduzir nome da cor
+            color_key = f"color_{color_name.lower().replace(' ', '_').replace('ê', 'e').replace('ç', 'c').replace('ã', 'a').replace('é', 'e').replace('í', 'i').replace('ó', 'o').replace('ú', 'u')}"
+            translated_color_name = _(color_key, color_name)
+            btn.setToolTip(translated_color_name)
             btn.clicked.connect(lambda checked, c=color_hex: self.apply_column_color(c, dialog))
             colors_layout.addWidget(btn)
         
@@ -4096,14 +4129,14 @@ class KanbanWindow(QMainWindow):
         colors_layout = QHBoxLayout()
         color_buttons = []
         default_colors = [
-            ("#2196F3", "Azul"),
-            ("#ff9800", "Laranja"),
-            ("#9c27b0", "Roxo"),
-            ("#00bcd4", "Ciano"),
-            ("#4caf50", "Verde"),
-            ("#f44336", "Vermelho"),
-            ("#607d8b", "Cinza"),
-            ("#e91e63", "Rosa")
+            ("#2196F3", _("color_blue", "Azul")),
+            ("#ff9800", _("color_orange", "Laranja")),
+            ("#9c27b0", _("color_purple", "Roxo")),
+            ("#00bcd4", _("color_cyan", "Ciano")),
+            ("#4caf50", _("color_green", "Verde")),
+            ("#f44336", _("color_red", "Vermelho")),
+            ("#607d8b", _("color_gray", "Cinza")),
+            ("#e91e63", _("color_pink", "Rosa"))
         ]
         
         selected_color = {"value": "#607d8b"}  # Padrão
@@ -4122,7 +4155,10 @@ class KanbanWindow(QMainWindow):
                 }}
             """)
             btn.setCursor(Qt.PointingHandCursor)
-            btn.setToolTip(color_name)
+            # Traduzir nome da cor
+            color_key = f"color_{color_name.lower().replace(' ', '_').replace('ê', 'e').replace('ç', 'c').replace('ã', 'a').replace('é', 'e').replace('í', 'i').replace('ó', 'o').replace('ú', 'u')}"
+            translated_color_name = _(color_key, color_name)
+            btn.setToolTip(translated_color_name)
             btn.clicked.connect(lambda checked, c=color_hex: selected_color.update({"value": c}))
             colors_layout.addWidget(btn)
             color_buttons.append(btn)
@@ -4274,11 +4310,11 @@ class KanbanWindow(QMainWindow):
                     if code == current_lang:
                         language_combo.setCurrentIndex(language_combo.count() - 1)
             except:
-                language_combo.addItem("Português (Brasil)", "pt_BR")
+                language_combo.addItem(I18nManager.get_language_name("pt_BR"), "pt_BR")
         else:
-            language_combo.addItem("Português (Brasil)", "pt_BR")
-            language_combo.addItem("English (US)", "en_US")
-            language_combo.addItem("Español", "es_ES")
+            language_combo.addItem(I18nManager.get_language_name("pt_BR"), "pt_BR")
+            language_combo.addItem(I18nManager.get_language_name("en_US"), "en_US")
+            language_combo.addItem(I18nManager.get_language_name("es_ES"), "es_ES")
         
         def change_language():
             lang_code = language_combo.currentData()
