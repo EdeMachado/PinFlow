@@ -662,7 +662,7 @@ class CardDialog(QDialog):
         self.alert_date.setDisplayFormat("dd/MM/yyyy")
         self.alert_date.setStyleSheet("""
             QDateEdit {
-                color: #000000;
+                color: #000000 !important;
                 background-color: white;
                 padding: 5px;
                 border: 1px solid #ccc;
@@ -670,6 +670,9 @@ class CardDialog(QDialog):
             }
             QDateEdit::drop-down {
                 border: none;
+            }
+            QDateEdit QAbstractItemView {
+                color: #000000 !important;
             }
         """)
         date_layout.addWidget(self.alert_date)
@@ -682,7 +685,7 @@ class CardDialog(QDialog):
         self.alert_time.setTime(QTime.currentTime())
         self.alert_time.setStyleSheet("""
             QTimeEdit {
-                color: #000000;
+                color: #000000 !important;
                 background-color: white;
                 padding: 5px;
                 border: 1px solid #ccc;
@@ -690,6 +693,9 @@ class CardDialog(QDialog):
             }
             QTimeEdit::drop-down {
                 border: none;
+            }
+            QTimeEdit QAbstractItemView {
+                color: #000000 !important;
             }
         """)
         time_layout.addWidget(self.alert_time)
