@@ -2091,7 +2091,6 @@ class KanbanColumn(QFrame):
         # Header da coluna - Carregar cor salva ou usar padrão
         header_container = QWidget()
         # Carregar cor salva (se houver)
-        column_header_color = "#1e3a5f"  # Padrão
         try:
             if os.path.exists("settings.json"):
                 with open("settings.json", "r", encoding="utf-8") as f:
@@ -2114,13 +2113,13 @@ class KanbanColumn(QFrame):
                             border-radius: 8px;
                             padding: 8px;
                         """)
-                else:
-                    header_container.setStyleSheet("""
-                        background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-                            stop:0 #1e3a5f, stop:1 #2a5080);
-                        border-radius: 8px;
-                        padding: 8px;
-                    """)
+            else:
+                header_container.setStyleSheet("""
+                    background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                        stop:0 #1e3a5f, stop:1 #2a5080);
+                    border-radius: 8px;
+                    padding: 8px;
+                """)
         except:
             header_container.setStyleSheet("""
                 background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
