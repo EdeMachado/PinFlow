@@ -3833,6 +3833,10 @@ class KanbanWindow(QMainWindow):
                     background-color: #7d7d7d;
                 }
             """)
+            
+            # Garantir que logo/título mantenha cor fixa no modo escuro
+            if hasattr(self, 'title_label'):
+                self.title_label.setStyleSheet("color: #1e3a5f; padding: 10px;")
         else:
             # MODO CLARO - Carregar cor salva ou usar padrão
             if header_color_saved:
