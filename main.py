@@ -3496,6 +3496,9 @@ class KanbanWindow(QMainWindow):
         header_layout.addWidget(title_label)
         header_layout.addStretch()
         header_layout.addWidget(self.config_btn)
+        # Adicionar nome do cliente no lado direito (se houver)
+        if customer_name_label:
+            header_layout.addWidget(customer_name_label)
         header_layout.addLayout(logo_theme_layout)
         
         header_widget = QWidget()
