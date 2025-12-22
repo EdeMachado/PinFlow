@@ -4032,11 +4032,23 @@ class KanbanWindow(QMainWindow):
         
         # Salvar cada coluna
         for col in self.columns:
+            # Validar dados dos cards (se validação habilitada)
+            cards_data = col.get_cards_data()
+            if VALIDATION_ENABLED:
+                validated_cards = []
+                for card_data in cards_data:
+                    is_valid, message, sanitized = InputValidator.validate_card_data(card_data)
+                    if is_valid:
+                        validated_cards.append(sanitized)
+                    else:
+                        print(f"⚠️ Card inválido ignorado: {message}")
+                cards_data = validated_cards
+            
             column_data = {
                 "id": col.column_id,
                 "titulo": col.titulo,
                 "cor": col.cor,
-                "cards": col.get_cards_data()
+                "cards": cards_data
             }
             data["columns"].append(column_data)
         
