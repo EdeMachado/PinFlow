@@ -23,7 +23,7 @@ from PySide6.QtWidgets import (QApplication, QMainWindow, QWidget, QHBoxLayout,
                                QDialog, QLineEdit, QTextEdit, QComboBox, QSlider,
                                QSystemTrayIcon, QMenu, QDialogButtonBox, QMessageBox,
                                QTableWidget, QTableWidgetItem, QHeaderView, QFileDialog,
-                               QDateEdit, QTimeEdit, QGroupBox, QTabWidget)
+                               QDateEdit, QTimeEdit, QGroupBox, QTabWidget, QInputDialog)
 from PySide6.QtCore import Qt, QMimeData, QPoint, QSize, Signal, QDate, QTime, QTimer
 from PySide6.QtGui import QDrag, QPalette, QColor, QFont, QIcon, QKeySequence, QShortcut, QAction, QTextCharFormat
 import PySide6
