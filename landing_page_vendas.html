@@ -314,11 +314,11 @@
                     Clique no caminho para abrir a pasta no Explorer. <strong>Funcionalidade única que não existe em outros Kanbans!</strong>
                 </p>
             </div>
-            <div class="price">
-                R$ <span style="color: #00C853;">11,00</span>
+            <div class="price" id="price-hero">
+                <span id="price-currency-hero">R$</span> <span id="price-value-hero" style="color: #00C853;">11,00</span>
                 <small>/mês</small>
                 <br>
-                <span style="font-size: 18px; opacity: 0.9;">(~US$ 1,99/mês)</span>
+                <span id="price-usd-hero" style="font-size: 18px; opacity: 0.9;">(~US$ 1,99/mês)</span>
             </div>
             <a href="#comprar" class="cta-button">🛒 ASSINAR AGORA</a>
             <p style="margin-top: 20px; opacity: 0.8;">✅ Assinatura anual (cobrança mensal) • ✅ Atualizações gratuitas • ✅ Suporte incluído • ✅ Cancele quando quiser</p>
@@ -500,11 +500,11 @@
     <section class="hero" id="comprar" style="padding: 60px 0;">
         <div class="container">
             <h2 style="margin-bottom: 30px;">Pronto para Organizar Suas Tarefas?</h2>
-            <div class="price">
-                R$ <span style="color: #00C853;">11,00</span>
+            <div class="price" id="price-cta">
+                <span id="price-currency-cta">R$</span> <span id="price-value-cta" style="color: #00C853;">11,00</span>
                 <small>/mês</small>
                 <br>
-                <span style="font-size: 18px; opacity: 0.9;">(~US$ 1,99/mês)</span>
+                <span id="price-usd-cta" style="font-size: 18px; opacity: 0.9;">(~US$ 1,99/mês)</span>
             </div>
             <a href="https://hotmart.com/seu-link-aqui" class="cta-button" target="_blank">🛒 ASSINAR AGORA</a>
             <p style="margin-top: 20px; opacity: 0.8;">Assinatura anual (cobrança mensal) • Pagamento seguro via Hotmart • Ativação imediata • Suporte garantido • Cancele quando quiser</p>
@@ -522,6 +522,133 @@
             </p>
         </div>
     </footer>
+
+    <!-- Script de Detecção de País e Conversão de Moeda -->
+    <script>
+        // Preço base em USD
+        const BASE_PRICE_USD = 1.99;
+        
+        // Mapeamento de países para moedas
+        const COUNTRY_CURRENCY = {
+            'BR': { code: 'BRL', symbol: 'R$', name: 'Real Brasileiro' },
+            'US': { code: 'USD', symbol: 'US$', name: 'US Dollar' },
+            'CA': { code: 'CAD', symbol: 'C$', name: 'Canadian Dollar' },
+            'GB': { code: 'GBP', symbol: '£', name: 'British Pound' },
+            'DE': { code: 'EUR', symbol: '€', name: 'Euro' },
+            'FR': { code: 'EUR', symbol: '€', name: 'Euro' },
+            'IT': { code: 'EUR', symbol: '€', name: 'Euro' },
+            'ES': { code: 'EUR', symbol: '€', name: 'Euro' },
+            'PT': { code: 'EUR', symbol: '€', name: 'Euro' },
+            'NL': { code: 'EUR', symbol: '€', name: 'Euro' },
+            'BE': { code: 'EUR', symbol: '€', name: 'Euro' },
+            'AT': { code: 'EUR', symbol: '€', name: 'Euro' },
+            'CH': { code: 'CHF', symbol: 'CHF', name: 'Swiss Franc' },
+            'JP': { code: 'JPY', symbol: '¥', name: 'Japanese Yen' },
+            'CN': { code: 'CNY', symbol: '¥', name: 'Chinese Yuan' },
+            'IN': { code: 'INR', symbol: '₹', name: 'Indian Rupee' },
+            'AU': { code: 'AUD', symbol: 'A$', name: 'Australian Dollar' },
+            'NZ': { code: 'NZD', symbol: 'NZ$', name: 'New Zealand Dollar' },
+            'MX': { code: 'MXN', symbol: 'MX$', name: 'Mexican Peso' },
+            'AR': { code: 'ARS', symbol: 'AR$', name: 'Argentine Peso' },
+            'CL': { code: 'CLP', symbol: 'CL$', name: 'Chilean Peso' },
+            'CO': { code: 'COP', symbol: 'CO$', name: 'Colombian Peso' },
+            'RU': { code: 'RUB', symbol: '₽', name: 'Russian Ruble' },
+            'KR': { code: 'KRW', symbol: '₩', name: 'South Korean Won' },
+            'SG': { code: 'SGD', symbol: 'S$', name: 'Singapore Dollar' },
+            'ZA': { code: 'ZAR', symbol: 'R', name: 'South African Rand' },
+            'TR': { code: 'TRY', symbol: '₺', name: 'Turkish Lira' },
+            'PL': { code: 'PLN', symbol: 'zł', name: 'Polish Zloty' },
+            'SE': { code: 'SEK', symbol: 'kr', name: 'Swedish Krona' },
+            'NO': { code: 'NOK', symbol: 'kr', name: 'Norwegian Krone' },
+            'DK': { code: 'DKK', symbol: 'kr', name: 'Danish Krone' }
+        };
+
+        // Função para formatar número com separador decimal apropriado
+        function formatPrice(value, currencyCode) {
+            if (currencyCode === 'JPY' || currencyCode === 'KRW') {
+                return Math.round(value).toLocaleString('en-US');
+            }
+            return value.toFixed(2).replace('.', ',');
+        }
+
+        // Função para atualizar preços na página
+        function updatePrices(currencyCode, currencySymbol, exchangeRate) {
+            const localPrice = BASE_PRICE_USD * exchangeRate;
+            const formattedPrice = formatPrice(localPrice, currencyCode);
+            
+            // Atualizar Hero Section
+            document.getElementById('price-currency-hero').textContent = currencySymbol;
+            document.getElementById('price-value-hero').textContent = formattedPrice;
+            document.getElementById('price-usd-hero').textContent = `(~US$ ${BASE_PRICE_USD.toFixed(2)}/mês)`;
+            
+            // Atualizar CTA Final
+            document.getElementById('price-currency-cta').textContent = currencySymbol;
+            document.getElementById('price-value-cta').textContent = formattedPrice;
+            document.getElementById('price-usd-cta').textContent = `(~US$ ${BASE_PRICE_USD.toFixed(2)}/mês)`;
+        }
+
+        // Função para detectar país e converter moeda
+        async function detectCountryAndConvert() {
+            try {
+                // Detectar país usando ipapi.co (gratuita, sem API key necessária)
+                const geoResponse = await fetch('https://ipapi.co/json/');
+                const geoData = await geoResponse.json();
+                
+                const countryCode = geoData.country_code;
+                const currencyInfo = COUNTRY_CURRENCY[countryCode];
+                
+                if (!currencyInfo) {
+                    // Se país não mapeado, usar USD como padrão
+                    updatePrices('USD', 'US$', 1);
+                    return;
+                }
+
+                // Se for USD, não precisa converter
+                if (currencyInfo.code === 'USD') {
+                    updatePrices('USD', 'US$', 1);
+                    return;
+                }
+
+                // Buscar cotação usando exchangerate-api.com (gratuita)
+                try {
+                    const rateResponse = await fetch(`https://api.exchangerate-api.com/v4/latest/USD`);
+                    const rateData = await rateResponse.json();
+                    const exchangeRate = rateData.rates[currencyInfo.code];
+                    
+                    if (exchangeRate) {
+                        updatePrices(currencyInfo.code, currencyInfo.symbol, exchangeRate);
+                    } else {
+                        // Se não encontrar cotação, usar USD
+                        updatePrices('USD', 'US$', 1);
+                    }
+                } catch (rateError) {
+                    console.log('Erro ao buscar cotação, usando USD:', rateError);
+                    updatePrices('USD', 'US$', 1);
+                }
+                
+            } catch (error) {
+                console.log('Erro ao detectar país, usando BRL como padrão:', error);
+                // Em caso de erro, usar BRL (Brasil) como padrão
+                try {
+                    const rateResponse = await fetch(`https://api.exchangerate-api.com/v4/latest/USD`);
+                    const rateData = await rateResponse.json();
+                    const exchangeRate = rateData.rates['BRL'];
+                    if (exchangeRate) {
+                        updatePrices('BRL', 'R$', exchangeRate);
+                    } else {
+                        updatePrices('BRL', 'R$', 5.53); // Fallback para cotação conhecida
+                    }
+                } catch {
+                    updatePrices('BRL', 'R$', 5.53); // Fallback final
+                }
+            }
+        }
+
+        // Executar quando a página carregar
+        document.addEventListener('DOMContentLoaded', function() {
+            detectCountryAndConvert();
+        });
+    </script>
 </body>
 </html>
 
