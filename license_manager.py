@@ -78,7 +78,7 @@ class LicenseManager:
             "subscription_type": subscription_type,
             "monthly_billing": monthly_billing,
             "next_billing_date": next_billing_date.strftime("%Y-%m-%d") if next_billing_date else None,
-            "price_monthly": 9.99,  # R$ 9,99/mês (~US$ 2,00)
+            "price_monthly": 11.00,  # R$ 11,00/mês (~US$ 1,99)
             "price_currency": "BRL"
         }
         

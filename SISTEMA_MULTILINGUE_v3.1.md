@@ -24,7 +24,7 @@
 - ✅ Requer recarregamento do aplicativo para aplicar mudanças
 
 ### 3. **Modelo de Assinatura Mensal**
-- ✅ **Preço**: R$ 9,99/mês (~US$ 2,00/mês)
+- ✅ **Preço**: R$ 11,00/mês (~US$ 1,99/mês)
 - ✅ **Modelo**: Assinatura anual com cobrança mensal
 - ✅ **Renovação**: Automática (mensal)
 - ✅ **Cancelamento**: A qualquer momento
@@ -33,11 +33,11 @@
 - ✅ Suporte para assinatura mensal (`monthly_billing`)
 - ✅ Campo `next_billing_date` para rastrear próxima cobrança
 - ✅ Campo `subscription_type` ("annual" ou "monthly")
-- ✅ Preço mensal: R$ 9,99 (~US$ 2,00)
+- ✅ Preço mensal: R$ 11,00 (~US$ 1,99)
 - ✅ Validação de renovação (alerta 7 dias antes)
 
 ### 5. **Landing Page Atualizada**
-- ✅ Preço atualizado para R$ 9,99/mês
+- ✅ Preço atualizado para R$ 11,00/mês (~US$ 1,99)
 - ✅ Conversão para USD (~US$ 2,00/mês)
 - ✅ Texto atualizado: "Assinatura anual (cobrança mensal)"
 - ✅ Benefícios: "Cancele quando quiser"
@@ -97,8 +97,8 @@ lang = I18nManager.get_current_language()  # "pt_BR"
 ## 💰 Modelo de Preços
 
 ### **Assinatura Mensal**
-- **Preço**: R$ 9,99/mês
-- **Equivalente**: ~US$ 2,00/mês
+- **Preço**: R$ 11,00/mês
+- **Equivalente**: ~US$ 1,99/mês
 - **Modelo**: Assinatura anual com cobrança mensal
 - **Renovação**: Automática
 - **Cancelamento**: A qualquer momento
