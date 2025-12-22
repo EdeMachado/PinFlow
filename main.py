@@ -1156,53 +1156,24 @@ class PostItCard(QFrame):
         """Atualiza estilo do card baseado no tema"""
         border_color = PRIORITIES[self.prioridade]["color"]
         
-        # Verificar se está em modo escuro
-        if hasattr(self.parent_column, 'window') and hasattr(self.parent_column.window, 'dark_mode') and self.parent_column.window.dark_mode:
-            # MODO ESCURO - Cards mantêm cores originais (rosa, azul, etc.)
-            self.setStyleSheet(f"""
-                PostItCard {{
-                    background-color: {self.cor};
-                    border-left: 5px solid {border_color};
-                    border-right: 1px solid #1a1a1a;
-                    border-top: 1px solid #1a1a1a;
-                    border-bottom: 1px solid #1a1a1a;
-                    border-radius: 5px;
-                    min-height: 80px;
-                    color: #000000;
-                }}
-                PostItCard:hover {{
-                    filter: brightness(1.1);
-                    border-left: 5px solid {border_color};
-                    border-right: 2px solid #2d2d2d;
-                    border-top: 2px solid #2d2d2d;
-                    border-bottom: 2px solid #2d2d2d;
-                }}
-                QLabel {{
-                    color: #000000;
-                    background-color: transparent;
-                }}
-            """)
-        else:
-            # MODO CLARO - Visual original vibrante
-            self.setStyleSheet(f"""
-                PostItCard {{
-                    background-color: {self.cor};
-                    border-left: 5px solid {border_color};
-                    border-right: 1px solid #e6d000;
-                    border-top: 1px solid #e6d000;
-                    border-bottom: 1px solid #e6d000;
-                    border-radius: 5px;
-                    min-height: 80px;
-                }}
-                PostItCard:hover {{
-                    background-color: {self.cor};
-                    filter: brightness(1.1);
-                    border-left: 5px solid {border_color};
-                    border-right: 2px solid #ccaa00;
-                    border-top: 2px solid #ccaa00;
-                    border-bottom: 2px solid #ccaa00;
-                }}
-            """)
+        # Cards sempre com fundo da cor selecionada (todo amarelo, todo rosa, etc.)
+        self.setStyleSheet(f"""
+            PostItCard {{
+                background-color: {self.cor};
+                border: none;
+                border-radius: 5px;
+                min-height: 80px;
+                color: #000000;
+            }}
+            PostItCard:hover {{
+                background-color: {self.cor};
+                filter: brightness(1.05);
+            }}
+            QLabel {{
+                color: #000000;
+                background-color: transparent;
+            }}
+        """)
     
     def darken_color(self, hex_color, factor=0.3):
         """Escurece uma cor hex por um fator (0.0 a 1.0)"""
