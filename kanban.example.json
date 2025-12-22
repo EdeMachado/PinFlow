@@ -1,0 +1,70 @@
+{
+  "todo": [
+    {
+      "titulo": "📄 relatorio.docx",
+      "caminho": "C:\\Documentos\\relatorio.docx",
+      "notas": "Revisar até sexta-feira",
+      "prioridade": "Alta",
+      "cor": "#ffb347",
+      "tags": ["trabalho", "urgente"],
+      "data_criacao": "21/12/2025 10:30"
+    },
+    {
+      "titulo": "Estudar Python",
+      "caminho": "",
+      "notas": "Focar em orientação a objetos",
+      "prioridade": "Normal",
+      "cor": "#fff740",
+      "tags": ["estudo"],
+      "data_criacao": "21/12/2025 11:00"
+    }
+  ],
+  "doing": [
+    {
+      "titulo": "📁 Projeto Web",
+      "caminho": "C:\\Projetos\\website",
+      "notas": "Implementar sistema de login",
+      "prioridade": "Urgente",
+      "cor": "#ff87c3",
+      "tags": ["dev", "frontend"],
+      "data_criacao": "20/12/2025 09:15"
+    }
+  ],
+  "done": [
+    {
+      "titulo": "Backup completo",
+      "caminho": "",
+      "notas": "Backup realizado",
+      "prioridade": "Baixa",
+      "cor": "#b4ff87",
+      "tags": ["manutencao"],
+      "data_criacao": "19/12/2025 16:45"
+    }
+  ],
+  "approved": [
+    {
+      "titulo": "Proposta aprovada",
+      "caminho": "C:\\Docs\\proposta.pdf",
+      "notas": "Cliente aprovou",
+      "prioridade": "Normal",
+      "cor": "#fff740",
+      "tags": ["cliente"],
+      "data_criacao": "18/12/2025 14:20"
+    }
+  ],
+  "completed": [
+    {
+      "titulo": "Projeto finalizado",
+      "caminho": "",
+      "notas": "Entregue e aprovado",
+      "prioridade": "Alta",
+      "cor": "#ffb347",
+      "tags": ["concluido"],
+      "data_criacao": "15/12/2025 18:00"
+    }
+  ],
+  "settings": {
+    "transparency": 95,
+    "always_on_top": true
+  }
+}

@@ -1,0 +1,69 @@
+========================================
+  COMO FAZER O KANBAN ABRIR SOZINHO
+  (igual ao Post-it do Windows)
+========================================
+
+PASSO 1: INSTALAR INICIALIZAÇÃO AUTOMÁTICA
+-------------------------------------------
+1. Clique duas vezes em: instalar_inicializacao.bat
+2. Pronto! Agora o Kanban vai abrir AUTOMATICAMENTE sempre que você ligar o PC!
+
+
+PASSO 2: TESTAR (OPCIONAL)
+----------------------------
+Você pode testar de 2 formas:
+
+OPÇÃO A) Reiniciar o computador
+  - O Kanban vai abrir sozinho quando o Windows iniciar!
+
+OPÇÃO B) Testar sem reiniciar
+  1. Feche o Kanban (se estiver aberto)
+  2. Clique duas vezes em: run_startup.bat
+  3. O Kanban vai abrir em background (sem console)
+
+
+========================================
+  REMOVER INICIALIZAÇÃO AUTOMÁTICA
+========================================
+
+Se quiser DESATIVAR a inicialização automática:
+1. Clique duas vezes em: remover_inicializacao.bat
+2. Pronto! O Kanban não vai mais abrir automaticamente
+
+
+========================================
+  PERGUNTAS FREQUENTES
+========================================
+
+❓ O Kanban vai aparecer sempre que eu ligar o PC?
+✅ SIM! Exatamente como o Post-it do Windows!
+
+❓ E se eu fechar o Kanban?
+✅ Ele só abre de novo quando você reiniciar o PC (ou executar run.bat)
+
+❓ Posso desinstalar depois?
+✅ SIM! É só executar: remover_inicializacao.bat
+
+❓ Onde fica o atalho?
+✅ Em: %APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup\PostitKanban.lnk
+
+
+========================================
+  ARQUIVOS IMPORTANTES
+========================================
+
+run.bat                    → Abrir o Kanban manualmente (com console)
+run_startup.bat            → Abrir em background (sem console)
+instalar_inicializacao.bat → Ativar abertura automática
+remover_inicializacao.bat  → Desativar abertura automática
+
+
+========================================
+  AGORA EXECUTE:
+========================================
+
+👉 instalar_inicializacao.bat
+
+E depois reinicie o PC para testar! 🚀
+
+© 2025 - Criado por Ede Machado

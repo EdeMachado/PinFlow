@@ -1,0 +1,146 @@
+========================================
+  CORRIGIR NOTIFICAÇÕES v2.1.1
+  Post-it Kanban Pro
+========================================
+
+⚠️ NOTIFICAÇÕES NÃO APARECEM? SOLUÇÃO AQUI!
+
+========================================
+  PROBLEMA IDENTIFICADO
+========================================
+
+Plyer nem sempre funciona bem no Windows.
+Solução: usar win10toast (MUITO MAIS CONFIÁVEL!)
+
+========================================
+  SOLUÇÃO RÁPIDA (3 PASSOS)
+========================================
+
+1️⃣ Execute: corrigir_notificacoes.bat
+   (Remove plyer e instala win10toast)
+
+2️⃣ Feche o Kanban
+
+3️⃣ Execute: run.bat
+   (Abre com nova biblioteca)
+
+✅ PRONTO! Agora vai funcionar!
+
+========================================
+  O QUE FOI MUDADO
+========================================
+
+ANTES (v2.1):
+  - Usava: plyer
+  - Problema: nem sempre funciona
+
+AGORA (v2.1.1):
+  - Usa: win10toast (prioritário)
+  - Fallback: plyer (se win10toast não existir)
+  - MUITO mais confiável!
+
+========================================
+  TESTE IMEDIATO
+========================================
+
+Após executar corrigir_notificacoes.bat:
+
+1. Apareceu notificação de teste?
+   ✅ SIM → Funcionou!
+   ❌ NÃO → Veja troubleshooting abaixo
+
+2. Abra o Kanban (run.bat)
+
+3. Veja no console:
+   ✅ "Notificações: win10toast (recomendado)"
+   ou
+   ✅ "Notificações: plyer (fallback)"
+
+4. Configure alerta daqui 2 minutos
+
+5. Aguarde...
+
+6. 🔔 NOTIFICAÇÃO DEVE APARECER!
+
+========================================
+  TROUBLESHOOTING
+========================================
+
+PROBLEMA 1: "Notificações desabilitadas"
+SOLUÇÃO:
+  pip install win10toast
+  pip install plyer
+
+PROBLEMA 2: Notificação não aparece
+VERIFICAR:
+  1. Centro de Ações do Windows habilitado?
+  2. Notificações permitidas?
+  3. Modo Foco Assistido desligado?
+
+PROBLEMA 3: Erro ao instalar win10toast
+SOLUÇÃO:
+  pip install --upgrade pip
+  pip install win10toast
+
+========================================
+  VERIFICAR INSTALAÇÃO
+========================================
+
+Execute no PowerShell:
+
+python -c "import win10toast; print('win10toast OK')"
+
+Deve mostrar: win10toast OK
+
+========================================
+  DIFERENÇAS win10toast vs plyer
+========================================
+
+win10toast:
+  ✅ Feito especificamente para Windows
+  ✅ Mais confiável
+  ✅ Menos bugs
+  ✅ Toast nativo Windows 10/11
+  ✅ Funciona sempre
+
+plyer:
+  ⚠️ Multiplataforma (genérico)
+  ⚠️ Às vezes não funciona
+  ⚠️ Mais bugs no Windows
+  ⚠️ Usado como fallback
+
+========================================
+  CÓDIGO ATUALIZADO
+========================================
+
+O sistema agora tenta nesta ordem:
+
+1. win10toast (preferido)
+2. plyer (fallback)
+3. Nenhum (desabilita notificações)
+
+Mensagem no console ao abrir:
+  "✅ Notificações: win10toast (recomendado)"
+
+========================================
+  EXECUTE AGORA
+========================================
+
+corrigir_notificacoes.bat
+
+Isso vai:
+  ✓ Desinstalar plyer
+  ✓ Instalar win10toast
+  ✓ Testar notificação
+  ✓ Confirmar funcionamento
+
+DEPOIS:
+  1. Feche Kanban
+  2. Execute: run.bat
+  3. Teste alerta
+  4. 🔔 FUNCIONARÁ!
+
+© 2025 - Ede Machado
+Post-it Kanban Pro v2.1.1
+========================================
+

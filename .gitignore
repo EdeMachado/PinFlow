@@ -1,0 +1,100 @@
+# Dados do Kanban (sensíveis - não commitar)
+kanban.json
+kanban_arquivo.json
+*.json.backup
+backups/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# PyInstaller
+*.spec.bak
+*.manifest
+*.spec
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.cursor/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+*.lnk
+
+# Logs e temporários
+*.log
+*.tmp
+*.temp
+*.cache
+
+# Arquivos de teste
+test_*.py
+*_test.py
+teste_*.py
+teste_*.bat
+
+# Arquivos de instalação gerados
+icon_*.png
+icon.ico
+dist/
+build/
+
+# Arquivos de documentação temporários (manter apenas os principais)
+ATUALIZACAO_*.txt
+CORRECAO_*.txt
+CORRECOES_*.txt
+GUIA_*.txt
+NOTIFICACOES_*.txt
+SOLUCAO_*.txt
+VERSAO_*.txt
+PINFLOW_*.txt
+NOTEFLOW_*.txt
+RESUMO_*.txt
+STATUS.txt
+LEIA-ME.txt
+LEIA-ME_PRIMEIRO.txt
+
+# Scripts de teste/desenvolvimento
+test.bat
+teste_*.bat
+debug_*.bat
+testar_*.bat
+corrigir_*.bat
+registrar_*.bat
+teste_*.py
+
+# Arquivos de versão antigos
+0.9
+2.1.0
+
+# Configurações locais
+.env
+.env.local
+config.local.json
