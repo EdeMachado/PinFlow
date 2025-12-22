@@ -3583,7 +3583,10 @@ class KanbanWindow(QMainWindow):
             license_btn.setCursor(Qt.PointingHandCursor)
             license_btn.setStyleSheet(btn_style)
             license_btn.setToolTip("Ativar ou verificar licença")
+            self.license_btn = license_btn  # Guardar referência para atualizar cor
             toolbar_layout.addWidget(license_btn)
+            # Adicionar à lista de botões da toolbar para atualização de cor
+            self.toolbar_buttons.append(license_btn)
         toolbar_layout.addStretch()
         toolbar_layout.addWidget(transparency_label)
         toolbar_layout.addWidget(self.transparency_slider)
