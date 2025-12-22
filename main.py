@@ -3412,14 +3412,16 @@ class KanbanWindow(QMainWindow):
             if license_info:
                 customer_name = license_info.get('customer_name', None)
                 if customer_name:
-                    customer_name_text = f"<span style='color: #1e3a5f; font-weight: bold;'>{customer_name}</span>"
+                    customer_name_text = f"<span style='font-weight: bold;'>{customer_name}</span>"
                     customer_name_label = QLabel(customer_name_text)
-                    customer_name_label.setFont(QFont("Segoe UI", 14, QFont.Bold))
+                    customer_name_label.setFont(QFont("Segoe UI", 11, QFont.Bold))  # Diminuído de 14 para 11
                     customer_name_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
                     customer_name_label.setTextFormat(Qt.RichText)
-                    customer_name_label.setStyleSheet("color: #1e3a5f; padding: 10px; cursor: pointer;")  # Cursor pointer para indicar clicável
+                    customer_name_label.setStyleSheet("color: #1e3a5f; padding: 5px; cursor: pointer;")  # Padding reduzido
                     customer_name_label.setCursor(Qt.PointingHandCursor)
                     customer_name_label.mousePressEvent = lambda e: self.show_config_dialog()  # Clicável para abrir configurações
+                    # Guardar referência para atualizar cor no tema
+                    self.customer_name_label = customer_name_label
         
         # Logo e tema no canto superior direito (lado a lado)
         logo_theme_layout = QHBoxLayout()
@@ -3431,15 +3433,15 @@ class KanbanWindow(QMainWindow):
         self.theme_toggle.setCheckable(True)
         self.theme_toggle.setChecked(False)
         self.theme_toggle.clicked.connect(self.toggle_theme)
-        self.theme_toggle.setFixedSize(QSize(50, 50))
+        self.theme_toggle.setFixedSize(QSize(35, 35))  # Diminuído de 50x50 para 35x35
         self.theme_toggle.setCursor(Qt.PointingHandCursor)
         self.theme_toggle.setToolTip(_("theme_toggle", "Alternar tema (Claro/Escuro)"))
         self.theme_toggle.setStyleSheet("""
             QPushButton {
                 background-color: rgba(30, 58, 95, 0.15);
                 border: 2px solid rgba(30, 58, 95, 0.6);
-                border-radius: 25px;
-                font-size: 24px;
+                border-radius: 17px;
+                font-size: 18px;
                 padding: 0px;
             }
             QPushButton:hover {
@@ -3843,11 +3845,15 @@ class KanbanWindow(QMainWindow):
             if header_color_saved:
                 color = QColor(header_color_saved)
                 text_color = self.get_text_color_for_background(color)
-                # Atualizar cor do nome do cliente também (se houver)
+                # Atualizar cor do nome do cliente também (se houver) - PRETO no modo claro
                 if hasattr(self, 'customer_name_label'):
-                    self.customer_name_label.setStyleSheet(f"color: {text_color}; padding: 10px; cursor: pointer;")
+                    self.customer_name_label.setStyleSheet(f"color: #000000; padding: 5px; cursor: pointer;")
                 # Atualizar cor dos botões baseado na cor do header
                 self.update_buttons_color(color)
+            else:
+                # Se não houver cor salva, nome do usuário PRETO no modo claro
+                if hasattr(self, 'customer_name_label'):
+                    self.customer_name_label.setStyleSheet("color: #000000; padding: 5px; cursor: pointer;")
             
             # Garantir que logo/título mantenha cor fixa (não muda com header ou tema) - MODO CLARO
             if hasattr(self, 'title_label'):
