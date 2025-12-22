@@ -3780,11 +3780,14 @@ class KanbanWindow(QMainWindow):
             
             self.setStyleSheet("""
                 QMainWindow {
-                    background-color: #0a0a0a;
+                    background-color: #0a0a0a !important;
                 }
                 QWidget {
-                    background-color: #0a0a0a;
+                    background-color: #0a0a0a !important;
                     color: #e0e0e0;
+                }
+                QFrame {
+                    background-color: #0a0a0a !important;
                 }
                 QLineEdit {
                     padding: 8px;
@@ -3803,8 +3806,11 @@ class KanbanWindow(QMainWindow):
                     background-color: transparent;
                 }
                 QScrollArea {
-                    background-color: #0a0a0a;
+                    background-color: #0a0a0a !important;
                     border: none;
+                }
+                QScrollArea QWidget {
+                    background-color: #0a0a0a !important;
                 }
                 QSlider::groove:horizontal {
                     background-color: #2d2d2d;
