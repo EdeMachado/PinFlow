@@ -641,6 +641,10 @@ class CardDialog(QDialog):
             }
             QDateEdit QAbstractItemView {
                 color: #000000 !important;
+                background-color: white;
+            }
+            QDateEdit::up-button, QDateEdit::down-button {
+                color: #000000 !important;
             }
         """)
         start_layout.addWidget(self.start_date)
@@ -712,6 +716,10 @@ class CardDialog(QDialog):
                 border: none;
             }
             QDateEdit QAbstractItemView {
+                color: #000000 !important;
+                background-color: white;
+            }
+            QDateEdit::up-button, QDateEdit::down-button {
                 color: #000000 !important;
             }
         """)
