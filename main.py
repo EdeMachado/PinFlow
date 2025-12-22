@@ -4384,11 +4384,11 @@ class KanbanWindow(QMainWindow):
                     if code == current_lang:
                         language_combo.setCurrentIndex(language_combo.count() - 1)
             except:
-                language_combo.addItem(I18nManager.get_language_name("pt_BR"), "pt_BR")
+                language_combo.addItem("Português (Brasil)", "pt_BR")
         else:
-            language_combo.addItem(I18nManager.get_language_name("pt_BR"), "pt_BR")
-            language_combo.addItem(I18nManager.get_language_name("en_US"), "en_US")
-            language_combo.addItem(I18nManager.get_language_name("es_ES"), "es_ES")
+            language_combo.addItem("Português (Brasil)", "pt_BR")
+            language_combo.addItem("English (US)", "en_US")
+            language_combo.addItem("Español (España)", "es_ES")
         
         def change_language():
             lang_code = language_combo.currentData()

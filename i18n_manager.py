@@ -13,16 +13,7 @@ class I18nManager:
     LANGUAGES = {
         "pt_BR": "Português (Brasil)",
         "en_US": "English (US)",
-        "es_ES": "Español (España)",
-        "es_MX": "Español (México)",
-        "zh_CN": "中文 (简体)",
-        "it_IT": "Italiano",
-        "fr_FR": "Français",
-        "de_DE": "Deutsch",
-        "ja_JP": "日本語",
-        "ru_RU": "Русский",
-        "ko_KR": "한국어",
-        "ar_SA": "العربية"
+        "es_ES": "Español (España)"
     }
     
     DEFAULT_LANGUAGE = "pt_BR"
