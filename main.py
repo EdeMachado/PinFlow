@@ -3780,6 +3780,10 @@ class KanbanWindow(QMainWindow):
             except:
                 pass
             
+            # Garantir que widget central também fique escuro
+            if hasattr(self, 'central_widget'):
+                self.central_widget.setStyleSheet("background-color: #0a0a0a;")
+            
             self.setStyleSheet("""
                 QMainWindow {
                     background-color: #0a0a0a !important;
