@@ -4430,10 +4430,20 @@ class KanbanWindow(QMainWindow):
                     border-radius: 8px;
                     padding: 8px;
                 """
-                # Aplicar em todas as colunas existentes
+                # Aplicar em todas as colunas existentes IMEDIATAMENTE
                 for column in self.columns:
                     if hasattr(column, 'header_container'):
                         column.header_container.setStyleSheet(gradient_style)
+                        # Forçar atualização visual imediata
+                        column.header_container.update()
+                        column.header_container.repaint()
+                        # Também atualizar a coluna inteira
+                        column.update()
+                        column.repaint()
+                
+                # Forçar atualização da janela principal
+                self.update()
+                self.repaint()
                 
                 QMessageBox.information(parent_dialog, "Cor Alterada", 
                     f"Cor dos headers das colunas alterada para: {color.name()}\n\nA mudança foi aplicada imediatamente!")
