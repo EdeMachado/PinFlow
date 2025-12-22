@@ -19,6 +19,15 @@ from PySide6.QtWidgets import (QApplication, QMainWindow, QWidget, QHBoxLayout,
 from PySide6.QtCore import Qt, QMimeData, QPoint, QSize, Signal, QDate, QTime, QTimer
 from PySide6.QtGui import QDrag, QPalette, QColor, QFont, QIcon, QKeySequence, QShortcut, QAction, QTextCharFormat
 
+# Sistema de Licenciamento
+try:
+    from license_manager import LicenseManager
+    from activate_dialog import ActivateDialog
+    LICENSE_ENABLED = True
+except ImportError:
+    print("⚠️ Sistema de licenciamento não disponível")
+    LICENSE_ENABLED = False
+
 # Importar para personalizar cor da barra de título no Windows
 try:
     import ctypes
@@ -3038,10 +3047,43 @@ class KanbanWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.dark_mode = False  # Começa no modo claro
+        
+        # Sistema de licenciamento
+        self.license_manager = None
+        if LICENSE_ENABLED:
+            self.license_manager = LicenseManager()
+            if not self.check_license():
+                return  # Sair se não houver licença válida
+        
         self.setup_ui()
         self.setup_shortcuts()
         self.setup_tray()
         self.load_data()
+    
+    def check_license(self):
+        """Verifica licença no startup"""
+        if not LICENSE_ENABLED or not self.license_manager:
+            return True  # Se licenciamento desabilitado, permitir uso
+        
+        is_valid, message = self.license_manager.check_license()
+        
+        if not is_valid:
+            # Mostrar dialog de ativação
+            dialog = ActivateDialog(self)
+            if dialog.exec() == QDialog.Accepted:
+                # Licença ativada, continuar
+                return True
+            else:
+                # Usuário cancelou, sair
+                QMessageBox.warning(
+                    self,
+                    "Licença Necessária",
+                    "O PinFlow Pro requer uma licença válida para funcionar.\n\n"
+                    "Por favor, ative sua licença para continuar."
+                )
+                return False
+        
+        return True
     
     def set_titlebar_color(self):
         """Personaliza cor da barra de título do Windows para azul marinho"""
@@ -3231,6 +3273,15 @@ class KanbanWindow(QMainWindow):
         toolbar_layout.addWidget(gantt_btn)
         toolbar_layout.addWidget(dashboard_btn)
         toolbar_layout.addWidget(backup_btn)
+        
+        # Botão Licença (se habilitado)
+        if LICENSE_ENABLED and self.license_manager:
+            license_btn = QPushButton("🔐 Licença")
+            license_btn.clicked.connect(self.show_activate_dialog)
+            license_btn.setCursor(Qt.PointingHandCursor)
+            license_btn.setStyleSheet(btn_style)
+            license_btn.setToolTip("Ativar ou verificar licença")
+            toolbar_layout.addWidget(license_btn)
         toolbar_layout.addStretch()
         toolbar_layout.addWidget(transparency_label)
         toolbar_layout.addWidget(self.transparency_slider)
@@ -3682,6 +3733,14 @@ class KanbanWindow(QMainWindow):
         
         tray_menu.addAction(show_action)
         tray_menu.addSeparator()
+        
+        # Opção de licença (se habilitado)
+        if LICENSE_ENABLED and self.license_manager:
+            license_action = QAction("🔐 Ativar Licença", self)
+            license_action.triggered.connect(self.show_activate_dialog)
+            tray_menu.addAction(license_action)
+            tray_menu.addSeparator()
+        
         tray_menu.addAction(quit_action)
         
         self.tray_icon.setContextMenu(tray_menu)
@@ -3696,6 +3755,16 @@ class KanbanWindow(QMainWindow):
             self.show()
             self.activateWindow()
             
+    def show_activate_dialog(self):
+        """Mostra dialog de ativação de licença"""
+        if not LICENSE_ENABLED or not self.license_manager:
+            QMessageBox.information(self, "Informação", "Sistema de licenciamento não disponível.")
+            return
+        
+        dialog = ActivateDialog(self)
+        if dialog.exec() == QDialog.Accepted:
+            QMessageBox.information(self, "Sucesso", "Licença ativada com sucesso!")
+    
     def show_shortcuts(self):
         """Mostra dialog com atalhos"""
         msg = QMessageBox(self)

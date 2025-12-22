@@ -4,6 +4,10 @@ kanban_arquivo.json
 *.json.backup
 backups/
 
+# Licenças (sensíveis - não commitar)
+license.json
+valid_licenses.json
+
 # Python
 __pycache__/
 *.py[cod]
