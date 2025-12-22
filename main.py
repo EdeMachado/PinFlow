@@ -4449,9 +4449,9 @@ class KanbanWindow(QMainWindow):
                 if hasattr(self, 'title_label'):
                     self.title_label.setStyleSheet("color: #1e3a5f; padding: 10px;")
                 
-                # Atualizar cor do nome do cliente também (se houver)
+                # Atualizar cor do nome do cliente também (se houver) - PRETO no modo claro
                 if hasattr(self, 'customer_name_label'):
-                    self.customer_name_label.setStyleSheet(f"color: {text_color}; padding: 10px; cursor: pointer;")
+                    self.customer_name_label.setStyleSheet(f"color: #000000; padding: 5px; cursor: pointer;")
                 
                 # Atualizar cor dos botões (tom mais escuro do header) - INCLUINDO RODAPÉ
                 self.update_buttons_color(color)
