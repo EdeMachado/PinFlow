@@ -3889,6 +3889,10 @@ class KanbanWindow(QMainWindow):
             # Garantir que logo/título mantenha cor fixa no modo escuro
             if hasattr(self, 'title_label'):
                 self.title_label.setStyleSheet("color: #1e3a5f; padding: 10px;")
+            
+            # Nome do cliente SEMPRE BRANCO no modo escuro
+            if hasattr(self, 'customer_name_label'):
+                self.customer_name_label.setStyleSheet("color: #ffffff; padding: 5px; cursor: pointer;")
         else:
             # MODO CLARO - Carregar cor salva ou usar padrão
             if header_color_saved:
@@ -3914,15 +3918,22 @@ class KanbanWindow(QMainWindow):
             if header_color_saved:
                 color = QColor(header_color_saved)
                 text_color = self.get_text_color_for_background(color)
-                # Atualizar cor do nome do cliente também (se houver) - PRETO no modo claro
+                # Atualizar cor do nome do cliente baseado na luminosidade do header
                 if hasattr(self, 'customer_name_label'):
-                    self.customer_name_label.setStyleSheet(f"color: #000000; padding: 5px; cursor: pointer;")
+                    self.customer_name_label.setStyleSheet(f"color: {text_color}; padding: 5px; cursor: pointer;")
+                # Atualizar cor do título também
+                if hasattr(self, 'title_label'):
+                    self.title_label.setStyleSheet(f"color: {text_color}; padding: 10px;")
                 # Atualizar cor dos botões baseado na cor do header
                 self.update_buttons_color(color)
             else:
-                # Se não houver cor salva, nome do usuário PRETO no modo claro
+                # Se não houver cor salva, usar cor padrão (azul escuro = texto branco)
+                default_color = QColor("#1e3a5f")
+                text_color = self.get_text_color_for_background(default_color)
                 if hasattr(self, 'customer_name_label'):
-                    self.customer_name_label.setStyleSheet("color: #000000; padding: 5px; cursor: pointer;")
+                    self.customer_name_label.setStyleSheet(f"color: {text_color}; padding: 5px; cursor: pointer;")
+                if hasattr(self, 'title_label'):
+                    self.title_label.setStyleSheet(f"color: {text_color}; padding: 10px;")
             
             # Garantir que logo/título mantenha cor fixa (não muda com header ou tema) - MODO CLARO
             if hasattr(self, 'title_label'):
@@ -4621,7 +4632,9 @@ class KanbanWindow(QMainWindow):
                 
                 # Atualizar cor do nome do cliente também (se houver) - PRETO no modo claro
                 if hasattr(self, 'customer_name_label'):
-                    self.customer_name_label.setStyleSheet(f"color: #000000; padding: 5px; cursor: pointer;")
+                    # Calcular cor do texto baseado na luminosidade do header
+                    text_color = self.get_text_color_for_background(color)
+                    self.customer_name_label.setStyleSheet(f"color: {text_color}; padding: 5px; cursor: pointer;")
                 
                 # Atualizar cor dos botões (tom mais escuro do header) - INCLUINDO RODAPÉ
                 self.update_buttons_color(color)
