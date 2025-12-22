@@ -3371,6 +3371,7 @@ class KanbanWindow(QMainWindow):
         self.config_btn = QPushButton("⚙️ Configuração")
         self.config_btn.setCursor(Qt.PointingHandCursor)
         self.config_btn.setToolTip("Configurações do Sistema")
+        self.config_btn.setFocusPolicy(Qt.StrongFocus)  # Permitir foco
         self.config_btn.setStyleSheet("""
             QPushButton {
                 padding: 8px 15px;
