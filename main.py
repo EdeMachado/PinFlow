@@ -3458,8 +3458,8 @@ class KanbanWindow(QMainWindow):
         self.setWindowTitle("📌 PinFlow Pro")
         self.setGeometry(100, 100, 1500, 750)
         
-        # Always on top
-        self.setWindowFlags(Qt.WindowStaysOnTopHint)
+        # Always on top - usar setWindowFlag para não remover outros flags
+        # Não definir aqui, será definido pelo toggle_always_on_top baseado nas configurações
         
         # Personalizar cor da barra de título do Windows (azul marinho)
         self.set_titlebar_color()
