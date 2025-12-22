@@ -3882,10 +3882,14 @@ class KanbanWindow(QMainWindow):
             
             self.setStyleSheet("""
                 QMainWindow {
-                    background-color: #fafafa;
+                    background-color: #fafafa !important;
                 }
                 QWidget {
-                    background-color: #fafafa;
+                    background-color: #fafafa !important;
+                    color: #333333;
+                }
+                QFrame {
+                    background-color: #fafafa !important;
                 }
                 KanbanColumn {
                     background-color: #f5f5f5;
@@ -3906,10 +3910,17 @@ class KanbanWindow(QMainWindow):
                     background-color: transparent;
                 }
                 QScrollArea {
-                    background-color: #fafafa;
+                    background-color: #fafafa !important;
                     border: none;
                 }
+                QScrollArea QWidget {
+                    background-color: #fafafa !important;
+                }
             """)
+            
+            # Garantir que widget central volte a ser claro no modo claro
+            if hasattr(self, 'central_widget'):
+                self.central_widget.setStyleSheet("background-color: #fafafa;")
     
     def toggle_theme(self, checked):
         """Alterna entre modo escuro e claro"""
