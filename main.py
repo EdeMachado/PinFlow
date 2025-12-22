@@ -26,6 +26,7 @@ from PySide6.QtWidgets import (QApplication, QMainWindow, QWidget, QHBoxLayout,
                                QDateEdit, QTimeEdit, QGroupBox)
 from PySide6.QtCore import Qt, QMimeData, QPoint, QSize, Signal, QDate, QTime, QTimer
 from PySide6.QtGui import QDrag, QPalette, QColor, QFont, QIcon, QKeySequence, QShortcut, QAction, QTextCharFormat
+import PySide6
 
 # Sistema de Licenciamento
 try:
@@ -963,7 +964,7 @@ class PostItCard(QFrame):
         layout.setContentsMargins(10, 10, 10, 10)
         layout.setSpacing(5)
         
-        # Header com Prioridade + Título (SEM engrenagem)
+        # Header com Prioridade + Título + Engrenagem (CANTO SUPERIOR DIREITO)
         header_layout = QHBoxLayout()
         header_layout.setSpacing(5)
         
@@ -977,8 +978,29 @@ class PostItCard(QFrame):
         self.title_label.setWordWrap(True)
         self.apply_text_formatting(self.title_label)
         
+        # Engrenagem (menu de opções) - CANTO SUPERIOR DIREITO
+        self.gear_btn = QPushButton("⚙")
+        self.gear_btn.setMaximumSize(QSize(20, 20))
+        self.gear_btn.setToolTip("Opções do Card")
+        self.gear_btn.setCursor(Qt.PointingHandCursor)
+        self.gear_btn.setStyleSheet("""
+            QPushButton {
+                background-color: transparent;
+                border: none;
+                font-size: 16px;
+                font-weight: bold;
+                color: rgba(0, 0, 0, 0.6);
+            }
+            QPushButton:hover {
+                color: rgba(0, 0, 0, 0.9);
+                transform: scale(1.2);
+            }
+        """)
+        self.gear_btn.clicked.connect(self.show_menu)
+        
         header_layout.addWidget(priority_label)
         header_layout.addWidget(self.title_label, stretch=1)
+        header_layout.addWidget(self.gear_btn)
         
         # Tags - MAIS VISÍVEIS
         if self.tags:
@@ -1044,7 +1066,7 @@ class PostItCard(QFrame):
                 border-left: 3px solid #d32f2f;
             """)
         
-        # RODAPÉ com Data + Engrenagem
+        # RODAPÉ com Data
         footer_layout = QHBoxLayout()
         footer_layout.setSpacing(5)
         
@@ -1053,29 +1075,7 @@ class PostItCard(QFrame):
         date_label.setFont(QFont("Segoe UI", 7))
         date_label.setStyleSheet("color: #999;")
         
-        # Engrenagem (menu de opções) - EMBAIXO NO CANTO DIREITO
-        self.gear_btn = QPushButton("⚙")
-        self.gear_btn.setMaximumSize(QSize(25, 25))
-        self.gear_btn.setToolTip("Opções do Card")
-        self.gear_btn.setCursor(Qt.PointingHandCursor)
-        self.gear_btn.setStyleSheet("""
-            QPushButton {
-                background-color: rgba(0, 0, 0, 0.15);
-                border: 2px solid rgba(0, 0, 0, 0.2);
-                border-radius: 12px;
-                font-size: 14px;
-                font-weight: bold;
-            }
-            QPushButton:hover {
-                background-color: rgba(0, 0, 0, 0.25);
-                border: 2px solid rgba(0, 0, 0, 0.4);
-                transform: scale(1.1);
-            }
-        """)
-        self.gear_btn.clicked.connect(self.show_menu)
-        
         footer_layout.addWidget(date_label, stretch=1)
-        footer_layout.addWidget(self.gear_btn)
         
         # Montar layout
         layout.addLayout(header_layout)
@@ -1087,7 +1087,7 @@ class PostItCard(QFrame):
             layout.addLayout(path_layout)
         if self.notas:
             layout.addWidget(self.notes_label)
-        layout.addLayout(footer_layout)  # Rodapé com data + engrenagem
+        layout.addLayout(footer_layout)  # Rodapé com data
         
         self.setLayout(layout)
         
@@ -1391,12 +1391,16 @@ class PostItCard(QFrame):
         QMessageBox.information(self, "Alerta Lido", "Alerta marcado como lido!\n\nO card parou de piscar e o alerta foi removido.")
     
     def apply_card_size(self):
-        """Aplica tamanho PADRÃO FIXO do card"""
-        # TAMANHO PADRÃO: Baseado no card "cejan" em Concluídos
-        card_width = 250  # Largura padrão
-        
-        # Altura fixa também (como os cards reais)
-        card_height = 120  # Altura padrão
+        """Aplica tamanho do card (padrão ou personalizado)"""
+        # Verificar se há tamanho personalizado salvo
+        if "custom_width" in self.data and "custom_height" in self.data:
+            # Usar tamanho personalizado
+            card_width = self.data["custom_width"]
+            card_height = self.data["custom_height"]
+        else:
+            # TAMANHO PADRÃO: Baseado no card "cejan" em Concluídos
+            card_width = 250  # Largura padrão
+            card_height = 120  # Altura padrão
         
         # Definir tamanho fixo
         self.setFixedSize(card_width, card_height)
@@ -1462,6 +1466,18 @@ class PostItCard(QFrame):
         menu.addAction(duplicate_action)
         
         menu.addSeparator()
+        
+        # === SEÇÃO 3.5: NOTA (Copiar/Imprimir) ===
+        if self.notas:
+            copy_notes_action = QAction("📋 Copiar Nota", self)
+            copy_notes_action.triggered.connect(self.copy_notes)
+            menu.addAction(copy_notes_action)
+            
+            print_notes_action = QAction("🖨️ Imprimir Nota", self)
+            print_notes_action.triggered.connect(self.print_notes)
+            menu.addAction(print_notes_action)
+            
+            menu.addSeparator()
         
         # === SEÇÃO 4: AÇÕES ===
         archive_action = QAction("📦 Arquivar", self)
@@ -1769,7 +1785,7 @@ class PostItCard(QFrame):
             self.parent_column.window.save_data()
         
     def mousePressEvent(self, event):
-        """Inicia drag ou resize"""
+        """Inicia drag, resize ou abre card"""
         if event.button() == Qt.LeftButton:
             # Não iniciar drag se clicou na engrenagem
             if self.gear_btn.geometry().contains(event.pos()):
@@ -1784,7 +1800,7 @@ class PostItCard(QFrame):
                 self.update_cursor_for_resize(edge)
                 return
             
-            # Iniciar drag normal
+            # Se não for drag nem resize, marcar posição inicial para possível drag
             self.drag_start_position = event.pos()
             self.setCursor(Qt.ClosedHandCursor)
             
@@ -1806,9 +1822,15 @@ class PostItCard(QFrame):
             self.setFixedSize(new_size)
             self.resize_start = event.pos()
             
-            # Salvar novo tamanho
+            # Salvar novo tamanho personalizado
             self.data["custom_width"] = new_size.width()
             self.data["custom_height"] = new_size.height()
+            # Remover card_size padrão quando usar tamanho custom
+            if "card_size" in self.data:
+                del self.data["card_size"]
+            
+            # Salvar imediatamente
+            self.parent_column.window.save_data()
             return
         
         # Se não está redimensionando, verifica se pode começar a arrastar
@@ -3289,8 +3311,31 @@ class KanbanWindow(QMainWindow):
         logo_theme_layout.addWidget(self.theme_toggle)
         logo_theme_layout.addWidget(logo_label)
         
+        # Botão Configuração do Sistema
+        self.config_btn = QPushButton("⚙️ Configuração")
+        self.config_btn.setCursor(Qt.PointingHandCursor)
+        self.config_btn.setToolTip("Configurações do Sistema")
+        self.config_btn.setStyleSheet("""
+            QPushButton {
+                padding: 8px 15px;
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                    stop:0 #1e3a5f, stop:1 #8b9dc3);
+                color: white;
+                border: none;
+                border-radius: 5px;
+                font-weight: bold;
+                font-size: 11px;
+            }
+            QPushButton:hover {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                    stop:0 #152d4a, stop:1 #7a8bb0);
+            }
+        """)
+        self.config_btn.clicked.connect(self.show_config_dialog)
+        
         header_layout.addWidget(title_label)
         header_layout.addStretch()
+        header_layout.addWidget(self.config_btn)
         header_layout.addLayout(logo_theme_layout)
         
         header_widget = QWidget()
@@ -3865,6 +3910,162 @@ class KanbanWindow(QMainWindow):
         dialog = ActivateDialog(self)
         if dialog.exec() == QDialog.Accepted:
             QMessageBox.information(self, "Sucesso", "Licença ativada com sucesso!")
+    
+    def show_config_dialog(self):
+        """Mostra dialog de configurações do sistema"""
+        dialog = QDialog(self)
+        dialog.setWindowTitle("⚙️ Configurações do Sistema - PinFlow Pro")
+        dialog.setMinimumWidth(500)
+        dialog.setMinimumHeight(400)
+        
+        layout = QVBoxLayout()
+        layout.setSpacing(15)
+        
+        # Título
+        title = QLabel("⚙️ Configurações do Sistema")
+        title.setFont(QFont("Segoe UI", 16, QFont.Bold))
+        title.setAlignment(Qt.AlignCenter)
+        title.setStyleSheet("color: #1e3a5f; padding: 10px;")
+        layout.addWidget(title)
+        
+        # Abas ou seções
+        tabs = QTabWidget()
+        
+        # === ABA 1: APARÊNCIA ===
+        appearance_tab = QWidget()
+        appearance_layout = QVBoxLayout()
+        
+        # Cores do sistema
+        colors_group = QGroupBox("🎨 Cores do Sistema")
+        colors_layout = QVBoxLayout()
+        
+        # Cor do header
+        header_color_layout = QHBoxLayout()
+        header_color_layout.addWidget(QLabel("Cor do Header:"))
+        self.header_color_btn = QPushButton("Alterar Cor")
+        self.header_color_btn.clicked.connect(lambda: self.change_header_color(dialog))
+        header_color_layout.addWidget(self.header_color_btn)
+        header_color_layout.addStretch()
+        colors_layout.addLayout(header_color_layout)
+        
+        # Cor das colunas
+        column_color_layout = QHBoxLayout()
+        column_color_layout.addWidget(QLabel("Cor dos Headers das Colunas:"))
+        self.column_color_btn = QPushButton("Alterar Cor")
+        self.column_color_btn.clicked.connect(lambda: self.change_column_header_color(dialog))
+        column_color_layout.addWidget(self.column_color_btn)
+        column_color_layout.addStretch()
+        colors_layout.addLayout(column_color_layout)
+        
+        colors_group.setLayout(colors_layout)
+        appearance_layout.addWidget(colors_group)
+        
+        appearance_layout.addStretch()
+        appearance_tab.setLayout(appearance_layout)
+        tabs.addTab(appearance_tab, "🎨 Aparência")
+        
+        # === ABA 2: LICENCIAMENTO ===
+        license_tab = QWidget()
+        license_layout = QVBoxLayout()
+        
+        if LICENSE_ENABLED and self.license_manager:
+            license_info = self.license_manager.get_license_info()
+            if license_info:
+                info_text = f"""
+                <b>Informações da Licença:</b><br><br>
+                <b>Cliente:</b> {license_info['customer_name']}<br>
+                <b>Email:</b> {license_info['customer_email']}<br>
+                <b>Emitida em:</b> {license_info['issue_date']}<br>
+                <b>Válida até:</b> {license_info['expiry_date']}<br>
+                <b>Ativada em:</b> {license_info['activated_date']}<br>
+                <b>Hardware ID:</b> {license_info['hwid']}<br>
+                <b>Versão:</b> {license_info['version']}
+                """
+                info_label = QLabel(info_text)
+                info_label.setWordWrap(True)
+                license_layout.addWidget(info_label)
+            else:
+                no_license_label = QLabel("Nenhuma licença ativada.")
+                license_layout.addWidget(no_license_label)
+            
+            activate_btn = QPushButton("🔐 Ativar/Verificar Licença")
+            activate_btn.clicked.connect(lambda: (dialog.accept(), self.show_activate_dialog()))
+            activate_btn.setStyleSheet("""
+                QPushButton {
+                    background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                        stop:0 #1e3a5f, stop:1 #8b9dc3);
+                    color: white;
+                    padding: 10px;
+                    border: none;
+                    border-radius: 5px;
+                    font-weight: bold;
+                }
+                QPushButton:hover {
+                    background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                        stop:0 #152d4a, stop:1 #7a8bb0);
+                }
+            """)
+            license_layout.addWidget(activate_btn)
+        else:
+            no_license_label = QLabel("Sistema de licenciamento não disponível.")
+            license_layout.addWidget(no_license_label)
+        
+        license_layout.addStretch()
+        license_tab.setLayout(license_layout)
+        tabs.addTab(license_tab, "🔐 Licenciamento")
+        
+        # === ABA 3: GERAL ===
+        general_tab = QWidget()
+        general_layout = QVBoxLayout()
+        
+        # Informações do sistema
+        system_info = QGroupBox("ℹ️ Informações do Sistema")
+        system_layout = QVBoxLayout()
+        
+        info_text = f"""
+        <b>PinFlow Pro v3.0</b><br><br>
+        <b>Desenvolvedor:</b> Ede Machado<br>
+        <b>Versão:</b> 3.0<br>
+        <b>Python:</b> {sys.version.split()[0]}<br>
+        <b>PySide6:</b> {PySide6.__version__ if hasattr(PySide6, '__version__') else 'N/A'}<br><br>
+        <b>© 2025 - Criado por Ede Machado</b>
+        """
+        info_label = QLabel(info_text)
+        info_label.setWordWrap(True)
+        system_layout.addWidget(info_label)
+        
+        system_info.setLayout(system_layout)
+        general_layout.addWidget(system_info)
+        
+        general_layout.addStretch()
+        general_tab.setLayout(general_layout)
+        tabs.addTab(general_tab, "ℹ️ Sobre")
+        
+        layout.addWidget(tabs)
+        
+        # Botões
+        buttons = QDialogButtonBox(QDialogButtonBox.Ok)
+        buttons.accepted.connect(dialog.accept)
+        layout.addWidget(buttons)
+        
+        dialog.setLayout(layout)
+        dialog.exec()
+    
+    def change_header_color(self, parent_dialog):
+        """Altera cor do header"""
+        from PySide6.QtWidgets import QColorDialog
+        color = QColorDialog.getColor(QColor(33, 150, 243), parent_dialog, "Escolha cor do Header")
+        if color.isValid():
+            # Aplicar cor ao header (implementar depois)
+            QMessageBox.information(self, "Cor Alterada", f"Cor do header alterada para: {color.name()}\n\n(Recarregue o aplicativo para ver a mudança)")
+    
+    def change_column_header_color(self, parent_dialog):
+        """Altera cor dos headers das colunas"""
+        from PySide6.QtWidgets import QColorDialog
+        color = QColorDialog.getColor(QColor(30, 58, 95), parent_dialog, "Escolha cor dos Headers das Colunas")
+        if color.isValid():
+            # Aplicar cor aos headers das colunas (implementar depois)
+            QMessageBox.information(self, "Cor Alterada", f"Cor dos headers das colunas alterada para: {color.name()}\n\n(Recarregue o aplicativo para ver a mudança)")
     
     def show_shortcuts(self):
         """Mostra dialog com atalhos"""
