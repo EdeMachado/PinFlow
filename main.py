@@ -4399,6 +4399,9 @@ class KanbanWindow(QMainWindow):
                 if hasattr(self, 'title_label'):
                     self.title_label.setStyleSheet("color: #1e3a5f; padding: 10px;")
                 
+                # Atualizar cor dos botões (tom mais escuro do header)
+                self.update_buttons_color(color)
+                
                 QMessageBox.information(parent_dialog, "Cor Alterada", 
                     f"Cor do header alterada para: {color.name()}\n\nA mudança foi aplicada imediatamente!")
             except Exception as e:
