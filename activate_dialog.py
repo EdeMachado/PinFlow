@@ -10,6 +10,23 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QFont
 from license_manager import LicenseManager
 
+# Sistema de Internacionalização
+try:
+    from i18n_manager import I18nManager
+    I18N_ENABLED = True
+except ImportError:
+    I18N_ENABLED = False
+    class I18nManager:
+        @staticmethod
+        def get_text(key, default=None, **kwargs):
+            return default if default else key
+
+def _(key, default=None, **kwargs):
+    """Função helper para obter texto traduzido"""
+    if I18N_ENABLED:
+        return I18nManager.get_text(key, default, **kwargs)
+    return default if default else key
+
 class ActivateDialog(QDialog):
     """Dialog para ativar licença"""
     
@@ -21,7 +38,7 @@ class ActivateDialog(QDialog):
     
     def setup_ui(self):
         """Configura interface"""
-        self.setWindowTitle("🔐 Ativação - PinFlow Pro")
+        self.setWindowTitle(_("license_activation_title", "🔐 Ativação - PinFlow Pro"))
         self.setMinimumWidth(500)
         self.setMinimumHeight(400)
         
@@ -29,7 +46,7 @@ class ActivateDialog(QDialog):
         layout.setSpacing(15)
         
         # Título
-        title = QLabel("🔐 Ativação de Licença")
+        title = QLabel(_("license_activation_header", "🔐 Ativação de Licença"))
         title.setFont(QFont("Segoe UI", 16, QFont.Bold))
         title.setAlignment(Qt.AlignCenter)
         title.setStyleSheet("color: #1e3a5f; padding: 10px;")
@@ -37,8 +54,7 @@ class ActivateDialog(QDialog):
         
         # Informações
         info_label = QLabel(
-            "Digite sua chave de licença para ativar o PinFlow Pro.\n"
-            "A chave foi enviada para seu email após a compra."
+            _("license_activation_info", "Digite sua chave de licença para ativar o PinFlow Pro.\nA chave foi enviada para seu email após a compra.")
         )
         info_label.setWordWrap(True)
         info_label.setAlignment(Qt.AlignCenter)
@@ -46,21 +62,21 @@ class ActivateDialog(QDialog):
         layout.addWidget(info_label)
         
         # Formulário
-        form_group = QGroupBox("Chave de Licença")
+        form_group = QGroupBox(_("license_key_group", "Chave de Licença"))
         form_layout = QFormLayout()
         
         # Campo de chave
         self.license_input = QLineEdit()
-        self.license_input.setPlaceholderText("XXXX-XXXX-XXXX-XXXX")
+        self.license_input.setPlaceholderText(_("license_key_placeholder", "XXXX-XXXX-XXXX-XXXX"))
         self.license_input.setMaxLength(19)  # 16 caracteres + 3 hífens
         self.license_input.textChanged.connect(self.format_license_key)
-        form_layout.addRow("Chave:", self.license_input)
+        form_layout.addRow(_("license_key_label", "Chave:"), self.license_input)
         
         form_group.setLayout(form_layout)
         layout.addWidget(form_group)
         
         # Informações da licença atual (se houver)
-        self.license_info_group = QGroupBox("Informações da Licença")
+        self.license_info_group = QGroupBox(_("license_info", "Informações da Licença"))
         self.license_info_layout = QVBoxLayout()
         self.license_info_text = QTextEdit()
         self.license_info_text.setReadOnly(True)
@@ -73,7 +89,7 @@ class ActivateDialog(QDialog):
         # Botões
         buttons_layout = QHBoxLayout()
         
-        self.activate_btn = QPushButton("✅ Ativar")
+        self.activate_btn = QPushButton(_("activate_button", "✅ Ativar"))
         self.activate_btn.clicked.connect(self.activate_license)
         self.activate_btn.setStyleSheet("""
             QPushButton {
@@ -92,7 +108,7 @@ class ActivateDialog(QDialog):
             }
         """)
         
-        self.cancel_btn = QPushButton("❌ Cancelar")
+        self.cancel_btn = QPushButton(_("cancel_button", "❌ Cancelar"))
         self.cancel_btn.clicked.connect(self.reject)
         self.cancel_btn.setStyleSheet("""
             QPushButton {
@@ -143,12 +159,12 @@ class ActivateDialog(QDialog):
         
         if info:
             info_text = f"""
-<b>Cliente:</b> {info['customer_name']}<br>
-<b>Email:</b> {info['customer_email']}<br>
-<b>Emitida em:</b> {info['issue_date']}<br>
-<b>Válida até:</b> {info['expiry_date']}<br>
-<b>Ativada em:</b> {info['activated_date']}<br>
-<b>Hardware ID:</b> {info['hwid']}
+<b>{_('customer_name', 'Cliente')}:</b> {info['customer_name']}<br>
+<b>{_('customer_email', 'Email')}:</b> {info['customer_email']}<br>
+<b>{_('issue_date', 'Emitida em')}:</b> {info['issue_date']}<br>
+<b>{_('expiry_date', 'Válida até')}:</b> {info['expiry_date']}<br>
+<b>{_('activated_date', 'Ativada em')}:</b> {info['activated_date']}<br>
+<b>{_('hardware_id', 'Hardware ID')}:</b> {info['hwid']}
             """
             self.license_info_text.setHtml(info_text)
             self.license_info_group.setVisible(True)
@@ -160,7 +176,7 @@ class ActivateDialog(QDialog):
         license_key = self.license_input.text().strip()
         
         if not license_key:
-            QMessageBox.warning(self, "Aviso", "Por favor, digite sua chave de licença.")
+            QMessageBox.warning(self, _("warning", "Aviso"), _("license_key_empty", "Por favor, digite sua chave de licença."))
             return
         
         # Remover hífens e espaços
@@ -172,16 +188,15 @@ class ActivateDialog(QDialog):
         if success:
             QMessageBox.information(
                 self, 
-                "Sucesso!", 
-                f"{message}\n\nO PinFlow Pro foi ativado com sucesso!"
+                _("success", "Sucesso!"), 
+                f"{message}\n\n{_('license_activation_success', 'O PinFlow Pro foi ativado com sucesso!')}"
             )
             self.load_license_info()
             self.accept()
         else:
             QMessageBox.critical(
                 self, 
-                "Erro", 
-                f"Não foi possível ativar a licença:\n\n{message}\n\n"
-                "Verifique se a chave está correta ou entre em contato com o suporte."
+                _("error", "Erro"), 
+                _("license_activation_failed", "Não foi possível ativar a licença:\n\n{message}\n\nVerifique se a chave está correta ou entre em contato com o suporte.").format(message=message)
             )
 

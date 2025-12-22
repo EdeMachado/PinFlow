@@ -2696,14 +2696,14 @@ class DashboardDialog(QDialog):
         
     def setup_ui(self):
         """Configura interface do Dashboard"""
-        self.setWindowTitle("📈 Dashboard - Estatísticas e Produtividade")
+        self.setWindowTitle(_("dashboard_title", "📈 Dashboard - Estatísticas e Produtividade"))
         self.setModal(False)
         self.setMinimumSize(900, 650)
         
         layout = QVBoxLayout()
         
         # Header
-        header_label = QLabel("📈 DASHBOARD DE PRODUTIVIDADE")
+        header_label = QLabel(_("dashboard_header", "📈 DASHBOARD DE PRODUTIVIDADE"))
         header_label.setFont(QFont("Arial", 16, QFont.Bold))
         header_label.setAlignment(Qt.AlignCenter)
         header_label.setStyleSheet("""
@@ -2734,7 +2734,7 @@ class DashboardDialog(QDialog):
         # Botões
         buttons_layout = QHBoxLayout()
         
-        export_btn = QPushButton("📊 Exportar para CSV")
+        export_btn = QPushButton(_("export_csv_button", "📊 Exportar para CSV"))
         export_btn.clicked.connect(self.export_to_csv)
         export_btn.setStyleSheet("""
             QPushButton {
@@ -2751,11 +2751,11 @@ class DashboardDialog(QDialog):
             }
         """)
         
-        refresh_btn = QPushButton("🔄 Atualizar")
+        refresh_btn = QPushButton(_("refresh", "🔄 Atualizar"))
         refresh_btn.clicked.connect(self.load_statistics)
         refresh_btn.setStyleSheet(export_btn.styleSheet())
         
-        close_btn = QPushButton("✖ Fechar")
+        close_btn = QPushButton(_("close_button", "✖ Fechar"))
         close_btn.clicked.connect(self.close)
         close_btn.setStyleSheet(export_btn.styleSheet())
         
@@ -2986,14 +2986,14 @@ class GanttDialog(QDialog):
         
     def setup_ui(self):
         """Configura interface do Gantt"""
-        self.setWindowTitle("📊 Visão Gantt - Cronograma Visual")
+        self.setWindowTitle(_("gantt_title", "📊 Visão Gantt - Cronograma Visual"))
         self.setModal(False)
         self.setMinimumSize(1200, 700)
         
         layout = QVBoxLayout()
         
         # Header
-        header_label = QLabel("📊 CRONOGRAMA DO PROJETO (GANTT CHART)")
+        header_label = QLabel(_("gantt_header", "📊 CRONOGRAMA DO PROJETO (GANTT CHART)"))
         header_label.setFont(QFont("Arial", 16, QFont.Bold))
         header_label.setAlignment(Qt.AlignCenter)
         header_label.setStyleSheet("""
@@ -3008,16 +3008,16 @@ class GanttDialog(QDialog):
         
         # Filtros
         filter_layout = QHBoxLayout()
-        filter_layout.addWidget(QLabel("🔍 Filtrar por coluna:"))
+        filter_layout.addWidget(QLabel(_("gantt_filter_column", "🔍 Filtrar por coluna:")))
         
         self.column_filter = QComboBox()
-        self.column_filter.addItem("🌐 Todas as Colunas")
+        self.column_filter.addItem(_("all_columns", "🌐 Todas as Colunas"))
         self.column_filter.currentTextChanged.connect(self.filter_cards)
         filter_layout.addWidget(self.column_filter)
         
         filter_layout.addStretch()
         
-        refresh_btn = QPushButton("🔄 Atualizar")
+        refresh_btn = QPushButton(_("refresh", "🔄 Atualizar"))
         refresh_btn.clicked.connect(self.load_cards)
         filter_layout.addWidget(refresh_btn)
         
@@ -3037,17 +3037,17 @@ class GanttDialog(QDialog):
         
         # Legenda
         legend_layout = QHBoxLayout()
-        legend_layout.addWidget(QLabel("📊 Legenda:"))
+        legend_layout.addWidget(QLabel(_("gantt_legend", "📊 Legenda:")))
         
-        on_time_label = QLabel("▓ No prazo")
+        on_time_label = QLabel(_("on_time", "▓ No prazo"))
         on_time_label.setStyleSheet("color: #4caf50; font-weight: bold;")
         legend_layout.addWidget(on_time_label)
         
-        late_label = QLabel("▓ Atrasado")
+        late_label = QLabel(_("late", "▓ Atrasado"))
         late_label.setStyleSheet("color: #f44336; font-weight: bold;")
         legend_layout.addWidget(late_label)
         
-        today_label = QLabel("│ Hoje")
+        today_label = QLabel(_("today", "│ Hoje"))
         today_label.setStyleSheet("color: #2196f3; font-weight: bold;")
         legend_layout.addWidget(today_label)
         
@@ -3055,7 +3055,7 @@ class GanttDialog(QDialog):
         layout.addLayout(legend_layout)
         
         # Botão fechar
-        close_btn = QPushButton("✖ Fechar")
+        close_btn = QPushButton(_("close_button", "✖ Fechar"))
         close_btn.clicked.connect(self.close)
         close_btn.setStyleSheet("""
             QPushButton {
@@ -3079,7 +3079,7 @@ class GanttDialog(QDialog):
         """Carrega todos os cards de todas as colunas"""
         self.cards_data = []
         self.column_filter.clear()
-        self.column_filter.addItem("🌐 Todas as Colunas")
+        self.column_filter.addItem(_("all_columns", "🌐 Todas as Colunas"))
         
         # Coletar cards de todas as colunas
         for column in self.parent_window.columns:
@@ -3570,7 +3570,7 @@ class KanbanWindow(QMainWindow):
         backup_btn.clicked.connect(self.create_backup)
         backup_btn.setCursor(Qt.PointingHandCursor)
         backup_btn.setStyleSheet(btn_style)
-        backup_btn.setToolTip("Criar backup dos dados")
+        backup_btn.setToolTip(_("create_backup_tooltip", "Criar backup dos dados"))
         
         # GUARDAR REFERÊNCIAS DOS BOTÕES PARA ATUALIZAR CORES DEPOIS
         self.toolbar_buttons = [new_column_btn, gantt_btn, dashboard_btn, backup_btn]
@@ -4137,7 +4137,7 @@ class KanbanWindow(QMainWindow):
         if dialog.exec() == QDialog.Accepted:
             name = name_input.text().strip()
             if not name:
-                QMessageBox.warning(self, "Erro", "Nome da coluna não pode ser vazio!")
+                QMessageBox.warning(self, _("error", "Erro"), _("column_name_empty", "Nome da coluna não pode ser vazio!"))
                 return
             
             # Criar coluna
@@ -4149,7 +4149,7 @@ class KanbanWindow(QMainWindow):
             self.columns_layout.insertWidget(self.columns_layout.count() - 1, col)
             
             self.save_data()
-            QMessageBox.information(self, "Sucesso", f"Coluna '{name}' criada!")
+            QMessageBox.information(self, _("column_created", "Sucesso"), _("column_created_msg", "Coluna '{name}' criada!").format(name=name))
     
     def remove_column(self, column):
         """Remove uma coluna"""
@@ -4157,7 +4157,7 @@ class KanbanWindow(QMainWindow):
             self.columns.remove(column)
             column.deleteLater()
             self.save_data()
-            QMessageBox.information(self, "Removida", f"Coluna '{column.titulo}' removida!")
+            QMessageBox.information(self, _("column_removed", "Removida"), _("column_removed_msg", "Coluna '{title}' removida!").format(title=column.titulo))
         
     def setup_shortcuts(self):
         """Configura atalhos de teclado"""
@@ -4188,10 +4188,10 @@ class KanbanWindow(QMainWindow):
         # Menu do tray
         tray_menu = QMenu()
         
-        show_action = QAction("Mostrar", self)
+        show_action = QAction(_("tray_show", "Mostrar"), self)
         show_action.triggered.connect(self.show)
         
-        quit_action = QAction("Sair", self)
+        quit_action = QAction(_("tray_quit", "Sair"), self)
         quit_action.triggered.connect(self.close)
         
         tray_menu.addAction(show_action)
@@ -4199,7 +4199,7 @@ class KanbanWindow(QMainWindow):
         
         # Opção de licença (se habilitado)
         if LICENSE_ENABLED and self.license_manager:
-            license_action = QAction("🔐 Ativar Licença", self)
+            license_action = QAction(_("activate_license", "🔐 Ativar Licença"), self)
             license_action.triggered.connect(self.show_activate_dialog)
             tray_menu.addAction(license_action)
             tray_menu.addSeparator()
@@ -4210,7 +4210,7 @@ class KanbanWindow(QMainWindow):
         self.tray_icon.activated.connect(self.tray_activated)
         self.tray_icon.show()
         
-        self.tray_icon.setToolTip("PinFlow Pro - Suas tarefas sempre no topo!")
+        self.tray_icon.setToolTip(_("tray_tooltip", "PinFlow Pro - Suas tarefas sempre no topo!"))
         
     def tray_activated(self, reason):
         """Ação ao clicar no ícone da bandeja"""
@@ -4221,17 +4221,17 @@ class KanbanWindow(QMainWindow):
     def show_activate_dialog(self):
         """Mostra dialog de ativação de licença"""
         if not LICENSE_ENABLED or not self.license_manager:
-            QMessageBox.information(self, "Informação", "Sistema de licenciamento não disponível.")
+            QMessageBox.information(self, _("info", "Informação"), _("license_not_available", "Sistema de licenciamento não disponível."))
             return
         
         dialog = ActivateDialog(self)
         if dialog.exec() == QDialog.Accepted:
-            QMessageBox.information(self, "Sucesso", "Licença ativada com sucesso!")
+            QMessageBox.information(self, _("success", "Sucesso"), _("license_activated", "Licença ativada com sucesso!"))
     
     def show_config_dialog(self):
         """Mostra dialog de configurações do sistema"""
         dialog = QDialog(self)
-        dialog.setWindowTitle("⚙️ Configurações do Sistema - PinFlow Pro")
+        dialog.setWindowTitle(_("system_config_title", "⚙️ Configurações do Sistema - PinFlow Pro"))
         dialog.setMinimumWidth(500)
         dialog.setMinimumHeight(400)
         
@@ -4239,7 +4239,7 @@ class KanbanWindow(QMainWindow):
         layout.setSpacing(15)
         
         # Título
-        title = QLabel("⚙️ Configurações do Sistema")
+        title = QLabel(_("system_config_header", "⚙️ Configurações do Sistema"))
         title.setFont(QFont("Segoe UI", 16, QFont.Bold))
         title.setAlignment(Qt.AlignCenter)
         title.setStyleSheet("color: #1e3a5f; padding: 10px;")
@@ -4253,10 +4253,10 @@ class KanbanWindow(QMainWindow):
         appearance_layout = QVBoxLayout()
         
         # Idioma - SEMPRE MOSTRAR
-        language_group = QGroupBox("🌍 Idioma / Language")
+        language_group = QGroupBox(_("language_group", "🌍 Idioma / Language"))
         language_layout = QVBoxLayout()
         
-        language_label = QLabel("Selecione o idioma / Select language:")
+        language_label = QLabel(_("select_language", "Selecione o idioma / Select language:"))
         language_layout.addWidget(language_label)
         
         language_combo = QComboBox()
@@ -4292,7 +4292,7 @@ class KanbanWindow(QMainWindow):
                             self.update_ui_language()
                             
                             QMessageBox.information(dialog, _("language", "Idioma"), 
-                                f"{_('language', 'Idioma')} alterado para: {I18nManager.get_language_name(lang_code)}")
+                                _("language_changed", "Idioma alterado para: {name}").format(name=I18nManager.get_language_name(lang_code)))
                         except Exception as e:
                             print(f"Erro ao salvar idioma: {e}")
                 except:
@@ -4307,9 +4307,9 @@ class KanbanWindow(QMainWindow):
                     settings["language"] = lang_code
                     with open("settings.json", "w", encoding="utf-8") as f:
                         json.dump(settings, f, ensure_ascii=False, indent=2)
-                    QMessageBox.information(dialog, "Idioma Alterado", 
-                        f"Preferência de idioma salva: {lang_code}\n\n"
-                        "Recarregue o aplicativo para aplicar as mudanças.")
+                    QMessageBox.information(dialog, _("language", "Idioma"), 
+                        _("language_saved", "Preferência de idioma salva: {code}").format(code=lang_code) + "\n\n" +
+                        _("reload_to_apply", "Recarregue o aplicativo para aplicar as mudanças."))
                 except Exception as e:
                     print(f"Erro ao salvar idioma: {e}")
         
@@ -4320,19 +4320,19 @@ class KanbanWindow(QMainWindow):
         appearance_layout.addWidget(language_group)
         
         # Cores do sistema
-        colors_group = QGroupBox("🎨 Cores do Sistema")
+        colors_group = QGroupBox(_("system_colors", "🎨 Cores do Sistema"))
         colors_layout = QVBoxLayout()
         
         # Cor do header
         header_color_layout = QHBoxLayout()
-        header_color_layout.addWidget(QLabel("Cor do Header:"))
-        self.header_color_btn = QPushButton("Alterar Cor")
+        header_color_layout.addWidget(QLabel(_("header_color_label", "Cor do Header:")))
+        self.header_color_btn = QPushButton(_("change_color", "Alterar Cor"))
         self.header_color_btn.clicked.connect(lambda: self.change_header_color(dialog))
         header_color_layout.addWidget(self.header_color_btn)
         
         # Botão voltar ao padrão
-        self.header_reset_btn = QPushButton("↩️ Padrão")
-        self.header_reset_btn.setToolTip("Voltar à cor padrão do header")
+        self.header_reset_btn = QPushButton(_("reset_to_default", "↩️ Padrão"))
+        self.header_reset_btn.setToolTip(_("reset_header_tooltip", "Voltar à cor padrão do header"))
         self.header_reset_btn.clicked.connect(lambda: self.reset_header_color(dialog))
         header_color_layout.addWidget(self.header_reset_btn)
         header_color_layout.addStretch()
@@ -4340,14 +4340,14 @@ class KanbanWindow(QMainWindow):
         
         # Cor das colunas
         column_color_layout = QHBoxLayout()
-        column_color_layout.addWidget(QLabel("Cor dos Headers das Colunas:"))
-        self.column_color_btn = QPushButton("Alterar Cor")
+        column_color_layout.addWidget(QLabel(_("column_headers_color_label", "Cor dos Headers das Colunas:")))
+        self.column_color_btn = QPushButton(_("change_color", "Alterar Cor"))
         self.column_color_btn.clicked.connect(lambda: self.change_column_header_color(dialog))
         column_color_layout.addWidget(self.column_color_btn)
         
         # Botão voltar ao padrão
-        self.column_reset_btn = QPushButton("↩️ Padrão")
-        self.column_reset_btn.setToolTip("Voltar à cor padrão dos headers das colunas")
+        self.column_reset_btn = QPushButton(_("reset_to_default", "↩️ Padrão"))
+        self.column_reset_btn.setToolTip(_("reset_column_headers_tooltip", "Voltar à cor padrão dos headers das colunas"))
         self.column_reset_btn.clicked.connect(lambda: self.reset_column_header_color(dialog))
         column_color_layout.addWidget(self.column_reset_btn)
         column_color_layout.addStretch()
@@ -4358,7 +4358,7 @@ class KanbanWindow(QMainWindow):
         
         appearance_layout.addStretch()
         appearance_tab.setLayout(appearance_layout)
-        tabs.addTab(appearance_tab, "🎨 Aparência")
+        tabs.addTab(appearance_tab, _("appearance_tab", "🎨 Aparência"))
         
         # === ABA 2: LICENCIAMENTO ===
         license_tab = QWidget()
@@ -4368,23 +4368,23 @@ class KanbanWindow(QMainWindow):
             license_info = self.license_manager.get_license_info()
             if license_info:
                 info_text = f"""
-                <b>Informações da Licença:</b><br><br>
-                <b>Cliente:</b> {license_info['customer_name']}<br>
-                <b>Email:</b> {license_info['customer_email']}<br>
-                <b>Emitida em:</b> {license_info['issue_date']}<br>
-                <b>Válida até:</b> {license_info['expiry_date']}<br>
-                <b>Ativada em:</b> {license_info['activated_date']}<br>
-                <b>Hardware ID:</b> {license_info['hwid']}<br>
-                <b>Versão:</b> {license_info['version']}
+                <b>{_('license_info_label', 'Informações da Licença:')}</b><br><br>
+                <b>{_('customer_name', 'Cliente')}:</b> {license_info['customer_name']}<br>
+                <b>{_('customer_email', 'Email')}:</b> {license_info['customer_email']}<br>
+                <b>{_('issue_date', 'Emitida em')}:</b> {license_info['issue_date']}<br>
+                <b>{_('expiry_date', 'Válida até')}:</b> {license_info['expiry_date']}<br>
+                <b>{_('activated_date', 'Ativada em')}:</b> {license_info['activated_date']}<br>
+                <b>{_('hardware_id', 'Hardware ID')}:</b> {license_info['hwid']}<br>
+                <b>{_('version', 'Versão')}:</b> {license_info['version']}
                 """
                 info_label = QLabel(info_text)
                 info_label.setWordWrap(True)
                 license_layout.addWidget(info_label)
             else:
-                no_license_label = QLabel("Nenhuma licença ativada.")
+                no_license_label = QLabel(_("no_license_label", "Nenhuma licença ativada."))
                 license_layout.addWidget(no_license_label)
             
-            activate_btn = QPushButton("🔐 Ativar/Verificar Licença")
+            activate_btn = QPushButton(_("activate_verify_license", "🔐 Ativar/Verificar Licença"))
             activate_btn.clicked.connect(lambda: (dialog.accept(), self.show_activate_dialog()))
             activate_btn.setStyleSheet("""
                 QPushButton {
@@ -4403,28 +4403,28 @@ class KanbanWindow(QMainWindow):
             """)
             license_layout.addWidget(activate_btn)
         else:
-            no_license_label = QLabel("Sistema de licenciamento não disponível.")
+            no_license_label = QLabel(_("license_not_available", "Sistema de licenciamento não disponível."))
             license_layout.addWidget(no_license_label)
         
         license_layout.addStretch()
         license_tab.setLayout(license_layout)
-        tabs.addTab(license_tab, "🔐 Licenciamento")
+        tabs.addTab(license_tab, _("licensing_tab", "🔐 Licenciamento"))
         
         # === ABA 3: GERAL ===
         general_tab = QWidget()
         general_layout = QVBoxLayout()
         
         # Informações do sistema
-        system_info = QGroupBox("ℹ️ Informações do Sistema")
+        system_info = QGroupBox(_("system_info_group", "ℹ️ Informações do Sistema"))
         system_layout = QVBoxLayout()
         
         info_text = f"""
-        <b>PinFlow Pro v3.0</b><br><br>
-        <b>Desenvolvedor:</b> Ede Machado<br>
-        <b>Versão:</b> 3.0<br>
-        <b>Python:</b> {sys.version.split()[0]}<br>
-        <b>PySide6:</b> {PySide6.__version__ if hasattr(PySide6, '__version__') else 'N/A'}<br><br>
-        <b>© 2025 - Criado por Ede Machado</b>
+        <b>{_('app_version', 'PinFlow Pro v3.0')}</b><br><br>
+        <b>{_('developer', 'Desenvolvedor')}:</b> Ede Machado<br>
+        <b>{_('version', 'Versão')}:</b> 3.0<br>
+        <b>{_('python_version', 'Python: {version}').format(version=sys.version.split()[0])}</b><br>
+        <b>{_('pyside6_version', 'PySide6: {version}').format(version=PySide6.__version__ if hasattr(PySide6, '__version__') else 'N/A')}</b><br><br>
+        <b>{_('copyright', '© 2025 - Criado por Ede Machado')}</b>
         """
         info_label = QLabel(info_text)
         info_label.setWordWrap(True)
@@ -4435,7 +4435,7 @@ class KanbanWindow(QMainWindow):
         
         general_layout.addStretch()
         general_tab.setLayout(general_layout)
-        tabs.addTab(general_tab, "ℹ️ Sobre")
+        tabs.addTab(general_tab, _("about_tab", "ℹ️ Sobre"))
         
         layout.addWidget(tabs)
         
@@ -4473,7 +4473,7 @@ class KanbanWindow(QMainWindow):
         except:
             pass
         
-        color = QColorDialog.getColor(current_color, parent_dialog, "Escolha cor do Header")
+        color = QColorDialog.getColor(current_color, parent_dialog, _("choose_header_color", "Escolha cor do Header"))
         if color.isValid():
             # Salvar cor nas configurações
             try:
@@ -4779,17 +4779,17 @@ class KanbanWindow(QMainWindow):
     def show_shortcuts(self):
         """Mostra dialog com atalhos"""
         msg = QMessageBox(self)
-        msg.setWindowTitle("⌨️ Atalhos de Teclado")
-        msg.setText("""
-<b>Atalhos disponíveis:</b><br><br>
-<b>Ctrl+N</b> - Novo card em "A Fazer"<br>
-<b>Ctrl+F</b> - Focar na busca<br>
-<b>Ctrl+T</b> - Toggle Always On Top<br>
-<b>Ctrl+Q</b> - Sair<br>
-<b>F1</b> - Mostrar este help<br><br>
-<b>⚙️ Engrenagem</b> - Menu de opções (Editar, Arquivar, Remover, Abrir)<br>
-<b>Arrastar card</b> - Mover entre colunas<br>
-<b>Clicar no caminho azul</b> - Abrir pasta contendo o arquivo
+        msg.setWindowTitle(_("shortcuts_dialog_title", "⌨️ Atalhos de Teclado - PinFlow Pro"))
+        msg.setText(f"""
+<b>{_('shortcuts_title', 'Atalhos disponíveis:')}</b><br><br>
+<b>{_('shortcut_new_card', 'Ctrl+N - Novo card em "A Fazer"')}</b><br>
+<b>{_('shortcut_search', 'Ctrl+F - Focar na busca')}</b><br>
+<b>{_('shortcut_always_top', 'Ctrl+T - Always On Top')}</b><br>
+<b>{_('shortcut_quit', 'Ctrl+Q - Sair')}</b><br>
+<b>{_('shortcut_help', 'F1 - Mostrar este help')}</b><br><br>
+<b>{_('shortcut_gear', '⚙️ Engrenagem - Menu de opções (Editar, Arquivar, Remover, Abrir)')}</b><br>
+<b>{_('shortcut_drag', 'Arrastar card - Mover entre colunas')}</b><br>
+<b>{_('shortcut_path', 'Clicar no caminho azul - Abrir pasta contendo o arquivo')}</b>
         """)
         msg.setIcon(QMessageBox.Information)
         msg.exec()
@@ -4798,10 +4798,10 @@ class KanbanWindow(QMainWindow):
         """Toggle always on top"""
         if checked:
             self.setWindowFlags(self.windowFlags() | Qt.WindowStaysOnTopHint)
-            self.toggle_btn.setText("📌 Always On Top: ON")
+            self.toggle_btn.setText(_("always_on_top_on", "📌 Always On Top: ON"))
         else:
             self.setWindowFlags(self.windowFlags() & ~Qt.WindowStaysOnTopHint)
-            self.toggle_btn.setText("📌 Always On Top: OFF")
+            self.toggle_btn.setText(_("always_on_top_off", "📌 Always On Top: OFF"))
         self.show()
         
     def change_transparency(self, value):
@@ -4831,18 +4831,18 @@ class KanbanWindow(QMainWindow):
                 break
         
         if not completed_col or not completed_col.cards:
-            QMessageBox.information(self, "Info", "Nenhum card concluído para limpar!")
+            QMessageBox.information(self, _("info", "Info"), _("no_cards_to_export", "Nenhum card concluído para limpar!"))
             return
             
-        reply = QMessageBox.question(self, "Confirmar", 
-                                     f"Remover {len(completed_col.cards)} card(s) concluído(s)?",
+        reply = QMessageBox.question(self, _("confirm", "Confirmar"), 
+                                     _("confirm_delete_card", "Remover {count} card(s) concluído(s)?").format(count=len(completed_col.cards)),
                                      QMessageBox.Yes | QMessageBox.No)
         if reply == QMessageBox.Yes:
             # Remover todos os cards
             for card in list(completed_col.cards):
                 completed_col.remove_card(card, save=False)
             self.save_data()
-            QMessageBox.information(self, "Sucesso", "Cards concluídos removidos!")
+            QMessageBox.information(self, _("success", "Sucesso"), _("archive_cleared", "Cards concluídos removidos!"))
     
     def view_archived(self):
         """Abre dialog de cards arquivados"""
