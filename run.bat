@@ -1,9 +1,9 @@
 @echo off
-chcp 65001 >nul
+chcp 65001 >nul 2>&1
 cls
 
 echo ========================================
-echo   📌➜ PinFlow Pro v3.0
+echo   PinFlow Pro v3.0
 echo   Suas tarefas sempre no topo!
 echo ========================================
 echo.
