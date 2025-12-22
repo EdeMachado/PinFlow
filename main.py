@@ -600,7 +600,7 @@ class CardDialog(QDialog):
         self.start_date.setDisplayFormat("dd/MM/yyyy")
         self.start_date.setStyleSheet("""
             QDateEdit {
-                color: #000000;
+                color: #000000 !important;
                 background-color: white;
                 padding: 5px;
                 border: 1px solid #ccc;
@@ -608,6 +608,9 @@ class CardDialog(QDialog):
             }
             QDateEdit::drop-down {
                 border: none;
+            }
+            QDateEdit QAbstractItemView {
+                color: #000000 !important;
             }
         """)
         start_layout.addWidget(self.start_date)
@@ -621,7 +624,7 @@ class CardDialog(QDialog):
         self.end_date.setDisplayFormat("dd/MM/yyyy")
         self.end_date.setStyleSheet("""
             QDateEdit {
-                color: #000000;
+                color: #000000 !important;
                 background-color: white;
                 padding: 5px;
                 border: 1px solid #ccc;
@@ -629,6 +632,9 @@ class CardDialog(QDialog):
             }
             QDateEdit::drop-down {
                 border: none;
+            }
+            QDateEdit QAbstractItemView {
+                color: #000000 !important;
             }
         """)
         end_layout.addWidget(self.end_date)
