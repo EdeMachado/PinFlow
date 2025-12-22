@@ -3453,32 +3453,8 @@ class KanbanWindow(QMainWindow):
         
         # Logo removido - não usar mais
         
-        # Botão Configuração do Sistema
-        self.config_btn = QPushButton("⚙️ Configuração")
-        self.config_btn.setCursor(Qt.PointingHandCursor)
-        self.config_btn.setToolTip("Configurações do Sistema")
-        self.config_btn.setFocusPolicy(Qt.StrongFocus)  # Permitir foco
-        self.config_btn.setStyleSheet("""
-            QPushButton {
-                padding: 8px 15px;
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-                    stop:0 #1e3a5f, stop:1 #8b9dc3);
-                color: white;
-                border: none;
-                border-radius: 5px;
-                font-weight: bold;
-                font-size: 11px;
-            }
-            QPushButton:hover {
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-                    stop:0 #152d4a, stop:1 #7a8bb0);
-            }
-        """)
-        self.config_btn.clicked.connect(self.show_config_dialog)
-        
         header_layout.addWidget(title_label)
         header_layout.addStretch()
-        header_layout.addWidget(self.config_btn)
         # Adicionar nome do cliente no lado direito (se houver) - clicável para configurações
         if customer_name_label:
             header_layout.addWidget(customer_name_label)
