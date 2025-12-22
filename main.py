@@ -1463,39 +1463,39 @@ class PostItCard(QFrame):
         
         # === SEÇÃO 1: ABRIR ARQUIVOS ===
         if self.caminho and os.path.exists(self.caminho):
-            open_action = QAction("📂 Abrir Arquivo/Pasta", self)
+            open_action = QAction(_("menu_open_file", "📂 Abrir Arquivo/Pasta"), self)
             open_action.triggered.connect(lambda: os.startfile(self.caminho))
             menu.addAction(open_action)
             
-            open_folder_action = QAction("📁 Abrir Pasta Contendo", self)
+            open_folder_action = QAction(_("menu_open_folder", "📁 Abrir Pasta Contendo"), self)
             open_folder_action.triggered.connect(self.open_folder)
             menu.addAction(open_folder_action)
             menu.addSeparator()
         
         # === ALERTA ATIVO - MARCAR COMO LIDO ===
         if self.alerta_ativo:
-            mark_read_action = QAction("✓ Marcar como Lido (Parar de Piscar)", self)
+            mark_read_action = QAction(_("menu_mark_read", "✓ Marcar como Lido (Parar de Piscar)"), self)
             mark_read_action.triggered.connect(self.mark_alert_as_read)
             menu.addAction(mark_read_action)
             menu.addSeparator()
         
         # === SEÇÃO 2: APARÊNCIA ===
-        color_action = QAction("🎨 Cor", self)
+        color_action = QAction(_("menu_color", "🎨 Cor"), self)
         color_action.triggered.connect(self.show_color_menu)
         menu.addAction(color_action)
         
-        size_action = QAction("📐 Tamanho", self)
+        size_action = QAction(_("menu_size", "📐 Tamanho"), self)
         size_action.triggered.connect(self.show_size_menu)
         menu.addAction(size_action)
         
         menu.addSeparator()
         
         # === SEÇÃO 3: EDIÇÃO ===
-        edit_action = QAction("✏️ Editar", self)
+        edit_action = QAction(_("menu_edit", "✏️ Editar"), self)
         edit_action.triggered.connect(self.edit_card)
         menu.addAction(edit_action)
         
-        duplicate_action = QAction("📋 Duplicar\tAlt+D", self)
+        duplicate_action = QAction(_("menu_duplicate", "📋 Duplicar") + "\tAlt+D", self)
         duplicate_action.triggered.connect(self.duplicate_card)
         menu.addAction(duplicate_action)
         
@@ -1503,22 +1503,22 @@ class PostItCard(QFrame):
         
         # === SEÇÃO 3.5: NOTA (Copiar/Imprimir) ===
         if self.notas:
-            copy_notes_action = QAction("📋 Copiar Nota", self)
+            copy_notes_action = QAction(_("menu_copy_note", "📋 Copiar Nota"), self)
             copy_notes_action.triggered.connect(self.copy_notes)
             menu.addAction(copy_notes_action)
             
-            print_notes_action = QAction("🖨️ Imprimir Nota", self)
+            print_notes_action = QAction(_("menu_print_note", "🖨️ Imprimir Nota"), self)
             print_notes_action.triggered.connect(self.print_notes)
             menu.addAction(print_notes_action)
             
             menu.addSeparator()
         
         # === SEÇÃO 4: AÇÕES ===
-        archive_action = QAction("📦 Arquivar", self)
+        archive_action = QAction(_("menu_archive", "📦 Arquivar"), self)
         archive_action.triggered.connect(self.archive_card)
         menu.addAction(archive_action)
         
-        remove_action = QAction("🗑️ Eliminar Nota\tAlt+Del", self)
+        remove_action = QAction(_("menu_delete", "🗑️ Eliminar Nota") + "\tAlt+Del", self)
         remove_action.triggered.connect(self.remove_self)
         menu.addAction(remove_action)
         
@@ -1529,7 +1529,7 @@ class PostItCard(QFrame):
         """Mostra paleta de cores COMPLETA (igual Post-it)"""
         # Criar dialog customizado com grid de cores
         dialog = QDialog(self)
-        dialog.setWindowTitle("Escolha uma cor")
+        dialog.setWindowTitle(_("choose_color_dialog", "Escolha uma cor"))
         dialog.setModal(True)
         dialog.setFixedSize(380, 200)
         
@@ -1570,7 +1570,7 @@ class PostItCard(QFrame):
         layout.addLayout(grid)
         
         # Botão para cor automática
-        reset_btn = QPushButton("🔄 Cor Automática (Por Prioridade)")
+        reset_btn = QPushButton(_("auto_color_by_priority", "🔄 Cor Automática (Por Prioridade)"))
         reset_btn.clicked.connect(lambda: self.reset_color_and_close(dialog))
         reset_btn.setStyleSheet("""
             QPushButton {
@@ -1603,15 +1603,15 @@ class PostItCard(QFrame):
         from PySide6.QtWidgets import QDialog, QVBoxLayout, QRadioButton, QDialogButtonBox
         
         dialog = QDialog(self)
-        dialog.setWindowTitle("Tamanho do Card")
+        dialog.setWindowTitle(_("card_size_dialog", "Tamanho do Card"))
         dialog.setModal(True)
         
         layout = QVBoxLayout()
         
         # Opções de tamanho
-        pequeno_radio = QRadioButton("Pequeno (200px)")
-        medio_radio = QRadioButton("Médio (250px)")
-        grande_radio = QRadioButton("Grande (320px)")
+        pequeno_radio = QRadioButton(_("size_small", "Pequeno (200px)"))
+        medio_radio = QRadioButton(_("size_medium", "Médio (250px)"))
+        grande_radio = QRadioButton(_("size_large", "Grande (320px)"))
         
         # Marcar atual
         if self.card_size == "pequeno":
@@ -2152,7 +2152,7 @@ class KanbanColumn(QFrame):
         self.column_menu_btn = QPushButton("⋮")
         self.column_menu_btn.setMaximumSize(QSize(25, 25))
         self.column_menu_btn.setCursor(Qt.PointingHandCursor)
-        self.column_menu_btn.setToolTip("Opções da coluna")
+        self.column_menu_btn.setToolTip(_("column_options_tooltip", "Opções da coluna"))
         self.column_menu_btn.setStyleSheet("""
             QPushButton {
                 background-color: transparent;
@@ -2181,7 +2181,7 @@ class KanbanColumn(QFrame):
         # Botão adicionar
         add_btn = QPushButton("➕")
         add_btn.setMaximumSize(QSize(30, 30))
-        add_btn.setToolTip("Adicionar novo card")
+        add_btn.setToolTip(_("add_card_tooltip", "Adicionar novo card"))
         add_btn.clicked.connect(self.add_card_manual)
         add_btn.setStyleSheet("""
             QPushButton {
@@ -2311,7 +2311,7 @@ class KanbanColumn(QFrame):
         new_title, ok = QInputDialog.getText(
             self,
             "Editar Nome da Coluna",
-            "Novo nome:",
+            _("new_column_name", "Novo nome:"),
             QLineEdit.Normal,
             self.titulo
         )
@@ -2338,19 +2338,19 @@ class KanbanColumn(QFrame):
         """)
         
         # Editar nome
-        edit_action = QAction("✏️ Editar Nome", self)
+        edit_action = QAction(_("menu_edit_column_name", "✏️ Editar Nome"), self)
         edit_action.triggered.connect(self.edit_title)
         menu.addAction(edit_action)
         
         # Mudar cor
-        color_action = QAction("🎨 Mudar Cor", self)
+        color_action = QAction(_("menu_change_column_color", "🎨 Mudar Cor"), self)
         color_action.triggered.connect(self.change_column_color)
         menu.addAction(color_action)
         
         menu.addSeparator()
         
         # Remover coluna
-        remove_action = QAction("🗑️ Remover Coluna", self)
+        remove_action = QAction(_("menu_remove_column", "🗑️ Remover Coluna"), self)
         remove_action.triggered.connect(self.remove_column)
         menu.addAction(remove_action)
         
