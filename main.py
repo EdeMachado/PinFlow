@@ -832,6 +832,8 @@ class CardDialog(QDialog):
         
         # Botões
         buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        buttons.button(QDialogButtonBox.Ok).setText(_("save", "Salvar"))
+        buttons.button(QDialogButtonBox.Cancel).setText(_("cancel", "Cancelar"))
         buttons.accepted.connect(self.accept)
         buttons.rejected.connect(self.reject)
         layout.addWidget(buttons)
