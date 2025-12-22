@@ -3764,25 +3764,12 @@ class KanbanWindow(QMainWindow):
             pass
         
         if self.dark_mode:
-            # MODO ESCURO - TUDO PRETO ELEGANTE (mas respeitar cor salva se houver)
-            if header_color_saved:
-                # Usar cor salva mesmo no modo escuro
-                color = QColor(header_color_saved)
-                r, g, b = color.red(), color.green(), color.blue()
-                self.header_widget.setStyleSheet(f"""
-                    background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
-                        stop:0 rgb({r}, {g}, {b}), 
-                        stop:1 rgb({min(255, r+50)}, {min(255, g+50)}, {min(255, b+50)}));
-                    border-radius: 8px;
-                    padding: 10px;
-                """)
-            else:
-                self.header_widget.setStyleSheet("""
-                    background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
-                        stop:0 #0d1b2a, stop:1 #1b263b);
-                    border-radius: 8px;
-                    padding: 10px;
-                """)
+            # MODO ESCURO - TUDO PRETO ELEGANTE (cores fixas, não muda com cores personalizadas)
+            self.header_widget.setStyleSheet("""
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
+                    stop:0 #0d1b2a, stop:1 #1b263b);
+                border-radius: 8px;
+            """)
             self.copyright_label.setStyleSheet("""
                 color: #5c5c5c;
                 padding: 5px;
