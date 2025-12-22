@@ -4872,8 +4872,8 @@ class KanbanWindow(QMainWindow):
         except Exception as e:
             QMessageBox.critical(
                 self,
-                "❌ Erro ao abrir Dashboard",
-                f"Erro ao abrir Dashboard:\n{str(e)}\n\nDetalhes técnicos:\n{type(e).__name__}"
+                _("error", "❌ Erro ao abrir Dashboard"),
+                _("error", "Erro ao abrir Dashboard:") + f"\n{str(e)}\n\n" + _("error", "Detalhes técnicos:") + f"\n{type(e).__name__}"
             )
             print(f"ERRO DASHBOARD: {e}")
             import traceback
