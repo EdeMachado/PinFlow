@@ -4493,6 +4493,16 @@ class KanbanWindow(QMainWindow):
             for column in self.columns:
                 if hasattr(column, 'header_container'):
                     column.header_container.setStyleSheet(default_style)
+                    # Forçar atualização visual imediata
+                    column.header_container.update()
+                    column.header_container.repaint()
+                    # Também atualizar a coluna inteira
+                    column.update()
+                    column.repaint()
+            
+            # Forçar atualização da janela principal
+            self.update()
+            self.repaint()
             
             QMessageBox.information(parent_dialog, "Cor Restaurada", "Cor dos headers das colunas restaurada ao padrão!")
         except Exception as e:
