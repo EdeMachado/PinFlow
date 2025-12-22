@@ -1817,6 +1817,9 @@ class PostItCard(QFrame):
     def edit_card(self):
         """Abre dialog para editar"""
         dialog = CardDialog(self, self.data)
+        # Registrar dialog para atualização de idioma
+        if hasattr(self.parent_column.window, 'open_dialogs'):
+            self.parent_column.window.open_dialogs.append(dialog)
         if dialog.exec() == QDialog.Accepted:
             new_data = dialog.get_data()
             
@@ -2530,6 +2533,9 @@ class KanbanColumn(QFrame):
     def add_card_manual(self):
         """Adiciona card manualmente via dialog"""
         dialog = CardDialog(self)
+        # Registrar dialog para atualização de idioma
+        if hasattr(self.window, 'open_dialogs'):
+            self.window.open_dialogs.append(dialog)
         if dialog.exec() == QDialog.Accepted:
             data = dialog.get_data()
             if data["titulo"]:
@@ -4028,43 +4034,45 @@ class KanbanWindow(QMainWindow):
             self.columns_layout.insertWidget(self.columns_layout.count() - 1, col)
     
     def update_ui_language(self):
-        """Atualiza todos os textos da interface quando o idioma muda"""
-        # Atualizar botões da toolbar
+        """Atualiza TODOS os textos da interface quando o idioma muda - VERSÃO COMPLETA"""
+        print(f"🔄 Atualizando interface para idioma: {I18nManager.get_current_language()}")
+        
+        # === 1. BOTÕES DA TOOLBAR ===
         if hasattr(self, 'new_column_btn'):
             self.new_column_btn.setText(f"➕ {_('new_column', 'Nova Coluna')}")
         if hasattr(self, 'gantt_btn'):
             self.gantt_btn.setText(f"📊 {_('gantt', 'Gantt')}")
+            self.gantt_btn.setToolTip(_("gantt", "Ver cronograma visual do projeto"))
         if hasattr(self, 'dashboard_btn'):
             self.dashboard_btn.setText(f"📈 {_('dashboard', 'Dashboard')}")
+            self.dashboard_btn.setToolTip(_("dashboard", "Ver estatísticas e produtividade"))
         if hasattr(self, 'backup_btn'):
             self.backup_btn.setText(f"💾 {_('backup', 'Backup')}")
+            self.backup_btn.setToolTip(_("create_backup_tooltip", "Criar backup dos dados"))
         if hasattr(self, 'license_btn'):
             self.license_btn.setText(f"🔐 {_('license', 'Licença')}")
             self.license_btn.setToolTip(_("activate_license", "Ativar ou verificar licença"))
         
-        # Atualizar placeholder da busca
+        # === 2. BUSCA ===
         if hasattr(self, 'search_input'):
             self.search_input.setPlaceholderText(_("search_cards", "Buscar cards..."))
         
-        # Atualizar tooltip do tema
+        # === 3. TEMA ===
         if hasattr(self, 'theme_toggle'):
             self.theme_toggle.setToolTip(_("theme_toggle", "Alternar tema (Claro/Escuro)"))
         
-        # Atualizar título
+        # === 4. TÍTULO E COPYRIGHT ===
         if hasattr(self, 'title_label'):
             self.title_label.setText(_("app_title", "📌➜ PinFlow Pro"))
-        
-        # Atualizar copyright
         if hasattr(self, 'copyright_label'):
             self.copyright_label.setText(_("copyright", "© 2025 - Criado por Ede Machado"))
         
-        # Atualizar botões do rodapé
+        # === 5. BOTÕES DO RODAPÉ ===
         if hasattr(self, 'toggle_btn'):
             if self.toggle_btn.isChecked():
                 self.toggle_btn.setText(f"📌 {_('always_on_top_on', 'Always On Top: ON')}")
             else:
                 self.toggle_btn.setText(f"📌 {_('always_on_top_off', 'Always On Top: OFF')}")
-        
         if hasattr(self, 'clear_completed_btn'):
             self.clear_completed_btn.setText(f"🗑️ {_('clear_completed', 'Limpar Concluídos')}")
         if hasattr(self, 'view_archived_btn'):
@@ -4072,21 +4080,75 @@ class KanbanWindow(QMainWindow):
         if hasattr(self, 'shortcuts_btn'):
             self.shortcuts_btn.setText(f"⌨️ {_('shortcuts_button', 'Atalhos')}")
         
-        # Atualizar labels de transparência
+        # === 6. LABELS ===
         if hasattr(self, 'transparency_label'):
             self.transparency_label.setText(_("transparency_label", "Transparência:"))
         
-        # Atualizar todas as colunas
+        # === 7. COLUNAS E CARDS ===
         for col in self.columns:
             # Atualizar contador de cards
             col.update_card_count()
             # Atualizar tooltip de edição
             if hasattr(col, 'title_label'):
                 col.title_label.setToolTip(_("edit_column_name", "Duplo clique para editar nome"))
+            # Atualizar tooltip do botão de menu da coluna
+            if hasattr(col, 'column_menu_btn'):
+                col.column_menu_btn.setToolTip(_("column_options_tooltip", "Opções da coluna"))
+            # Atualizar tooltip do botão de adicionar card
+            if hasattr(col, 'add_btn'):
+                col.add_btn.setToolTip(_("add_card_tooltip", "Adicionar novo card"))
+            
+            # Atualizar todos os cards da coluna
+            for card in col.cards:
+                # Atualizar tooltip do gear
+                if hasattr(card, 'gear_btn'):
+                    card.gear_btn.setToolTip(_("card_options_tooltip", "Opções do Card"))
+                # Atualizar título do card se necessário
+                if hasattr(card, 'title_label'):
+                    # O título do card não muda, mas podemos atualizar tooltips
+                    pass
         
-        # Forçar atualização visual
+        # === 8. DIALOGS ABERTOS ===
+        # Atualizar todos os dialogs abertos
+        dialogs_to_remove = []
+        for dialog in getattr(self, 'open_dialogs', []):
+            try:
+                if dialog.isVisible():
+                    # Se for CardDialog, atualizar combo de prioridade
+                    if hasattr(dialog, 'update_priority_combo'):
+                        dialog.update_priority_combo()
+                    # Atualizar título do dialog
+                    if hasattr(dialog, 'card_data'):
+                        dialog.setWindowTitle(_("edit_card", "✏️ Editar Card") if dialog.card_data else _("new_card", "➕ Novo Card"))
+                    # Atualizar todos os labels e placeholders do dialog
+                    if hasattr(dialog, 'title_input'):
+                        dialog.title_input.setPlaceholderText(_("title_placeholder", "Digite o título do card..."))
+                    if hasattr(dialog, 'path_input'):
+                        dialog.path_input.setPlaceholderText(_("path_placeholder", "Deixe vazio ou cole um caminho de arquivo/pasta..."))
+                    if hasattr(dialog, 'tags_input'):
+                        dialog.tags_input.setPlaceholderText(_("tags_placeholder", "Ex: urgente, trabalho, pessoal"))
+                    if hasattr(dialog, 'alert_input'):
+                        dialog.alert_input.setPlaceholderText(_("alert_message_placeholder", "Ex: Entregar relatório, Reunião importante..."))
+                else:
+                    # Dialog fechado, remover da lista
+                    dialogs_to_remove.append(dialog)
+            except:
+                # Dialog foi destruído, remover da lista
+                dialogs_to_remove.append(dialog)
+        
+        # Remover dialogs fechados/destruídos
+        for dialog in dialogs_to_remove:
+            if hasattr(self, 'open_dialogs'):
+                try:
+                    self.open_dialogs.remove(dialog)
+                except:
+                    pass
+        
+        # === 9. FORÇAR ATUALIZAÇÃO VISUAL ===
         self.update()
         self.repaint()
+        
+        print(f"✅ Interface atualizada para: {I18nManager.get_current_language()}")
     
     def reorder_columns(self, old_index, new_index):
         """Reordena colunas"""
