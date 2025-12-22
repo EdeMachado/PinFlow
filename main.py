@@ -4035,7 +4035,11 @@ class KanbanWindow(QMainWindow):
     
     def update_ui_language(self):
         """Atualiza TODOS os textos da interface quando o idioma muda - VERSÃO COMPLETA"""
-        print(f"🔄 Atualizando interface para idioma: {I18nManager.get_current_language()}")
+        try:
+            current_lang = I18nManager.get_current_language() if I18N_ENABLED else "pt_BR"
+            print(f"🔄 Atualizando interface para idioma: {current_lang}")
+        except:
+            print("🔄 Atualizando interface para idioma: pt_BR")
         
         # === 1. BOTÕES DA TOOLBAR ===
         if hasattr(self, 'new_column_btn'):
@@ -4148,7 +4152,11 @@ class KanbanWindow(QMainWindow):
         self.update()
         self.repaint()
         
-        print(f"✅ Interface atualizada para: {I18nManager.get_current_language()}")
+        try:
+            current_lang = I18nManager.get_current_language() if I18N_ENABLED else "pt_BR"
+            print(f"✅ Interface atualizada para: {current_lang}")
+        except:
+            print("✅ Interface atualizada")
     
     def reorder_columns(self, old_index, new_index):
         """Reordena colunas"""
