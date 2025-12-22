@@ -2227,7 +2227,7 @@ class KanbanColumn(QFrame):
     
     def update_column_style(self):
         """Atualiza estilo da coluna baseado no tema"""
-        # Carregar cor salva dos headers das colunas
+        # Carregar cor salva dos headers das colunas (apenas para modo claro)
         column_header_color_saved = None
         try:
             if os.path.exists("settings.json"):
@@ -2239,7 +2239,7 @@ class KanbanColumn(QFrame):
             pass
         
         if hasattr(self.window, 'dark_mode') and self.window.dark_mode:
-            # MODO ESCURO - Gradiente preto elegante
+            # MODO ESCURO - TUDO PRETO (cores fixas, não aplica cores personalizadas)
             self.setStyleSheet(f"""
                 KanbanColumn {{
                     background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
@@ -2248,7 +2248,24 @@ class KanbanColumn(QFrame):
                     border-radius: 10px;
                 }}
             """)
-            # Aplicar cor salva no header se houver
+            # Header das colunas também preto no modo escuro (cores fixas)
+            if hasattr(self, 'header_container'):
+                self.header_container.setStyleSheet("""
+                    background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                        stop:0 #1a1a1a, stop:1 #2d2d2d);
+                    border-radius: 8px;
+                    padding: 8px;
+                """)
+        else:
+            # MODO CLARO - Cinza claro original (pode usar cores personalizadas)
+            self.setStyleSheet(f"""
+                KanbanColumn {{
+                    background-color: #f5f5f5;
+                    border: 2px dashed #ccc;
+                    border-radius: 10px;
+                }}
+            """)
+            # Aplicar cor salva no header se houver (apenas modo claro)
             if column_header_color_saved and hasattr(self, 'header_container'):
                 color = QColor(column_header_color_saved)
                 r, g, b = color.red(), color.green(), color.blue()
@@ -2259,23 +2276,11 @@ class KanbanColumn(QFrame):
                     border-radius: 8px;
                     padding: 8px;
                 """)
-        else:
-            # MODO CLARO - Cinza claro original
-            self.setStyleSheet(f"""
-                KanbanColumn {{
-                    background-color: #f5f5f5;
-                    border: 2px dashed #ccc;
-                    border-radius: 10px;
-                }}
-            """)
-            # Aplicar cor salva no header se houver
-            if column_header_color_saved and hasattr(self, 'header_container'):
-                color = QColor(column_header_color_saved)
-                r, g, b = color.red(), color.green(), color.blue()
-                self.header_container.setStyleSheet(f"""
+            elif hasattr(self, 'header_container'):
+                # Se não houver cor salva, usar padrão azul marinho
+                self.header_container.setStyleSheet("""
                     background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-                        stop:0 rgb({r}, {g}, {b}), 
-                        stop:1 rgb({min(255, r+30)}, {min(255, g+30)}, {min(255, b+30)}));
+                        stop:0 #1e3a5f, stop:1 #2a5080);
                     border-radius: 8px;
                     padding: 8px;
                 """)
