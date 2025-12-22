@@ -124,22 +124,26 @@ PRIORITIES = {
     "Baixa": {
         "color": "#4caf50", 
         "icon": "🔽",
-        "postit_color": "#b4ff87"  # Verde claro
+        "postit_color": "#b4ff87",  # Verde claro
+        "key": "low_priority"
     },
     "Normal": {
         "color": "#2196F3", 
         "icon": "⚪",
-        "postit_color": "#fff740"  # Amarelo padrão
+        "postit_color": "#fff740",  # Amarelo padrão
+        "key": "normal_priority"
     },
     "Alta": {
         "color": "#ff9800", 
         "icon": "🔶",
-        "postit_color": "#ffb347"  # Laranja
+        "postit_color": "#ffb347",  # Laranja
+        "key": "high_priority"
     },
     "Urgente": {
         "color": "#f44336", 
         "icon": "🔴",
-        "postit_color": "#ff87c3"  # Rosa/Vermelho
+        "postit_color": "#ff87c3",  # Rosa/Vermelho
+        "key": "urgent_priority"
     }
 }
 
