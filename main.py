@@ -3407,6 +3407,8 @@ class KanbanWindow(QMainWindow):
         # Widget central
         central = QWidget()
         self.setCentralWidget(central)
+        # Guardar referência para aplicar fundo escuro no modo escuro
+        self.central_widget = central
         
         # Layout principal
         main_layout = QVBoxLayout()
