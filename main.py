@@ -3743,6 +3743,17 @@ class KanbanWindow(QMainWindow):
     
     def apply_theme(self):
         """Aplica tema claro ou escuro"""
+        # Carregar cor do header salva (se houver) antes de aplicar tema
+        header_color_saved = None
+        try:
+            if os.path.exists("settings.json"):
+                with open("settings.json", "r", encoding="utf-8") as f:
+                    settings = json.load(f)
+                    if "header_color" in settings:
+                        header_color_saved = settings["header_color"]
+        except:
+            pass
+        
         if self.dark_mode:
             # MODO ESCURO - TUDO PRETO ELEGANTE
             self.header_widget.setStyleSheet("""
