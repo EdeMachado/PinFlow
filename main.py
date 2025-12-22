@@ -4721,12 +4721,18 @@ class KanbanWindow(QMainWindow):
             
             # Aplicar cor padrão
             self.header_widget.setStyleSheet("background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #1e3a5f, stop:1 #8b9dc3); border-radius: 8px; padding: 10px;")
-            if hasattr(self, 'title_label'):
-                self.title_label.setStyleSheet("color: #1e3a5f; padding: 10px;")
             
             # Restaurar cor padrão dos botões
             default_color = QColor(30, 58, 95)  # #1e3a5f
             self.update_buttons_color(default_color)
+            
+            # Resetar cor do título e nome do cliente (azul escuro padrão = texto branco)
+            text_color = self.get_text_color_for_background(default_color)
+            if hasattr(self, 'title_label'):
+                self.title_label.setStyleSheet(f"color: {text_color}; padding: 10px;")
+            
+            if hasattr(self, 'customer_name_label'):
+                self.customer_name_label.setStyleSheet(f"color: {text_color}; padding: 5px; cursor: pointer;")
             
             QMessageBox.information(parent_dialog, "Cor Restaurada", "Cor do header restaurada ao padrão!")
         except Exception as e:
