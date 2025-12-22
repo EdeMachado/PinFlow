@@ -23,7 +23,7 @@ from PySide6.QtWidgets import (QApplication, QMainWindow, QWidget, QHBoxLayout,
                                QDialog, QLineEdit, QTextEdit, QComboBox, QSlider,
                                QSystemTrayIcon, QMenu, QDialogButtonBox, QMessageBox,
                                QTableWidget, QTableWidgetItem, QHeaderView, QFileDialog,
-                               QDateEdit, QTimeEdit, QGroupBox)
+                               QDateEdit, QTimeEdit, QGroupBox, QTabWidget)
 from PySide6.QtCore import Qt, QMimeData, QPoint, QSize, Signal, QDate, QTime, QTimer
 from PySide6.QtGui import QDrag, QPalette, QColor, QFont, QIcon, QKeySequence, QShortcut, QAction, QTextCharFormat
 import PySide6
@@ -940,6 +940,12 @@ class CardDialog(QDialog):
         }
 
 
+def get_event_pos(event):
+    """Obtém posição do evento de forma compatível (PySide6 antigo/novo)"""
+    if hasattr(event, 'position'):
+        return event.position().toPoint()
+    return event.pos()
+
 class PostItCard(QFrame):
     """Cartão estilo post-it que pode ser arrastado"""
     
@@ -1822,11 +1828,12 @@ class PostItCard(QFrame):
     def mousePressEvent(self, event):
         """Inicia drag, resize ou abre card"""
         if event.button() == Qt.LeftButton:
+            pos = get_event_pos(event)
             # Verificar se clicou na engrenagem
             gear_btn_rect = self.gear_btn.geometry()
             
             # Não iniciar drag se clicou na engrenagem
-            if gear_btn_rect.contains(event.pos()):
+            if gear_btn_rect.contains(pos):
                 # Passar o evento para o botão processar
                 event.ignore()
                 # Enviar evento diretamente para o botão
@@ -1834,23 +1841,24 @@ class PostItCard(QFrame):
                 return
             
             # Verificar se clicou na borda para resize
-            edge = self.get_resize_edge(event.pos())
+            edge = self.get_resize_edge(pos)
             if edge:
                 self.resizing = True
                 self.resize_edge = edge
-                self.resize_start = event.pos()
+                self.resize_start = pos
                 self.update_cursor_for_resize(edge)
                 return
             
             # Se não for drag nem resize, marcar posição inicial para possível drag
-            self.drag_start_position = event.pos()
+            self.drag_start_position = pos
             self.setCursor(Qt.ClosedHandCursor)
             
     def mouseMoveEvent(self, event):
         """Executa drag OU resize"""
+        pos = get_event_pos(event)
         # Se está redimensionando
         if self.resizing and self.resize_start:
-            delta = event.pos() - self.resize_start
+            delta = pos - self.resize_start
             new_size = self.size()
             
             if self.resize_edge in ['right', 'corner']:
@@ -1862,7 +1870,7 @@ class PostItCard(QFrame):
                 new_size.setHeight(new_height)
             
             self.setFixedSize(new_size)
-            self.resize_start = event.pos()
+            self.resize_start = pos
             
             # Salvar novo tamanho personalizado
             self.data["custom_width"] = new_size.width()
@@ -1878,14 +1886,14 @@ class PostItCard(QFrame):
         # Se não está redimensionando, verifica se pode começar a arrastar
         if not (event.buttons() & Qt.LeftButton):
             # Apenas atualizando cursor
-            edge = self.get_resize_edge(event.pos())
+            edge = self.get_resize_edge(pos)
             self.update_cursor_for_resize(edge)
             return
             
         if not self.drag_start_position:
             return
             
-        if (event.pos() - self.drag_start_position).manhattanLength() < QApplication.startDragDistance():
+        if (pos - self.drag_start_position).manhattanLength() < QApplication.startDragDistance():
             return
             
         # Criar drag
@@ -1911,7 +1919,8 @@ class PostItCard(QFrame):
             
             # Se moveu pouco, foi um clique simples - ABRIR CARD
             if self.drag_start_position:
-                distance = (event.pos() - self.drag_start_position).manhattanLength()
+                pos = get_event_pos(event)
+                distance = (pos - self.drag_start_position).manhattanLength()
                 if distance < 10:  # Clique simples (moveu menos de 10 pixels)
                     self.edit_card()
                     self.drag_start_position = None
@@ -2464,7 +2473,8 @@ class KanbanColumn(QFrame):
                     source_column = source_widget.parent_column
                     
                     # Calcular posição de drop dentro da coluna
-                    drop_y = event.pos().y()
+                    pos = get_event_pos(event)
+                    drop_y = pos.y()
                     target_index = 0
                     
                     # Encontrar posição baseada em onde foi dropado
@@ -2515,16 +2525,18 @@ class KanbanColumn(QFrame):
         """Inicia arrastar coluna"""
         if event.button() == Qt.LeftButton:
             # Só arrastar se clicar no header
-            if self.header_widget.geometry().contains(event.pos()):
-                self.drag_start_position = event.pos()
+            pos = get_event_pos(event)
+            if self.header_widget.geometry().contains(pos):
+                self.drag_start_position = pos
                 self.header_widget.setCursor(Qt.ClosedHandCursor)
         super().mousePressEvent(event)
     
     def mouseMoveEvent(self, event):
         """Arrasta coluna"""
         if event.buttons() & Qt.LeftButton and self.drag_start_position:
+            pos = get_event_pos(event)
             # Verifica se moveu o suficiente para iniciar drag
-            if (event.pos() - self.drag_start_position).manhattanLength() < 20:
+            if (pos - self.drag_start_position).manhattanLength() < 20:
                 return
             
             # Criar drag
@@ -3520,7 +3532,8 @@ class KanbanWindow(QMainWindow):
                     old_index = int(event.mimeData().text().split(":")[1])
                     
                     # Calcular novo index baseado na posição do drop
-                    drop_x = event.pos().x()
+                    pos = get_event_pos(event)
+                    drop_x = pos.x()
                     new_index = 0
                     accumulated_width = 0
                     
