@@ -2220,7 +2220,8 @@ class KanbanColumn(QFrame):
                     settings = json.load(f)
                     if "column_header_color" in settings:
                         column_header_color_saved = settings["column_header_color"]
-        except:
+        except Exception as e:
+            print(f"Erro ao carregar cor das colunas: {e}")
             pass
         
         if hasattr(self.window, 'dark_mode') and self.window.dark_mode:
@@ -2280,6 +2281,9 @@ class KanbanColumn(QFrame):
                     border-radius: 8px;
                     padding: 8px;
                 """)
+                # Garantir que o texto seja branco no padrão
+                if hasattr(self, 'title_label'):
+                    self.title_label.setStyleSheet("color: #ffffff; padding: 5px;")
     
     def edit_title(self):
         """Edita o título da coluna"""
@@ -3842,6 +3846,8 @@ class KanbanWindow(QMainWindow):
                 # Atualizar cor do nome do cliente também (se houver)
                 if hasattr(self, 'customer_name_label'):
                     self.customer_name_label.setStyleSheet(f"color: {text_color}; padding: 10px; cursor: pointer;")
+                # Atualizar cor dos botões baseado na cor do header
+                self.update_buttons_color(color)
             
             # Garantir que logo/título mantenha cor fixa (não muda com header ou tema) - MODO CLARO
             if hasattr(self, 'title_label'):
@@ -4441,8 +4447,10 @@ class KanbanWindow(QMainWindow):
                 if hasattr(self, 'customer_name_label'):
                     self.customer_name_label.setStyleSheet(f"color: {text_color}; padding: 10px; cursor: pointer;")
                 
-                # Atualizar cor dos botões (tom mais escuro do header)
+                # Atualizar cor dos botões (tom mais escuro do header) - INCLUINDO RODAPÉ
                 self.update_buttons_color(color)
+                
+                QMessageBox.information(parent_dialog, "Cor Alterada", "Cor do header alterada com sucesso!")
                 
                 QMessageBox.information(parent_dialog, "Cor Alterada", 
                     f"Cor do header alterada para: {color.name()}\n\nA mudança foi aplicada imediatamente!")
@@ -4622,6 +4630,51 @@ class KanbanWindow(QMainWindow):
         
         # Estilo para botões inferiores (mais largos)
         bottom_button_style = f"""
+            QPushButton {{
+                padding: 10px;
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                    stop:0 rgb({dark_r}, {dark_g}, {dark_b}), 
+                    stop:1 rgb({light_r}, {light_g}, {light_b}));
+                color: white;
+                border: none;
+                border-radius: 5px;
+                font-weight: bold;
+                min-width: 150px;
+            }}
+            QPushButton:hover {{
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                    stop:0 rgb({hover_r}, {hover_g}, {hover_b}), 
+                    stop:1 rgb({hover_light_r}, {hover_light_g}, {hover_light_b}));
+            }}
+            QPushButton:checked {{
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                    stop:0 rgb({min(255, dark_r+20)}, {min(255, dark_g+20)}, {min(255, dark_b+20)}), 
+                    stop:1 rgb({min(255, light_r+20)}, {min(255, light_g+20)}, {min(255, light_b+20)}));
+            }}
+        """
+        
+        # Aplicar estilo nos botões da toolbar
+        if hasattr(self, 'new_column_btn'):
+            self.new_column_btn.setStyleSheet(button_style)
+        if hasattr(self, 'gantt_btn'):
+            self.gantt_btn.setStyleSheet(button_style)
+        if hasattr(self, 'dashboard_btn'):
+            self.dashboard_btn.setStyleSheet(button_style)
+        if hasattr(self, 'backup_btn'):
+            self.backup_btn.setStyleSheet(button_style)
+        
+        # Aplicar estilo nos botões inferiores (rodapé)
+        if hasattr(self, 'bottom_buttons'):
+            for btn in self.bottom_buttons:
+                if btn:
+                    btn.setStyleSheet(bottom_button_style)
+        
+        # Aplicar também nos botões individuais se existirem
+        if hasattr(self, 'toggle_btn'):
+            self.toggle_btn.setStyleSheet(bottom_button_style)
+        
+        # Estilo antigo (removido - substituído acima):
+        old_bottom_button_style = f"""
             QPushButton {{
                 padding: 10px;
                 background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
