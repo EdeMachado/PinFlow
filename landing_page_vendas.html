@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PinFlow Pro - Kanban Profissional para Windows</title>
+    <meta name="description" content="Organize suas tarefas com PinFlow Pro, o software Kanban profissional para Windows. Gestão de projetos, alertas, Gantt e muito mais!">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        /* Header */
+        header {
+            background: rgba(30, 58, 95, 0.95);
+            color: white;
+            padding: 20px 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+        
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+        }
+        
+        .logo .flow {
+            color: #00C853;
+        }
+        
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 30px;
+        }
+        
+        nav a {
+            color: white;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        nav a:hover {
+            color: #00C853;
+        }
+        
+        /* Hero Section */
+        .hero {
+            text-align: center;
+            padding: 100px 0;
+            color: white;
+        }
+        
+        .hero h1 {
+            font-size: 48px;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .hero .subtitle {
+            font-size: 24px;
+            margin-bottom: 40px;
+            opacity: 0.9;
+        }
+        
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #1e3a5f 0%, #8b9dc3 100%);
+            color: white;
+            padding: 20px 50px;
+            font-size: 20px;
+            font-weight: bold;
+            text-decoration: none;
+            border-radius: 50px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .cta-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+        }
+        
+        .price {
+            font-size: 48px;
+            font-weight: bold;
+            margin: 20px 0;
+            color: #00C853;
+        }
+        
+        .price small {
+            font-size: 24px;
+            color: white;
+        }
+        
+        /* Features */
+        .features {
+            background: white;
+            padding: 80px 0;
+        }
+        
+        .features h2 {
+            text-align: center;
+            font-size: 36px;
+            margin-bottom: 60px;
+            color: #1e3a5f;
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 40px;
+            margin-top: 40px;
+        }
+        
+        .feature-card {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .feature-card .icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+        
+        .feature-card h3 {
+            color: #1e3a5f;
+            margin-bottom: 15px;
+        }
+        
+        /* Screenshots */
+        .screenshots {
+            background: #f8f9fa;
+            padding: 80px 0;
+            text-align: center;
+        }
+        
+        .screenshots h2 {
+            font-size: 36px;
+            margin-bottom: 40px;
+            color: #1e3a5f;
+        }
+        
+        .screenshot-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+        
+        .screenshot {
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        
+        .screenshot img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        
+        /* Testimonials */
+        .testimonials {
+            background: white;
+            padding: 80px 0;
+        }
+        
+        .testimonials h2 {
+            text-align: center;
+            font-size: 36px;
+            margin-bottom: 60px;
+            color: #1e3a5f;
+        }
+        
+        .testimonial {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 4px solid #00C853;
+        }
+        
+        .testimonial .quote {
+            font-style: italic;
+            margin-bottom: 15px;
+        }
+        
+        .testimonial .author {
+            font-weight: bold;
+            color: #1e3a5f;
+        }
+        
+        /* FAQ */
+        .faq {
+            background: #f8f9fa;
+            padding: 80px 0;
+        }
+        
+        .faq h2 {
+            text-align: center;
+            font-size: 36px;
+            margin-bottom: 60px;
+            color: #1e3a5f;
+        }
+        
+        .faq-item {
+            background: white;
+            padding: 25px;
+            margin: 15px 0;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .faq-item h3 {
+            color: #1e3a5f;
+            margin-bottom: 10px;
+        }
+        
+        /* Footer */
+        footer {
+            background: #1e3a5f;
+            color: white;
+            padding: 40px 0;
+            text-align: center;
+        }
+        
+        footer p {
+            margin: 10px 0;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 32px;
+            }
+            
+            .hero .subtitle {
+                font-size: 18px;
+            }
+            
+            nav ul {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <nav class="container">
+            <div class="logo">
+                📌➜ Pin<span class="flow">Flow</span> <span style="color: #888;">Pro</span>
+            </div>
+            <ul>
+                <li><a href="#features">Recursos</a></li>
+                <li><a href="#screenshots">Screenshots</a></li>
+                <li><a href="#faq">FAQ</a></li>
+                <li><a href="#comprar">Comprar</a></li>
+            </ul>
+        </nav>
+    </header>
+    
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <h1>📌➜ Pin<span style="color: #00C853;">Flow</span> Pro</h1>
+            <p class="subtitle">O Kanban Profissional que Você Precisa para Organizar Suas Tarefas</p>
+            <div class="price">
+                R$ <span style="color: #00C853;">9,99</span>
+                <small>/licença única</small>
+            </div>
+            <a href="#comprar" class="cta-button">🛒 COMPRAR AGORA</a>
+            <p style="margin-top: 20px; opacity: 0.8;">✅ Licença vitalícia • ✅ Atualizações gratuitas • ✅ Suporte incluído</p>
+        </div>
+    </section>
+    
+    <!-- Features -->
+    <section class="features" id="features">
+        <div class="container">
+            <h2>✨ Recursos Incríveis</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="icon">📋</div>
+                    <h3>Kanban Completo</h3>
+                    <p>Organize suas tarefas em colunas personalizáveis. Arraste e solte cards entre colunas com facilidade.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="icon">🎨</div>
+                    <h3>16 Cores de Post-its</h3>
+                    <p>Escolha entre 16 cores vibrantes para seus cards. Visualize suas tarefas de forma clara e organizada.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="icon">⏰</div>
+                    <h3>Sistema de Alertas</h3>
+                    <p>Configure alertas com data e hora. O card pisca quando o prazo chega, garantindo que nada passe despercebido.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="icon">📊</div>
+                    <h3>Dashboard & Gantt</h3>
+                    <p>Visualize estatísticas completas e cronograma visual do seu projeto. Tome decisões baseadas em dados.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="icon">🔍</div>
+                    <h3>Busca Inteligente</h3>
+                    <p>Encontre qualquer card instantaneamente. Busque por título, notas, tags ou caminho de arquivo.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="icon">💾</div>
+                    <h3>Backup Automático</h3>
+                    <p>Seus dados são salvos automaticamente. Crie backups manuais quando quiser. Nunca perca suas informações.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="icon">🌓</div>
+                    <h3>Modo Claro/Escuro</h3>
+                    <p>Escolha o tema que mais combina com você. Interface moderna e profissional em ambos os modos.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="icon">⌨️</div>
+                    <h3>Navegação por Teclado</h3>
+                    <p>Navegue completamente pelo teclado. Tab, Enter, Setas - tudo funciona perfeitamente para máxima produtividade.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="icon">🔐</div>
+                    <h3>Seguro e Validado</h3>
+                    <p>Sistema de validação de entrada protege seus dados. Licenciamento profissional garante uso legítimo.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Screenshots -->
+    <section class="screenshots" id="screenshots">
+        <div class="container">
+            <h2>📸 Veja o PinFlow Pro em Ação</h2>
+            <div class="screenshot-grid">
+                <div class="screenshot">
+                    <div style="background: #1e3a5f; color: white; padding: 200px 20px; text-align: center;">
+                        <h3>Interface Principal</h3>
+                        <p>Visualize suas tarefas organizadas em colunas</p>
+                    </div>
+                </div>
+                <div class="screenshot">
+                    <div style="background: #8b9dc3; color: white; padding: 200px 20px; text-align: center;">
+                        <h3>Dashboard</h3>
+                        <p>Estatísticas completas do seu projeto</p>
+                    </div>
+                </div>
+                <div class="screenshot">
+                    <div style="background: #00C853; color: white; padding: 200px 20px; text-align: center;">
+                        <h3>Gantt Chart</h3>
+                        <p>Cronograma visual do projeto</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Testimonials -->
+    <section class="testimonials">
+        <div class="container">
+            <h2>💬 O Que Nossos Clientes Dizem</h2>
+            <div class="testimonial">
+                <p class="quote">"O PinFlow Pro transformou minha produtividade! Agora consigo organizar todas as minhas tarefas de forma visual e eficiente."</p>
+                <p class="author">- João Silva, Gerente de Projetos</p>
+            </div>
+            <div class="testimonial">
+                <p class="quote">"O sistema de alertas é incrível! Nunca mais esqueci de uma tarefa importante. Vale cada centavo!"</p>
+                <p class="author">- Maria Santos, Empreendedora</p>
+            </div>
+            <div class="testimonial">
+                <p class="quote">"Interface linda, fácil de usar e muito funcional. Recomendo para qualquer pessoa que precise organizar tarefas."</p>
+                <p class="author">- Pedro Costa, Desenvolvedor</p>
+            </div>
+        </div>
+    </section>
+    
+    <!-- FAQ -->
+    <section class="faq" id="faq">
+        <div class="container">
+            <h2>❓ Perguntas Frequentes</h2>
+            
+            <div class="faq-item">
+                <h3>Como funciona a licença?</h3>
+                <p>A licença é vitalícia e válida para 1 computador. Você receberá uma chave de ativação única por email após a compra.</p>
+            </div>
+            
+            <div class="faq-item">
+                <h3>Preciso de internet para usar?</h3>
+                <p>Não! O PinFlow Pro funciona completamente offline. Apenas a ativação inicial requer internet.</p>
+            </div>
+            
+            <div class="faq-item">
+                <h3>Posso usar em mais de um computador?</h3>
+                <p>Cada licença é válida para 1 computador. Se precisar usar em outro computador, será necessário adquirir uma nova licença.</p>
+            </div>
+            
+            <div class="faq-item">
+                <h3>Há atualizações gratuitas?</h3>
+                <p>Sim! Todas as atualizações são gratuitas para clientes com licença válida.</p>
+            </div>
+            
+            <div class="faq-item">
+                <h3>Qual a política de reembolso?</h3>
+                <p>Oferecemos reembolso em até 7 dias após a compra, caso não fique satisfeito com o produto.</p>
+            </div>
+            
+            <div class="faq-item">
+                <h3>O software funciona em qual versão do Windows?</h3>
+                <p>O PinFlow Pro funciona em Windows 10 e Windows 11. Requer .NET Framework (geralmente já instalado).</p>
+            </div>
+        </div>
+    </section>
+    
+    <!-- CTA Final -->
+    <section class="hero" id="comprar" style="padding: 60px 0;">
+        <div class="container">
+            <h2 style="margin-bottom: 30px;">Pronto para Organizar Suas Tarefas?</h2>
+            <div class="price">
+                R$ <span style="color: #00C853;">9,99</span>
+                <small>/licença única</small>
+            </div>
+            <a href="https://hotmart.com/seu-link-aqui" class="cta-button" target="_blank">🛒 COMPRAR AGORA</a>
+            <p style="margin-top: 20px; opacity: 0.8;">Pagamento seguro via Hotmart • Entrega imediata • Suporte garantido</p>
+        </div>
+    </section>
+    
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <p><strong>📌➜ PinFlow Pro</strong></p>
+            <p>© 2025 - Criado por Ede Machado</p>
+            <p>Organize suas tarefas. Aumente sua produtividade.</p>
+            <p style="margin-top: 20px;">
+                <a href="mailto:suporte@pinflowpro.com" style="color: #00C853;">📧 suporte@pinflowpro.com</a>
+            </p>
+        </div>
+    </footer>
+</body>
+</html>
+
