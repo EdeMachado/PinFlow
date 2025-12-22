@@ -69,6 +69,13 @@ except ImportError:
             return code
         LANGUAGES = {"pt_BR": "Português (Brasil)"}
 
+# Função helper para traduções (atalho)
+def _(key, default=None, **kwargs):
+    """Função helper para obter texto traduzido"""
+    if I18N_ENABLED:
+        return I18nManager.get_text(key, default, **kwargs)
+    return default if default else key
+
 # Importar para personalizar cor da barra de título no Windows
 try:
     import ctypes
@@ -3488,7 +3495,7 @@ class KanbanWindow(QMainWindow):
         search_label.setFont(QFont("Segoe UI", 12))
         
         self.search_input = QLineEdit()
-        self.search_input.setPlaceholderText("Buscar cards...")
+        self.search_input.setPlaceholderText(_("search_cards", "Buscar cards..."))
         self.search_input.textChanged.connect(self.filter_cards)
         self.search_input.setMaximumWidth(300)
         
@@ -3511,27 +3518,30 @@ class KanbanWindow(QMainWindow):
         """
         
         # Botão Nova Coluna
-        new_column_btn = QPushButton("➕ Nova Coluna")
+        new_column_btn = QPushButton(f"➕ {_('new_column', 'Nova Coluna')}")
         new_column_btn.clicked.connect(self.add_new_column)
         new_column_btn.setCursor(Qt.PointingHandCursor)
         new_column_btn.setStyleSheet(btn_style)
+        self.new_column_btn = new_column_btn  # Guardar referência para atualizar
         
         # Botão Gantt Chart
-        gantt_btn = QPushButton("📊 Gantt")
+        gantt_btn = QPushButton(f"📊 {_('gantt', 'Gantt')}")
         gantt_btn.clicked.connect(self.show_gantt)
         gantt_btn.setCursor(Qt.PointingHandCursor)
         gantt_btn.setStyleSheet(btn_style)
-        gantt_btn.setToolTip("Ver cronograma visual do projeto")
+        gantt_btn.setToolTip(_("gantt", "Ver cronograma visual do projeto"))
+        self.gantt_btn = gantt_btn  # Guardar referência
         
         # Botão Dashboard
-        dashboard_btn = QPushButton("📈 Dashboard")
+        dashboard_btn = QPushButton(f"📈 {_('dashboard', 'Dashboard')}")
         dashboard_btn.clicked.connect(self.show_dashboard)
         dashboard_btn.setCursor(Qt.PointingHandCursor)
         dashboard_btn.setStyleSheet(btn_style)
-        dashboard_btn.setToolTip("Ver estatísticas e produtividade")
+        dashboard_btn.setToolTip(_("dashboard", "Ver estatísticas e produtividade"))
+        self.dashboard_btn = dashboard_btn  # Guardar referência
         
         # Botão Backup
-        backup_btn = QPushButton("💾 Backup")
+        backup_btn = QPushButton(f"💾 {_('backup', 'Backup')}")
         backup_btn.clicked.connect(self.create_backup)
         backup_btn.setCursor(Qt.PointingHandCursor)
         backup_btn.setStyleSheet(btn_style)
@@ -4183,9 +4193,11 @@ class KanbanWindow(QMainWindow):
                             settings["language"] = lang_code
                             with open("settings.json", "w", encoding="utf-8") as f:
                                 json.dump(settings, f, ensure_ascii=False, indent=2)
-                            QMessageBox.information(dialog, "Idioma Alterado", 
-                                f"Idioma alterado para: {I18nManager.get_language_name(lang_code)}\n\n"
-                                "Recarregue o aplicativo para aplicar as mudanças.")
+                            # Atualizar interface imediatamente
+                            self.update_ui_language()
+                            
+                            QMessageBox.information(dialog, _("language", "Idioma"), 
+                                f"{_('language', 'Idioma')} alterado para: {I18nManager.get_language_name(lang_code)}")
                         except Exception as e:
                             print(f"Erro ao salvar idioma: {e}")
                 except:
