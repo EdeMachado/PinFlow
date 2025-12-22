@@ -4024,16 +4024,16 @@ class KanbanWindow(QMainWindow):
         # Atualizar botões do rodapé
         if hasattr(self, 'toggle_btn'):
             if self.toggle_btn.isChecked():
-                self.toggle_btn.setText(_("always_on_top_on", "📌 Always On Top: ON"))
+                self.toggle_btn.setText(f"📌 {_('always_on_top_on', 'Always On Top: ON')}")
             else:
-                self.toggle_btn.setText(_("always_on_top_off", "📌 Always On Top: OFF"))
+                self.toggle_btn.setText(f"📌 {_('always_on_top_off', 'Always On Top: OFF')}")
         
         if hasattr(self, 'clear_completed_btn'):
-            self.clear_completed_btn.setText(_("clear_completed", "🗑️ Limpar Concluídos"))
+            self.clear_completed_btn.setText(f"🗑️ {_('clear_completed', 'Limpar Concluídos')}")
         if hasattr(self, 'view_archived_btn'):
-            self.view_archived_btn.setText(_("view_archived", "📂 Ver Arquivados"))
+            self.view_archived_btn.setText(f"📂 {_('view_archived', 'Ver Arquivados')}")
         if hasattr(self, 'shortcuts_btn'):
-            self.shortcuts_btn.setText(_("shortcuts_button", "⌨️ Atalhos"))
+            self.shortcuts_btn.setText(f"⌨️ {_('shortcuts_button', 'Atalhos')}")
         
         # Atualizar labels de transparência
         if hasattr(self, 'transparency_label'):
@@ -4805,10 +4805,10 @@ class KanbanWindow(QMainWindow):
         """Toggle always on top"""
         if checked:
             self.setWindowFlags(self.windowFlags() | Qt.WindowStaysOnTopHint)
-            self.toggle_btn.setText(_("always_on_top_on", "📌 Always On Top: ON"))
+            self.toggle_btn.setText(f"📌 {_('always_on_top_on', 'Always On Top: ON')}")
         else:
             self.setWindowFlags(self.windowFlags() & ~Qt.WindowStaysOnTopHint)
-            self.toggle_btn.setText(_("always_on_top_off", "📌 Always On Top: OFF"))
+            self.toggle_btn.setText(f"📌 {_('always_on_top_off', 'Always On Top: OFF')}")
         self.show()
         
     def change_transparency(self, value):
