@@ -1158,31 +1158,27 @@ class PostItCard(QFrame):
         
         # Verificar se está em modo escuro
         if hasattr(self.parent_column, 'window') and hasattr(self.parent_column.window, 'dark_mode') and self.parent_column.window.dark_mode:
-            # MODO ESCURO - Cards com fundo mais escuro mas mantendo cores
-            # Escurecer a cor do card mantendo o tom
-            dark_cor = self.darken_color(self.cor, 0.3)  # 30% mais escuro
-            
+            # MODO ESCURO - Cards mantêm cores originais (rosa, azul, etc.)
             self.setStyleSheet(f"""
                 PostItCard {{
-                    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                        stop:0 {dark_cor}, stop:1 {self.darken_color(self.cor, 0.5)});
+                    background-color: {self.cor};
                     border-left: 5px solid {border_color};
                     border-right: 1px solid #1a1a1a;
                     border-top: 1px solid #1a1a1a;
                     border-bottom: 1px solid #1a1a1a;
                     border-radius: 5px;
                     min-height: 80px;
-                    color: #e0e0e0;
+                    color: #000000;
                 }}
                 PostItCard:hover {{
-                    filter: brightness(1.2);
+                    filter: brightness(1.1);
                     border-left: 5px solid {border_color};
                     border-right: 2px solid #2d2d2d;
                     border-top: 2px solid #2d2d2d;
                     border-bottom: 2px solid #2d2d2d;
                 }}
                 QLabel {{
-                    color: #e0e0e0;
+                    color: #000000;
                     background-color: transparent;
                 }}
             """)
