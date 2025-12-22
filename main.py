@@ -665,6 +665,10 @@ class CardDialog(QDialog):
             }
             QDateEdit QAbstractItemView {
                 color: #000000 !important;
+                background-color: white;
+            }
+            QDateEdit::up-button, QDateEdit::down-button {
+                color: #000000 !important;
             }
         """)
         end_layout.addWidget(self.end_date)
@@ -731,6 +735,10 @@ class CardDialog(QDialog):
                 border: none;
             }
             QTimeEdit QAbstractItemView {
+                color: #000000 !important;
+                background-color: white;
+            }
+            QTimeEdit::up-button, QTimeEdit::down-button {
                 color: #000000 !important;
             }
         """)
@@ -1173,7 +1181,7 @@ class PostItCard(QFrame):
         # Data
         date_label = QLabel(f"🕐 {self.data_criacao}")
         date_label.setFont(QFont("Segoe UI", 7))
-        date_label.setStyleSheet("color: #999;")
+        date_label.setStyleSheet("color: #000000;")
         
         footer_layout.addWidget(date_label, stretch=1)
         
