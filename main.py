@@ -3833,9 +3833,13 @@ class KanbanWindow(QMainWindow):
                     border-radius: 8px;
                 """)
         
-        # Garantir que logo/título mantenha cor fixa (não muda com header)
+        # Garantir que logo/título mantenha cor fixa (não muda com header ou tema)
         if hasattr(self, 'title_label'):
-            self.title_label.setStyleSheet("color: #1e3a5f; padding: 10px;")
+            # Se for nome do cliente (clicável), manter estilo com cursor
+            if hasattr(self.title_label, 'mousePressEvent'):
+                self.title_label.setStyleSheet("color: #1e3a5f; padding: 10px; cursor: pointer;")
+            else:
+                self.title_label.setStyleSheet("color: #1e3a5f; padding: 10px;")
             self.copyright_label.setStyleSheet("""
                 color: #999999;
                 padding: 5px;
