@@ -4671,6 +4671,9 @@ class KanbanWindow(QMainWindow):
             self.dashboard_btn.setStyleSheet(button_style)
         if hasattr(self, 'backup_btn'):
             self.backup_btn.setStyleSheet(button_style)
+        # Atualizar botão de licença também (se existir)
+        if hasattr(self, 'license_btn'):
+            self.license_btn.setStyleSheet(button_style)
         
         # Aplicar estilo nos botões inferiores (rodapé)
         if hasattr(self, 'bottom_buttons'):
