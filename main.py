@@ -4626,14 +4626,12 @@ class KanbanWindow(QMainWindow):
                     color: {text_color};
                 """
                 self.header_widget.setStyleSheet(gradient_style)
-                # Garantir que logo/título mantenha cor fixa (não muda com header)
-                if hasattr(self, 'title_label'):
-                    self.title_label.setStyleSheet("color: #1e3a5f; padding: 10px;")
                 
-                # Atualizar cor do nome do cliente também (se houver) - PRETO no modo claro
+                # Atualizar cor do título e nome do cliente baseado na luminosidade
+                if hasattr(self, 'title_label'):
+                    self.title_label.setStyleSheet(f"color: {text_color}; padding: 10px;")
+                
                 if hasattr(self, 'customer_name_label'):
-                    # Calcular cor do texto baseado na luminosidade do header
-                    text_color = self.get_text_color_for_background(color)
                     self.customer_name_label.setStyleSheet(f"color: {text_color}; padding: 5px; cursor: pointer;")
                 
                 # Atualizar cor dos botões (tom mais escuro do header) - INCLUINDO RODAPÉ
