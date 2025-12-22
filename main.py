@@ -3429,7 +3429,7 @@ class KanbanWindow(QMainWindow):
         self.theme_toggle.clicked.connect(self.toggle_theme)
         self.theme_toggle.setFixedSize(QSize(50, 50))
         self.theme_toggle.setCursor(Qt.PointingHandCursor)
-        self.theme_toggle.setToolTip("Alternar tema (Claro/Escuro)")
+        self.theme_toggle.setToolTip(_("theme_toggle", "Alternar tema (Claro/Escuro)"))
         self.theme_toggle.setStyleSheet("""
             QPushButton {
                 background-color: rgba(30, 58, 95, 0.15);
@@ -3951,6 +3951,36 @@ class KanbanWindow(QMainWindow):
             self.columns.append(col)
             # Inserir antes do botão "Adicionar coluna"
             self.columns_layout.insertWidget(self.columns_layout.count() - 1, col)
+    
+    def update_ui_language(self):
+        """Atualiza todos os textos da interface quando o idioma muda"""
+        # Atualizar botões da toolbar
+        if hasattr(self, 'new_column_btn'):
+            self.new_column_btn.setText(f"➕ {_('new_column', 'Nova Coluna')}")
+        if hasattr(self, 'gantt_btn'):
+            self.gantt_btn.setText(f"📊 {_('gantt', 'Gantt')}")
+        if hasattr(self, 'dashboard_btn'):
+            self.dashboard_btn.setText(f"📈 {_('dashboard', 'Dashboard')}")
+        
+        # Atualizar placeholder da busca
+        if hasattr(self, 'search_input'):
+            self.search_input.setPlaceholderText(_("search_cards", "Buscar cards..."))
+        
+        # Atualizar tooltip do tema
+        if hasattr(self, 'theme_toggle'):
+            self.theme_toggle.setToolTip(_("theme_toggle", "Alternar tema (Claro/Escuro)"))
+        
+        # Atualizar título
+        if hasattr(self, 'title_label'):
+            self.title_label.setText(_("app_title", "📌➜ PinFlow Pro"))
+        
+        # Atualizar copyright
+        if hasattr(self, 'copyright_label'):
+            self.copyright_label.setText(_("copyright", "© 2025 - Criado por Ede Machado"))
+        
+        # Forçar atualização visual
+        self.update()
+        self.repaint()
     
     def reorder_columns(self, old_index, new_index):
         """Reordena colunas"""
