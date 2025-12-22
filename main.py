@@ -4516,6 +4516,95 @@ class KanbanWindow(QMainWindow):
         except Exception as e:
             QMessageBox.warning(parent_dialog, "Erro", f"Erro ao restaurar cor: {e}")
     
+    def update_buttons_color(self, header_color):
+        """Atualiza cor de todos os botões baseado na cor do header (tom sobre tom harmonioso)"""
+        # Não atualizar botões no modo escuro
+        if self.dark_mode:
+            return
+        
+        # Calcular tom harmonioso (mesma cor, mas 20-30% mais escuro para contraste)
+        r, g, b = header_color.red(), header_color.green(), header_color.blue()
+        
+        # Tom mais escuro para botões (reduzir brilho em 25%)
+        dark_r = max(0, int(r * 0.75))
+        dark_g = max(0, int(g * 0.75))
+        dark_b = max(0, int(b * 0.75))
+        
+        # Cor final do gradiente (um pouco mais clara, mas ainda escura)
+        light_r = min(255, int(dark_r * 1.4))
+        light_g = min(255, int(dark_g * 1.4))
+        light_b = min(255, int(dark_b * 1.4))
+        
+        # Hover ainda mais escuro (reduzir mais 15%)
+        hover_r = max(0, int(dark_r * 0.85))
+        hover_g = max(0, int(dark_g * 0.85))
+        hover_b = max(0, int(dark_b * 0.85))
+        
+        hover_light_r = min(255, int(hover_r * 1.3))
+        hover_light_g = min(255, int(hover_g * 1.3))
+        hover_light_b = min(255, int(hover_b * 1.3))
+        
+        # Estilo para botões da toolbar
+        button_style = f"""
+            QPushButton {{
+                padding: 8px 15px;
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                    stop:0 rgb({dark_r}, {dark_g}, {dark_b}), 
+                    stop:1 rgb({light_r}, {light_g}, {light_b}));
+                color: white;
+                border: none;
+                border-radius: 5px;
+                font-weight: bold;
+                font-size: 11px;
+            }}
+            QPushButton:hover {{
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                    stop:0 rgb({hover_r}, {hover_g}, {hover_b}), 
+                    stop:1 rgb({hover_light_r}, {hover_light_g}, {hover_light_b}));
+            }}
+        """
+        
+        # Estilo para botões inferiores (mais largos)
+        bottom_button_style = f"""
+            QPushButton {{
+                padding: 10px;
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                    stop:0 rgb({dark_r}, {dark_g}, {dark_b}), 
+                    stop:1 rgb({light_r}, {light_g}, {light_b}));
+                color: white;
+                border: none;
+                border-radius: 5px;
+                font-weight: bold;
+                min-width: 150px;
+            }}
+            QPushButton:hover {{
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                    stop:0 rgb({hover_r}, {hover_g}, {hover_b}), 
+                    stop:1 rgb({hover_light_r}, {hover_light_g}, {hover_light_b}));
+            }}
+            QPushButton:checked {{
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                    stop:0 rgb({min(255, dark_r+20)}, {min(255, dark_g+20)}, {min(255, dark_b+20)}), 
+                    stop:1 rgb({min(255, light_r+20)}, {min(255, light_g+20)}, {min(255, light_b+20)}));
+            }}
+        """
+        
+        # Aplicar em todos os botões da toolbar
+        if hasattr(self, 'toolbar_buttons'):
+            for btn in self.toolbar_buttons:
+                if btn:
+                    btn.setStyleSheet(button_style)
+                    btn.update()
+                    btn.repaint()
+        
+        # Aplicar em todos os botões inferiores
+        if hasattr(self, 'bottom_buttons'):
+            for btn in self.bottom_buttons:
+                if btn:
+                    btn.setStyleSheet(bottom_button_style)
+                    btn.update()
+                    btn.repaint()
+    
     def show_shortcuts(self):
         """Mostra dialog com atalhos"""
         msg = QMessageBox(self)
