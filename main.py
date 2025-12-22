@@ -3451,24 +3451,7 @@ class KanbanWindow(QMainWindow):
             }
         """)
         
-        # Logo - À DIREITA
-        logo_label = QLabel("📌\nKANBAN\nPRO")
-        logo_label.setFont(QFont("Segoe UI", 10, QFont.Bold))
-        logo_label.setAlignment(Qt.AlignCenter)
-        logo_label.setStyleSheet("""
-            color: #1e3a5f;
-            background-color: rgba(30, 58, 95, 0.1);
-            border: 2px solid #1e3a5f;
-            border-radius: 10px;
-            padding: 10px;
-            min-width: 80px;
-            max-width: 80px;
-            min-height: 80px;
-            max-height: 80px;
-        """)
-        
-        logo_theme_layout.addWidget(self.theme_toggle)
-        logo_theme_layout.addWidget(logo_label)
+        # Logo removido - não usar mais
         
         # Botão Configuração do Sistema
         self.config_btn = QPushButton("⚙️ Configuração")
