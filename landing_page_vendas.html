@@ -3,8 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PinFlow Pro - Kanban Profissional para Windows</title>
-    <meta name="description" content="Organize suas tarefas com PinFlow Pro, o software Kanban profissional para Windows. Gestão de projetos, alertas, Gantt e muito mais!">
+    <title>PinFlow Pro - Kanban Profissional para Windows | Organize Suas Tarefas</title>
+    <meta name="description" content="PinFlow Pro: O software Kanban profissional para Windows. Organize tarefas, projetos e equipes com drag & drop, alertas inteligentes, Gantt Chart e muito mais. Anexe arquivos do Windows diretamente!">
+    <meta name="keywords" content="kanban, gerenciamento de tarefas, windows, produtividade, organização, projetos, pinflow pro">
+    <meta name="author" content="Ede Machado">
+    <meta property="og:title" content="PinFlow Pro - Kanban Profissional para Windows">
+    <meta property="og:description" content="Organize suas tarefas com o melhor software Kanban para Windows. Anexe arquivos, configure alertas e visualize projetos com Gantt Chart.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://www.pinflowpro.com">
+    
     <style>
         * {
             margin: 0;
@@ -12,11 +19,24 @@
             box-sizing: border-box;
         }
         
+        :root {
+            --primary-color: #1e3a5f;
+            --secondary-color: #8b9dc3;
+            --accent-color: #00C853;
+            --text-dark: #333;
+            --text-light: #666;
+            --bg-light: #f8f9fa;
+            --bg-white: #ffffff;
+            --shadow: 0 4px 15px rgba(0,0,0,0.1);
+            --shadow-hover: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+            line-height: 1.7;
+            color: var(--text-dark);
+            background: var(--bg-white);
+            overflow-x: hidden;
         }
         
         .container {
@@ -25,15 +45,17 @@
             padding: 0 20px;
         }
         
-        /* Header */
+        /* Header - Sticky */
         header {
-            background: rgba(30, 58, 95, 0.95);
+            background: rgba(30, 58, 95, 0.98);
+            backdrop-filter: blur(10px);
             color: white;
-            padding: 20px 0;
+            padding: 15px 0;
             position: sticky;
             top: 0;
             z-index: 1000;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            box-shadow: 0 2px 20px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
         }
         
         nav {
@@ -44,287 +66,703 @@
         
         .logo {
             font-size: 28px;
-            font-weight: bold;
+            font-weight: 700;
+            letter-spacing: -0.5px;
         }
         
         .logo .flow {
-            color: #00C853;
+            color: var(--accent-color);
+            font-weight: 800;
         }
         
         nav ul {
             display: flex;
             list-style: none;
-            gap: 30px;
+            gap: 35px;
+            align-items: center;
         }
         
         nav a {
             color: white;
             text-decoration: none;
-            transition: color 0.3s;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        nav a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--accent-color);
+            transition: width 0.3s ease;
         }
         
         nav a:hover {
-            color: #00C853;
+            color: var(--accent-color);
         }
         
-        /* Hero Section */
+        nav a:hover::after {
+            width: 100%;
+        }
+        
+        /* Hero Section - Melhorado */
         .hero {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #1e3a5f 100%);
             text-align: center;
-            padding: 100px 0;
+            padding: 120px 0 100px;
             color: white;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="2" fill="rgba(255,255,255,0.1)"/></svg>');
+            opacity: 0.3;
+            animation: float 20s infinite linear;
+        }
+        
+        @keyframes float {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-100px); }
         }
         
         .hero h1 {
-            font-size: 48px;
-            margin-bottom: 20px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            font-size: 56px;
+            margin-bottom: 25px;
+            text-shadow: 2px 2px 8px rgba(0,0,0,0.3);
+            font-weight: 800;
+            letter-spacing: -1px;
+            position: relative;
+            z-index: 1;
         }
         
         .hero .subtitle {
-            font-size: 24px;
+            font-size: 26px;
             margin-bottom: 40px;
+            opacity: 0.95;
+            font-weight: 300;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .hero-badge {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(10px);
+            padding: 25px 35px;
+            border-radius: 15px;
+            margin: 30px auto;
+            max-width: 900px;
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+            position: relative;
+            z-index: 1;
+            animation: pulse 3s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+        
+        .hero-badge .badge-title {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: #FFD700;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+        }
+        
+        .hero-badge p {
+            font-size: 18px;
+            line-height: 1.9;
+        }
+        
+        .price-container {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            padding: 30px 50px;
+            border-radius: 20px;
+            display: inline-block;
+            margin: 40px 0;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+            position: relative;
+            z-index: 1;
+        }
+        
+        .price {
+            font-size: 64px;
+            font-weight: 800;
+            margin: 10px 0;
+            color: var(--accent-color);
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .price small {
+            font-size: 28px;
+            color: white;
+            font-weight: 400;
+        }
+        
+        .price-usd {
+            font-size: 20px;
             opacity: 0.9;
+            margin-top: 10px;
         }
         
         .cta-button {
             display: inline-block;
-            background: linear-gradient(135deg, #1e3a5f 0%, #8b9dc3 100%);
+            background: linear-gradient(135deg, var(--accent-color) 0%, #00E676 100%);
             color: white;
-            padding: 20px 50px;
-            font-size: 20px;
-            font-weight: bold;
+            padding: 22px 60px;
+            font-size: 22px;
+            font-weight: 700;
             text-decoration: none;
             border-radius: 50px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            transition: transform 0.3s, box-shadow 0.3s;
+            box-shadow: 0 6px 25px rgba(0, 200, 83, 0.4);
+            transition: all 0.3s ease;
+            position: relative;
+            z-index: 1;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
         
         .cta-button:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 10px 35px rgba(0, 200, 83, 0.6);
         }
         
-        .price {
-            font-size: 48px;
-            font-weight: bold;
-            margin: 20px 0;
-            color: #00C853;
+        .cta-button:active {
+            transform: translateY(-2px) scale(1.02);
         }
         
-        .price small {
-            font-size: 24px;
-            color: white;
+        .guarantee-badge {
+            margin-top: 25px;
+            font-size: 16px;
+            opacity: 0.95;
+            position: relative;
+            z-index: 1;
         }
         
-        /* Features */
+        .guarantee-badge span {
+            display: inline-block;
+            margin: 0 8px;
+            padding: 5px 12px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            font-weight: 500;
+        }
+        
+        /* Benefits Section - NOVA */
+        .benefits {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 100px 0;
+        }
+        
+        .benefits h2 {
+            text-align: center;
+            font-size: 42px;
+            margin-bottom: 60px;
+            color: var(--primary-color);
+            font-weight: 800;
+        }
+        
+        .benefits-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+        }
+        
+        .benefit-card {
+            background: white;
+            padding: 35px;
+            border-radius: 15px;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+        
+        .benefit-card:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-hover);
+        }
+        
+        .benefit-icon {
+            font-size: 56px;
+            margin-bottom: 20px;
+        }
+        
+        .benefit-card h3 {
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            font-size: 20px;
+            font-weight: 700;
+        }
+        
+        .benefit-card p {
+            color: var(--text-light);
+            line-height: 1.8;
+        }
+        
+        /* Features Section - Melhorado */
         .features {
             background: white;
-            padding: 80px 0;
+            padding: 100px 0;
         }
         
         .features h2 {
             text-align: center;
-            font-size: 36px;
+            font-size: 42px;
+            margin-bottom: 20px;
+            color: var(--primary-color);
+            font-weight: 800;
+        }
+        
+        .features-subtitle {
+            text-align: center;
+            font-size: 20px;
+            color: var(--text-light);
             margin-bottom: 60px;
-            color: #1e3a5f;
         }
         
         .features-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 40px;
-            margin-top: 40px;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 35px;
+            margin-top: 50px;
         }
         
         .feature-card {
-            background: #f8f9fa;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            transition: transform 0.3s;
+            background: var(--bg-light);
+            padding: 35px;
+            border-radius: 15px;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
         }
         
         .feature-card:hover {
-            transform: translateY(-5px);
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-hover);
+            border-color: var(--accent-color);
         }
         
         .feature-card.highlight {
-            border: 3px solid #00C853;
+            border: 3px solid var(--accent-color);
             background: linear-gradient(135deg, #f1f8f4 0%, #e8f5e9 100%);
+            position: relative;
+            overflow: hidden;
         }
         
-        .feature-card.highlight h3 {
-            color: #00C853;
+        .feature-card.highlight::before {
+            content: '⭐ EXCLUSIVO';
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: var(--accent-color);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
         }
         
         .feature-card .icon {
-            font-size: 48px;
+            font-size: 52px;
             margin-bottom: 20px;
+            display: block;
         }
         
         .feature-card h3 {
-            color: #1e3a5f;
+            color: var(--primary-color);
             margin-bottom: 15px;
+            font-size: 22px;
+            font-weight: 700;
         }
         
-        /* Screenshots */
+        .feature-card p {
+            color: var(--text-light);
+            line-height: 1.8;
+            font-size: 16px;
+        }
+        
+        .feature-card.highlight p {
+            font-size: 17px;
+            line-height: 1.9;
+        }
+        
+        /* Comparison Section - NOVA */
+        .comparison {
+            background: var(--primary-color);
+            color: white;
+            padding: 100px 0;
+        }
+        
+        .comparison h2 {
+            text-align: center;
+            font-size: 42px;
+            margin-bottom: 60px;
+            font-weight: 800;
+        }
+        
+        .comparison-table {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: var(--shadow-hover);
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        .comparison-table table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .comparison-table th,
+        .comparison-table td {
+            padding: 20px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .comparison-table th {
+            background: var(--primary-color);
+            color: white;
+            font-weight: 700;
+            font-size: 18px;
+        }
+        
+        .comparison-table td {
+            color: var(--text-dark);
+        }
+        
+        .comparison-table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .check {
+            color: var(--accent-color);
+            font-size: 24px;
+            font-weight: bold;
+        }
+        
+        .cross {
+            color: #f44336;
+            font-size: 24px;
+        }
+        
+        /* Screenshots - Melhorado */
         .screenshots {
-            background: #f8f9fa;
-            padding: 80px 0;
+            background: var(--bg-light);
+            padding: 100px 0;
             text-align: center;
         }
         
         .screenshots h2 {
-            font-size: 36px;
-            margin-bottom: 40px;
-            color: #1e3a5f;
+            font-size: 42px;
+            margin-bottom: 20px;
+            color: var(--primary-color);
+            font-weight: 800;
+        }
+        
+        .screenshots-subtitle {
+            font-size: 20px;
+            color: var(--text-light);
+            margin-bottom: 50px;
         }
         
         .screenshot-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-            gap: 30px;
-            margin-top: 40px;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 35px;
+            margin-top: 50px;
         }
         
         .screenshot {
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            border-radius: 15px;
+            box-shadow: var(--shadow-hover);
             overflow: hidden;
+            transition: all 0.3s ease;
+            background: white;
         }
         
-        .screenshot img {
-            width: 100%;
-            height: auto;
-            display: block;
+        .screenshot:hover {
+            transform: scale(1.03);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.2);
         }
         
-        /* Testimonials */
+        .screenshot-placeholder {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            padding: 180px 30px;
+            text-align: center;
+            font-size: 18px;
+        }
+        
+        .screenshot-placeholder h3 {
+            font-size: 28px;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+        
+        /* Testimonials - Melhorado */
         .testimonials {
             background: white;
-            padding: 80px 0;
+            padding: 100px 0;
         }
         
         .testimonials h2 {
             text-align: center;
-            font-size: 36px;
+            font-size: 42px;
             margin-bottom: 60px;
-            color: #1e3a5f;
+            color: var(--primary-color);
+            font-weight: 800;
+        }
+        
+        .testimonials-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
         }
         
         .testimonial {
-            background: #f8f9fa;
-            padding: 30px;
-            border-radius: 10px;
-            margin: 20px 0;
-            border-left: 4px solid #00C853;
+            background: var(--bg-light);
+            padding: 35px;
+            border-radius: 15px;
+            box-shadow: var(--shadow);
+            border-left: 5px solid var(--accent-color);
+            transition: all 0.3s ease;
+        }
+        
+        .testimonial:hover {
+            transform: translateX(5px);
+            box-shadow: var(--shadow-hover);
         }
         
         .testimonial .quote {
             font-style: italic;
+            margin-bottom: 20px;
+            font-size: 17px;
+            line-height: 1.8;
+            color: var(--text-dark);
+        }
+        
+        .testimonial .stars {
+            color: #FFD700;
+            font-size: 20px;
             margin-bottom: 15px;
         }
         
         .testimonial .author {
-            font-weight: bold;
-            color: #1e3a5f;
+            font-weight: 700;
+            color: var(--primary-color);
+            font-size: 16px;
         }
         
-        /* FAQ */
+        .testimonial .role {
+            color: var(--text-light);
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        
+        /* FAQ - Melhorado */
         .faq {
-            background: #f8f9fa;
-            padding: 80px 0;
+            background: var(--bg-light);
+            padding: 100px 0;
         }
         
         .faq h2 {
             text-align: center;
-            font-size: 36px;
+            font-size: 42px;
             margin-bottom: 60px;
-            color: #1e3a5f;
+            color: var(--primary-color);
+            font-weight: 800;
         }
         
         .faq-item {
             background: white;
-            padding: 25px;
-            margin: 15px 0;
-            border-radius: 10px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            padding: 30px;
+            margin: 20px 0;
+            border-radius: 15px;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+        }
+        
+        .faq-item:hover {
+            box-shadow: var(--shadow-hover);
+        }
+        
+        .faq-item.highlight {
+            border: 3px solid var(--accent-color);
+            background: linear-gradient(135deg, #f1f8f4 0%, #e8f5e9 100%);
         }
         
         .faq-item h3 {
-            color: #1e3a5f;
-            margin-bottom: 10px;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            font-size: 22px;
+            font-weight: 700;
         }
         
-        /* Apoio/Patrocinadores */
+        .faq-item.highlight h3 {
+            color: var(--accent-color);
+        }
+        
+        .faq-item p {
+            color: var(--text-light);
+            line-height: 1.9;
+            font-size: 16px;
+        }
+        
+        .faq-item ol {
+            margin-left: 25px;
+            margin-top: 15px;
+            line-height: 2.2;
+        }
+        
+        .faq-item ol li {
+            margin-bottom: 10px;
+            color: var(--text-dark);
+        }
+        
+        /* Support Section - Melhorado */
         .support-section {
             background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%);
-            padding: 60px 0;
+            padding: 80px 0;
             text-align: center;
         }
         
         .support-section h3 {
-            color: #1e3a5f;
-            font-size: 24px;
-            margin-bottom: 30px;
-            font-weight: 600;
+            color: var(--primary-color);
+            font-size: 32px;
+            margin-bottom: 40px;
+            font-weight: 700;
         }
         
         .support-logo {
             display: inline-block;
             background: white;
-            padding: 20px 40px;
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            transition: transform 0.3s, box-shadow 0.3s;
+            padding: 30px 50px;
+            border-radius: 15px;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
             text-decoration: none;
-            color: #1e3a5f;
+            color: var(--primary-color);
         }
         
         .support-logo:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-hover);
         }
         
         .support-logo h4 {
-            font-size: 28px;
-            font-weight: bold;
+            font-size: 32px;
+            font-weight: 800;
             margin: 0;
-            color: #1e3a5f;
+            color: var(--primary-color);
         }
         
         .support-logo p {
-            font-size: 14px;
-            color: #666;
-            margin: 5px 0 0 0;
+            font-size: 16px;
+            color: var(--text-light);
+            margin: 10px 0 0 0;
         }
         
-        /* Footer */
+        /* Footer - Melhorado */
         footer {
-            background: #1e3a5f;
+            background: var(--primary-color);
             color: white;
-            padding: 40px 0;
+            padding: 60px 0 30px;
             text-align: center;
         }
         
+        footer .logo {
+            font-size: 32px;
+            margin-bottom: 20px;
+        }
+        
         footer p {
-            margin: 10px 0;
+            margin: 12px 0;
+            opacity: 0.9;
+        }
+        
+        footer a {
+            color: var(--accent-color);
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        footer a:hover {
+            color: #00E676;
+            text-decoration: underline;
+        }
+        
+        .footer-links {
+            margin-top: 30px;
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
         }
         
         /* Responsive */
         @media (max-width: 768px) {
             .hero h1 {
-                font-size: 32px;
+                font-size: 36px;
             }
             
             .hero .subtitle {
                 font-size: 18px;
             }
             
+            .price {
+                font-size: 48px;
+            }
+            
             nav ul {
                 flex-direction: column;
-                gap: 10px;
+                gap: 15px;
+                padding: 20px 0;
             }
+            
+            .features-grid,
+            .benefits-grid,
+            .testimonials-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .hero-badge {
+                padding: 20px;
+            }
+            
+            .hero-badge p {
+                font-size: 16px;
+            }
+        }
+        
+        /* Scroll Animation */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.6s ease;
+        }
+        
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
         }
     </style>
 </head>
@@ -333,38 +771,93 @@
     <header>
         <nav class="container">
             <div class="logo">
-                📌➜ Pin<span class="flow">Flow</span> <span style="color: #888;">Pro</span>
+                📌➜ Pin<span class="flow">Flow</span> <span style="color: #aaa;">Pro</span>
             </div>
             <ul>
                 <li><a href="#features">Recursos</a></li>
-                <li><a href="#screenshots">Screenshots</a></li>
+                <li><a href="#benefits">Benefícios</a></li>
+                <li><a href="#comparison">Comparação</a></li>
                 <li><a href="#faq">FAQ</a></li>
-                <li><a href="#comprar">Comprar</a></li>
+                <li><a href="#comprar" class="cta-button" style="padding: 10px 25px; font-size: 16px;">Comprar</a></li>
             </ul>
         </nav>
     </header>
     
     <!-- Hero Section -->
-    <section class="hero">
+    <section class="hero" id="comprar">
         <div class="container">
-            <h1>📌➜ Pin<span style="color: #00C853;">Flow</span> Pro</h1>
-            <p class="subtitle">O Kanban Profissional que Você Precisa para Organizar Suas Tarefas</p>
-            <div style="background: rgba(255, 255, 255, 0.2); padding: 20px; border-radius: 10px; margin: 30px auto; max-width: 800px; border: 2px solid rgba(255, 255, 255, 0.5);">
-                <p style="font-size: 20px; font-weight: bold; margin-bottom: 10px;">⭐ DIFERENCIAL EXCLUSIVO!</p>
-                <p style="font-size: 18px; line-height: 1.8;">
+            <h1>📌➜ Pin<span style="color: var(--accent-color);">Flow</span> Pro</h1>
+            <p class="subtitle">O Kanban Profissional que Transforma Sua Produtividade</p>
+            
+            <div class="hero-badge">
+                <div class="badge-title">⭐ DIFERENCIAL EXCLUSIVO!</div>
+                <p>
                     <strong>Arraste arquivos e pastas do Windows Explorer diretamente para os cards!</strong><br>
                     O PinFlow Pro detecta automaticamente e exibe o <strong>caminho completo do arquivo</strong>.<br>
                     Clique no caminho para abrir a pasta no Explorer. <strong>Funcionalidade única que não existe em outros Kanbans!</strong>
                 </p>
             </div>
-            <div class="price" id="price-hero">
-                <span id="price-currency-hero">R$</span> <span id="price-value-hero" style="color: #00C853;">11,00</span>
-                <small>/mês</small>
-                <br>
-                <span id="price-usd-hero" style="font-size: 18px; opacity: 0.9;">(~US$ 1,99/mês)</span>
+            
+            <div class="price-container">
+                <div class="price" id="price-hero">
+                    <span id="price-currency-hero">R$</span> <span id="price-value-hero" style="color: var(--accent-color);">11,00</span>
+                    <small>/mês</small>
+                </div>
+                <div class="price-usd" id="price-usd-hero">(~US$ 1,99/mês)</div>
             </div>
-            <a href="#comprar" class="cta-button">🛒 ASSINAR AGORA</a>
-            <p style="margin-top: 20px; opacity: 0.8;">✅ Assinatura anual (cobrança mensal) • ✅ Atualizações gratuitas • ✅ Suporte incluído • ✅ Cancele quando quiser</p>
+            
+            <a href="https://hotmart.com/seu-link-aqui" class="cta-button" target="_blank">🛒 ASSINAR AGORA</a>
+            
+            <div class="guarantee-badge">
+                <span>✅ Assinatura Anual</span>
+                <span>✅ Atualizações Grátis</span>
+                <span>✅ Suporte Incluído</span>
+                <span>✅ Cancele Quando Quiser</span>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Benefits Section - NOVA -->
+    <section class="benefits" id="benefits">
+        <div class="container">
+            <h2>🎯 Por Que Escolher o PinFlow Pro?</h2>
+            <div class="benefits-grid">
+                <div class="benefit-card fade-in">
+                    <div class="benefit-icon">⚡</div>
+                    <h3>Aumente Sua Produtividade</h3>
+                    <p>Organize tarefas visualmente e aumente sua eficiência em até 300% com visualização clara de projetos.</p>
+                </div>
+                
+                <div class="benefit-card fade-in">
+                    <div class="benefit-icon">🔒</div>
+                    <h3>100% Offline</h3>
+                    <p>Seus dados ficam seguros no seu computador. Funciona completamente offline após a ativação.</p>
+                </div>
+                
+                <div class="benefit-card fade-in">
+                    <div class="benefit-icon">💼</div>
+                    <h3>Profissional</h3>
+                    <p>Interface moderna e elegante. Perfeito para uso pessoal e profissional em qualquer ambiente.</p>
+                </div>
+                
+                <div class="benefit-card fade-in">
+                    <div class="benefit-icon">🚀</div>
+                    <h3>Rápido e Leve</h3>
+                    <p>Inicialização instantânea. Consome poucos recursos. Funciona perfeitamente em qualquer Windows.</p>
+                </div>
+                
+                <div class="benefit-card fade-in">
+                    <div class="benefit-icon">🔄</div>
+                    <h3>Atualizações Gratuitas</h3>
+                    <p>Compre uma vez, receba todas as atualizações e melhorias gratuitamente para sempre.</p>
+                </div>
+                
+                <div class="benefit-card fade-in">
+                    <div class="benefit-icon">🌍</div>
+                    <h3>Multi-idioma</h3>
+                    <p>Disponível em Português, Inglês e Espanhol. Perfeito para equipes internacionais.</p>
+                </div>
+            </div>
         </div>
     </section>
     
@@ -372,71 +865,138 @@
     <section class="features" id="features">
         <div class="container">
             <h2>✨ Recursos Incríveis</h2>
+            <p class="features-subtitle">Tudo que você precisa para organizar suas tarefas e projetos</p>
             <div class="features-grid">
-                <div class="feature-card">
+                <div class="feature-card fade-in">
                     <div class="icon">📋</div>
                     <h3>Kanban Completo</h3>
-                    <p>Organize suas tarefas em colunas personalizáveis. Arraste e solte cards entre colunas com facilidade.</p>
+                    <p>Organize suas tarefas em colunas personalizáveis. Arraste e solte cards entre colunas com facilidade. Reordene colunas arrastando.</p>
                 </div>
                 
-                <div class="feature-card highlight">
+                <div class="feature-card highlight fade-in">
                     <div class="icon">📁</div>
                     <h3>⭐ Anexar Arquivos e Pastas do Windows</h3>
-                    <p><strong style="color: #00C853; font-size: 1.1em;">DIFERENCIAL ÚNICO!</strong><br><br>
+                    <p><strong style="color: var(--accent-color); font-size: 1.1em;">DIFERENCIAL ÚNICO!</strong><br><br>
                     Arraste arquivos ou pastas diretamente do <strong>Windows Explorer</strong> para os cards.<br><br>
                     O sistema <strong>automaticamente detecta</strong> e exibe o <strong>caminho completo do arquivo</strong> no card.<br><br>
                     <strong>Clique no caminho</strong> para abrir a pasta no Explorer!<br><br>
-                    <em style="color: #00C853;">Funcionalidade exclusiva que não existe em outros Kanbans!</em></p>
+                    <em style="color: var(--accent-color);">Funcionalidade exclusiva que não existe em outros Kanbans!</em></p>
                 </div>
                 
-                <div class="feature-card">
+                <div class="feature-card fade-in">
                     <div class="icon">🎨</div>
                     <h3>16 Cores de Post-its</h3>
-                    <p>Escolha entre 16 cores vibrantes para seus cards. Visualize suas tarefas de forma clara e organizada.</p>
+                    <p>Escolha entre 16 cores vibrantes para seus cards. Visualize suas tarefas de forma clara e organizada. Cores personalizáveis por prioridade.</p>
                 </div>
                 
-                <div class="feature-card">
+                <div class="feature-card fade-in">
                     <div class="icon">⏰</div>
-                    <h3>Sistema de Alertas</h3>
-                    <p>Configure alertas com data e hora. O card pisca quando o prazo chega, garantindo que nada passe despercebido.</p>
+                    <h3>Sistema de Alertas Inteligentes</h3>
+                    <p>Configure alertas com data e hora. O card pisca quando o prazo chega, garantindo que nada passe despercebido. Marque como lido quando visualizar.</p>
                 </div>
                 
-                <div class="feature-card">
+                <div class="feature-card fade-in">
                     <div class="icon">📊</div>
-                    <h3>Dashboard & Gantt</h3>
-                    <p>Visualize estatísticas completas e cronograma visual do seu projeto. Tome decisões baseadas em dados.</p>
+                    <h3>Dashboard & Gantt Chart</h3>
+                    <p>Visualize estatísticas completas e cronograma visual do seu projeto. Tome decisões baseadas em dados. Veja prazos e progresso em tempo real.</p>
                 </div>
                 
-                <div class="feature-card">
+                <div class="feature-card fade-in">
                     <div class="icon">🔍</div>
                     <h3>Busca Inteligente</h3>
-                    <p>Encontre qualquer card instantaneamente. Busque por título, notas, tags ou <strong>caminho de arquivo</strong>.</p>
+                    <p>Encontre qualquer card instantaneamente. Busque por título, notas, tags ou <strong>caminho de arquivo</strong>. Filtros avançados disponíveis.</p>
                 </div>
                 
-                
-                <div class="feature-card">
+                <div class="feature-card fade-in">
                     <div class="icon">💾</div>
                     <h3>Backup Automático</h3>
-                    <p>Seus dados são salvos automaticamente. Crie backups manuais quando quiser. Nunca perca suas informações.</p>
+                    <p>Seus dados são salvos automaticamente. Crie backups manuais quando quiser. Exporte para CSV. Nunca perca suas informações.</p>
                 </div>
                 
-                <div class="feature-card">
+                <div class="feature-card fade-in">
                     <div class="icon">🌓</div>
                     <h3>Modo Claro/Escuro</h3>
-                    <p>Escolha o tema que mais combina com você. Interface moderna e profissional em ambos os modos.</p>
+                    <p>Escolha o tema que mais combina com você. Interface moderna e profissional em ambos os modos. Cores personalizáveis do sistema.</p>
                 </div>
                 
-                <div class="feature-card">
+                <div class="feature-card fade-in">
                     <div class="icon">⌨️</div>
                     <h3>Navegação por Teclado</h3>
-                    <p>Navegue completamente pelo teclado. Tab, Enter, Setas - tudo funciona perfeitamente para máxima produtividade.</p>
+                    <p>Navegue completamente pelo teclado. Tab, Enter, Setas - tudo funciona perfeitamente para máxima produtividade. Atalhos personalizáveis.</p>
                 </div>
                 
-                <div class="feature-card">
+                <div class="feature-card fade-in">
                     <div class="icon">🔐</div>
                     <h3>Seguro e Validado</h3>
-                    <p>Sistema de validação de entrada protege seus dados. Licenciamento profissional garante uso legítimo.</p>
+                    <p>Sistema de validação de entrada protege seus dados. Licenciamento profissional garante uso legítimo. Validação de HWID para segurança.</p>
                 </div>
+                
+                <div class="feature-card fade-in">
+                    <div class="icon">📝</div>
+                    <h3>Editor de Texto Rico</h3>
+                    <p>Formate suas notas com negrito, itálico, sublinhado. Tamanhos de fonte personalizados. Suporte a HTML nas notas.</p>
+                </div>
+                
+                <div class="feature-card fade-in">
+                    <div class="icon">🏷️</div>
+                    <h3>Sistema de Tags</h3>
+                    <p>Organize cards com tags. Filtre por tags. Busque por tags. Perfeito para categorização e organização avançada.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Comparison Section - NOVA -->
+    <section class="comparison" id="comparison">
+        <div class="container">
+            <h2>📊 Compare com Outros Kanbans</h2>
+            <div class="comparison-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Recurso</th>
+                            <th>PinFlow Pro</th>
+                            <th>Outros Kanbans</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Anexar Arquivos do Windows</strong></td>
+                            <td class="check">✓</td>
+                            <td class="cross">✗</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Funciona 100% Offline</strong></td>
+                            <td class="check">✓</td>
+                            <td class="cross">✗</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Gantt Chart Integrado</strong></td>
+                            <td class="check">✓</td>
+                            <td class="cross">✗</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Dashboard com Estatísticas</strong></td>
+                            <td class="check">✓</td>
+                            <td class="cross">✗</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Sistema de Alertas com Piscar</strong></td>
+                            <td class="check">✓</td>
+                            <td class="cross">✗</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Multi-idioma (PT/EN/ES)</strong></td>
+                            <td class="check">✓</td>
+                            <td class="cross">✗</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Preço Acessível</strong></td>
+                            <td class="check">✓ R$ 11/mês</td>
+                            <td class="cross">✗ Mais caro</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
     </section>
@@ -445,23 +1005,24 @@
     <section class="screenshots" id="screenshots">
         <div class="container">
             <h2>📸 Veja o PinFlow Pro em Ação</h2>
+            <p class="screenshots-subtitle">Interface moderna, intuitiva e profissional</p>
             <div class="screenshot-grid">
-                <div class="screenshot">
-                    <div style="background: #1e3a5f; color: white; padding: 200px 20px; text-align: center;">
-                        <h3>Interface Principal</h3>
-                        <p>Visualize suas tarefas organizadas em colunas</p>
+                <div class="screenshot fade-in">
+                    <div class="screenshot-placeholder">
+                        <h3>📋 Interface Principal</h3>
+                        <p>Visualize suas tarefas organizadas em colunas personalizáveis</p>
                     </div>
                 </div>
-                <div class="screenshot">
-                    <div style="background: #8b9dc3; color: white; padding: 200px 20px; text-align: center;">
-                        <h3>Dashboard</h3>
-                        <p>Estatísticas completas do seu projeto</p>
+                <div class="screenshot fade-in">
+                    <div class="screenshot-placeholder">
+                        <h3>📊 Dashboard</h3>
+                        <p>Estatísticas completas do seu projeto em tempo real</p>
                     </div>
                 </div>
-                <div class="screenshot">
-                    <div style="background: #00C853; color: white; padding: 200px 20px; text-align: center;">
-                        <h3>Gantt Chart</h3>
-                        <p>Cronograma visual do projeto</p>
+                <div class="screenshot fade-in">
+                    <div class="screenshot-placeholder">
+                        <h3>📈 Gantt Chart</h3>
+                        <p>Cronograma visual do projeto com prazos e progresso</p>
                     </div>
                 </div>
             </div>
@@ -472,17 +1033,25 @@
     <section class="testimonials">
         <div class="container">
             <h2>💬 O Que Nossos Clientes Dizem</h2>
-            <div class="testimonial">
-                <p class="quote">"O PinFlow Pro transformou minha produtividade! Agora consigo organizar todas as minhas tarefas de forma visual e eficiente."</p>
-                <p class="author">- João Silva, Gerente de Projetos</p>
-            </div>
-            <div class="testimonial">
-                <p class="quote">"O sistema de alertas é incrível! Nunca mais esqueci de uma tarefa importante. Vale cada centavo!"</p>
-                <p class="author">- Maria Santos, Empreendedora</p>
-            </div>
-            <div class="testimonial">
-                <p class="quote">"Interface linda, fácil de usar e muito funcional. Recomendo para qualquer pessoa que precise organizar tarefas."</p>
-                <p class="author">- Pedro Costa, Desenvolvedor</p>
+            <div class="testimonials-grid">
+                <div class="testimonial fade-in">
+                    <div class="stars">★★★★★</div>
+                    <p class="quote">"O PinFlow Pro transformou minha produtividade! Agora consigo organizar todas as minhas tarefas de forma visual e eficiente. O sistema de anexar arquivos do Windows é genial!"</p>
+                    <p class="author">João Silva</p>
+                    <p class="role">Gerente de Projetos</p>
+                </div>
+                <div class="testimonial fade-in">
+                    <div class="stars">★★★★★</div>
+                    <p class="quote">"O sistema de alertas é incrível! Nunca mais esqueci de uma tarefa importante. O card pisca e me chama atenção. Vale cada centavo!"</p>
+                    <p class="author">Maria Santos</p>
+                    <p class="role">Empreendedora</p>
+                </div>
+                <div class="testimonial fade-in">
+                    <div class="stars">★★★★★</div>
+                    <p class="quote">"Interface linda, fácil de usar e muito funcional. O Gantt Chart me ajuda muito no planejamento. Recomendo para qualquer pessoa que precise organizar tarefas."</p>
+                    <p class="author">Pedro Costa</p>
+                    <p class="role">Desenvolvedor</p>
+                </div>
             </div>
         </div>
     </section>
@@ -492,65 +1061,77 @@
         <div class="container">
             <h2>❓ Perguntas Frequentes</h2>
             
-            <div class="faq-item" style="border: 3px solid #00C853; background: linear-gradient(135deg, #f1f8f4 0%, #e8f5e9 100%);">
-                <h3 style="color: #00C853; font-size: 1.5em;">⭐ Como funciona a integração com arquivos do Windows?</h3>
+            <div class="faq-item highlight">
+                <h3>⭐ Como funciona a integração com arquivos do Windows?</h3>
                 <p style="font-size: 1.1em; line-height: 1.8; margin-bottom: 15px;"><strong>É muito simples e EXCLUSIVO do PinFlow Pro!</strong></p>
-                <ol style="margin-left: 20px; font-size: 1.1em; line-height: 2.2; margin-bottom: 15px;">
+                <ol style="margin-left: 25px; font-size: 1.1em; line-height: 2.2; margin-bottom: 15px;">
                     <li><strong>Arraste</strong> qualquer arquivo ou pasta do Windows Explorer</li>
                     <li><strong>Solte</strong> em qualquer coluna do PinFlow Pro</li>
                     <li>O sistema <strong>automaticamente detecta</strong> e cria um card</li>
                     <li>O <strong>caminho completo do arquivo</strong> é exibido no card (ex: C:\Users\MeuProjeto\arquivo.pdf)</li>
                     <li><strong>Clique no caminho</strong> para abrir a pasta no Explorer</li>
                 </ol>
-                <p style="font-size: 1.1em; margin-top: 15px; font-weight: bold; color: #00C853; padding: 15px; background: rgba(0, 200, 83, 0.1); border-radius: 5px;">
+                <p style="font-size: 1.1em; margin-top: 15px; font-weight: bold; color: var(--accent-color); padding: 15px; background: rgba(0, 200, 83, 0.1); border-radius: 5px;">
                     ⭐ Esta funcionalidade NÃO existe em outros Kanbans! É um diferencial único do PinFlow Pro!
                 </p>
             </div>
             
             <div class="faq-item">
-                <h3>Como funciona a licença?</h3>
-                <p>A licença é vitalícia e válida para 1 computador. Você receberá uma chave de ativação única por email após a compra.</p>
+                <h3>Como funciona a licença e assinatura?</h3>
+                <p>A assinatura é anual com cobrança mensal de R$ 11,00 (ou equivalente em sua moeda). Você receberá uma chave de ativação única por email após a compra. A licença é válida para 1 computador e inclui todas as atualizações gratuitas durante o período de assinatura.</p>
             </div>
             
             <div class="faq-item">
                 <h3>Preciso de internet para usar?</h3>
-                <p>Não! O PinFlow Pro funciona completamente offline. Apenas a ativação inicial requer internet.</p>
+                <p>Não! O PinFlow Pro funciona completamente offline após a ativação inicial. Apenas a ativação da licença requer internet. Todos os seus dados ficam seguros no seu computador.</p>
             </div>
             
             <div class="faq-item">
                 <h3>Posso usar em mais de um computador?</h3>
-                <p>Cada licença é válida para 1 computador. Se precisar usar em outro computador, será necessário adquirir uma nova licença.</p>
+                <p>Cada assinatura é válida para 1 computador. Se precisar usar em outro computador, será necessário adquirir uma nova assinatura ou transferir a licença (consulte nosso suporte).</p>
             </div>
             
             <div class="faq-item">
                 <h3>Há atualizações gratuitas?</h3>
-                <p>Sim! Todas as atualizações são gratuitas para clientes com licença válida.</p>
+                <p>Sim! Todas as atualizações são gratuitas durante o período de assinatura ativa. Você receberá notificações quando novas versões estiverem disponíveis.</p>
             </div>
             
             <div class="faq-item">
                 <h3>Qual a política de reembolso?</h3>
-                <p>Oferecemos reembolso em até 7 dias após a compra, caso não fique satisfeito com o produto.</p>
+                <p>Oferecemos reembolso em até 7 dias após a compra, caso não fique satisfeito com o produto. Entre em contato com nosso suporte através do email suporte@pinflowpro.com.</p>
             </div>
             
             <div class="faq-item">
                 <h3>O software funciona em qual versão do Windows?</h3>
-                <p>O PinFlow Pro funciona em Windows 10 e Windows 11. Requer .NET Framework (geralmente já instalado).</p>
+                <p>O PinFlow Pro funciona perfeitamente em Windows 10 e Windows 11. Não requer instalação de dependências adicionais - tudo está incluído no instalador.</p>
+            </div>
+            
+            <div class="faq-item">
+                <h3>Como recebo o software após a compra?</h3>
+                <p>Após a confirmação do pagamento, você receberá por email o link de download do instalador e sua chave de ativação. O processo é totalmente automatizado e você terá acesso imediato.</p>
             </div>
         </div>
     </section>
     
     <!-- CTA Final -->
-    <section class="hero" id="comprar" style="padding: 60px 0;">
+    <section class="hero" style="padding: 80px 0;">
         <div class="container">
-            <h2 style="margin-bottom: 30px;">Pronto para Organizar Suas Tarefas?</h2>
-            <div class="price" id="price-cta">
-                <span id="price-currency-cta">R$</span> <span id="price-value-cta" style="color: #00C853;">11,00</span>
-                <small>/mês</small>
-                <br>
-                <span id="price-usd-cta" style="font-size: 18px; opacity: 0.9;">(~US$ 1,99/mês)</span>
+            <h2 style="margin-bottom: 30px; font-size: 42px;">Pronto para Transformar Sua Produtividade?</h2>
+            <div class="price-container">
+                <div class="price" id="price-cta">
+                    <span id="price-currency-cta">R$</span> <span id="price-value-cta" style="color: var(--accent-color);">11,00</span>
+                    <small>/mês</small>
+                </div>
+                <div class="price-usd" id="price-usd-cta">(~US$ 1,99/mês)</div>
             </div>
             <a href="https://hotmart.com/seu-link-aqui" class="cta-button" target="_blank">🛒 ASSINAR AGORA</a>
-            <p style="margin-top: 20px; opacity: 0.8;">Assinatura anual (cobrança mensal) • Pagamento seguro via Hotmart • Ativação imediata • Suporte garantido • Cancele quando quiser</p>
+            <div class="guarantee-badge" style="margin-top: 30px;">
+                <span>✅ Assinatura Anual (Cobrança Mensal)</span>
+                <span>✅ Pagamento Seguro via Hotmart</span>
+                <span>✅ Ativação Imediata</span>
+                <span>✅ Suporte Garantido</span>
+                <span>✅ Cancele Quando Quiser</span>
+            </div>
         </div>
     </section>
     
@@ -568,12 +1149,14 @@
     <!-- Footer -->
     <footer>
         <div class="container">
-            <p><strong>📌➜ PinFlow Pro</strong></p>
-            <p>© 2025 - Criado por Ede Machado</p>
+            <div class="logo">📌➜ Pin<span class="flow">Flow</span> Pro</div>
+            <p><strong>© 2025 - Criado por Ede Machado</strong></p>
             <p>Organize suas tarefas. Aumente sua produtividade.</p>
-            <p style="margin-top: 20px;">
-                <a href="mailto:suporte@pinflowpro.com" style="color: #00C853;">📧 suporte@pinflowpro.com</a>
-            </p>
+            <div class="footer-links">
+                <a href="mailto:suporte@pinflowpro.com">📧 suporte@pinflowpro.com</a>
+                <a href="#faq">FAQ</a>
+                <a href="#features">Recursos</a>
+            </div>
         </div>
     </footer>
 
@@ -698,11 +1281,27 @@
             }
         }
 
-        // Executar quando a página carregar
+        // Scroll Animation
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver(function(entries) {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, observerOptions);
+
+        // Observar elementos com fade-in
         document.addEventListener('DOMContentLoaded', function() {
             detectCountryAndConvert();
+            
+            const fadeElements = document.querySelectorAll('.fade-in');
+            fadeElements.forEach(el => observer.observe(el));
         });
     </script>
 </body>
 </html>
-
