@@ -5,6 +5,14 @@ import csv
 from datetime import datetime, timedelta
 from pathlib import Path
 
+# Validação de entrada
+try:
+    from validators import InputValidator
+    VALIDATION_ENABLED = True
+except ImportError:
+    print("⚠️ Validação de entrada não disponível")
+    VALIDATION_ENABLED = False
+
 # Notificações Windows - DESABILITADAS (problemas com antivírus)
 NOTIFICATIONS_AVAILABLE = False
 NOTIFICATION_METHOD = None
@@ -1098,6 +1106,10 @@ class PostItCard(QFrame):
         if self.notas:
             tooltip_text = f"📝 NOTA COMPLETA:\n\n{self.notas}"
             self.setToolTip(tooltip_text)
+        
+        # Navegação por teclado
+        self.setFocusPolicy(Qt.StrongFocus)
+        self.setAttribute(Qt.WA_KeyboardFocusChange, True)
     
     def update_card_style(self):
         """Atualiza estilo do card baseado no tema"""
@@ -1869,6 +1881,87 @@ class PostItCard(QFrame):
             self.parent_column.remove_card(self)
             
             QMessageBox.information(self, "Arquivado", f"'{self.titulo}' foi arquivado!")
+    
+    def keyPressEvent(self, event):
+        """Navegação por teclado no card"""
+        if event.key() == Qt.Key_Enter or event.key() == Qt.Key_Return:
+            # Enter - Editar card
+            self.edit_card()
+            event.accept()
+        elif event.key() == Qt.Key_Delete or (event.key() == Qt.Key_Backspace and event.modifiers() == Qt.ControlModifier):
+            # Delete ou Ctrl+Backspace - Remover card
+            self.remove_self()
+            event.accept()
+        elif event.key() == Qt.Key_Up:
+            # Seta para cima - Card anterior
+            self.navigate_card(-1)
+            event.accept()
+        elif event.key() == Qt.Key_Down:
+            # Seta para baixo - Próximo card
+            self.navigate_card(1)
+            event.accept()
+        elif event.key() == Qt.Key_Left:
+            # Seta esquerda - Coluna anterior
+            self.navigate_column(-1)
+            event.accept()
+        elif event.key() == Qt.Key_Right:
+            # Seta direita - Próxima coluna
+            self.navigate_column(1)
+            event.accept()
+        elif event.key() == Qt.Key_Space:
+            # Espaço - Mostrar menu
+            self.show_menu()
+            event.accept()
+        else:
+            super().keyPressEvent(event)
+    
+    def navigate_card(self, direction):
+        """Navega para card anterior/próximo na mesma coluna"""
+        try:
+            current_index = self.parent_column.cards.index(self)
+            new_index = current_index + direction
+            
+            if 0 <= new_index < len(self.parent_column.cards):
+                next_card = self.parent_column.cards[new_index]
+                next_card.setFocus()
+        except (ValueError, IndexError):
+            pass
+    
+    def navigate_column(self, direction):
+        """Navega para coluna anterior/próxima"""
+        try:
+            current_col_index = self.parent_column.window.columns.index(self.parent_column)
+            new_col_index = current_col_index + direction
+            
+            if 0 <= new_col_index < len(self.parent_column.window.columns):
+                next_column = self.parent_column.window.columns[new_col_index]
+                if next_column.cards:
+                    # Focar no primeiro card da próxima coluna
+                    next_column.cards[0].setFocus()
+                else:
+                    # Se não houver cards, focar na coluna
+                    next_column.setFocus()
+        except (ValueError, IndexError):
+            pass
+    
+    def focusInEvent(self, event):
+        """Quando card recebe foco"""
+        super().focusInEvent(event)
+        # Adicionar borda de foco visual
+        current_style = self.styleSheet()
+        if ":focus" not in current_style:
+            focus_style = """
+                PostItCard:focus {
+                    border: 3px solid #2196F3 !important;
+                    background-color: rgba(33, 150, 243, 0.15) !important;
+                    outline: 2px solid rgba(33, 150, 243, 0.4) !important;
+                }
+            """
+            self.setStyleSheet(current_style + focus_style)
+    
+    def focusOutEvent(self, event):
+        """Quando card perde foco"""
+        super().focusOutEvent(event)
             
     def remove_self(self):
         """Remove este cartão"""
