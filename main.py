@@ -157,26 +157,26 @@ class ArchivedDialog(QDialog):
         
     def setup_ui(self):
         """Configura interface do dialog"""
-        self.setWindowTitle("📂 Cards Arquivados")
+        self.setWindowTitle(_("archived_cards", "📂 Cards Arquivados"))
         self.setModal(True)
         self.setMinimumSize(1000, 600)
         
         layout = QVBoxLayout()
         
         # Header
-        header = QLabel("📂 Histórico de Cards Arquivados")
+        header = QLabel(_("archived_history", "📂 Histórico de Cards Arquivados"))
         header.setFont(QFont("Segoe UI", 14, QFont.Bold))
         header.setAlignment(Qt.AlignCenter)
         header.setStyleSheet("padding: 15px; background-color: #607d8b; color: white; border-radius: 5px;")
         layout.addWidget(header)
         
         # Estatísticas
-        self.stats_group = QGroupBox("📊 Estatísticas")
+        self.stats_group = QGroupBox(_("statistics", "📊 Estatísticas"))
         stats_layout = QHBoxLayout()
         
-        self.total_label = QLabel("Total: 0")
-        self.week_label = QLabel("Esta semana: 0")
-        self.month_label = QLabel("Este mês: 0")
+        self.total_label = QLabel(_("total", "Total: {count}").format(count=0))
+        self.week_label = QLabel(_("this_week", "Esta semana: {count}").format(count=0))
+        self.month_label = QLabel(_("this_month", "Este mês: {count}").format(count=0))
         
         for label in [self.total_label, self.week_label, self.month_label]:
             label.setFont(QFont("Segoe UI", 10, QFont.Bold))
@@ -187,25 +187,25 @@ class ArchivedDialog(QDialog):
         layout.addWidget(self.stats_group)
         
         # Filtros
-        filters_group = QGroupBox("🔍 Filtros")
+        filters_group = QGroupBox(_("filters", "🔍 Filtros"))
         filters_layout = QHBoxLayout()
         
         # Busca por texto
-        filters_layout.addWidget(QLabel("Buscar:"))
+        filters_layout.addWidget(QLabel(_("search", "Buscar:")))
         self.search_input = QLineEdit()
-        self.search_input.setPlaceholderText("Digite para buscar...")
+        self.search_input.setPlaceholderText(_("search_placeholder", "Digite para buscar..."))
         self.search_input.textChanged.connect(self.apply_filters)
         filters_layout.addWidget(self.search_input)
         
         # Filtro por data
-        filters_layout.addWidget(QLabel("De:"))
+        filters_layout.addWidget(QLabel(_("from_date", "De:")))
         self.date_from = QDateEdit()
         self.date_from.setCalendarPopup(True)
         self.date_from.setDate(QDate.currentDate().addMonths(-1))
         self.date_from.dateChanged.connect(self.apply_filters)
         filters_layout.addWidget(self.date_from)
         
-        filters_layout.addWidget(QLabel("Até:"))
+        filters_layout.addWidget(QLabel(_("to_date", "Até:")))
         self.date_to = QDateEdit()
         self.date_to.setCalendarPopup(True)
         self.date_to.setDate(QDate.currentDate())
@@ -213,9 +213,9 @@ class ArchivedDialog(QDialog):
         filters_layout.addWidget(self.date_to)
         
         # Filtro por prioridade
-        filters_layout.addWidget(QLabel("Prioridade:"))
+        filters_layout.addWidget(QLabel(_("priority_filter", "Prioridade:")))
         self.priority_filter = QComboBox()
-        self.priority_filter.addItem("Todas")
+        self.priority_filter.addItem(_("all_priorities", "Todas"))
         for priority in PRIORITIES.keys():
             icon = PRIORITIES[priority]["icon"]
             self.priority_filter.addItem(f"{icon} {priority}")
@@ -228,7 +228,14 @@ class ArchivedDialog(QDialog):
         # Tabela
         self.table = QTableWidget()
         self.table.setColumnCount(6)
-        self.table.setHorizontalHeaderLabels(["Título", "Prioridade", "Tags", "Data Criação", "Data Arquivo", "Ações"])
+        self.table.setHorizontalHeaderLabels([
+            _("table_title", "Título"), 
+            _("table_priority", "Prioridade"), 
+            _("table_tags", "Tags"), 
+            _("table_creation_date", "Data Criação"), 
+            _("table_archive_date", "Data Arquivo"), 
+            _("table_actions", "Ações")
+        ])
         self.table.horizontalHeader().setSectionResizeMode(0, QHeaderView.Stretch)
         self.table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeToContents)
         self.table.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeToContents)
@@ -252,10 +259,10 @@ class ArchivedDialog(QDialog):
         export_btn = QPushButton("📤 Exportar CSV")
         export_btn.clicked.connect(self.export_csv)
         
-        clear_btn = QPushButton("🗑️ Limpar Arquivo")
+        clear_btn = QPushButton(_("clear_archive", "🗑️ Limpar Arquivo"))
         clear_btn.clicked.connect(self.clear_archive)
         
-        close_btn = QPushButton("✖ Fechar")
+        close_btn = QPushButton(_("close_button", "✖ Fechar"))
         close_btn.clicked.connect(self.accept)
         
         btn_style = """
@@ -308,9 +315,9 @@ class ArchivedDialog(QDialog):
         month_count = sum(1 for card in self.archived_cards 
                          if datetime.strptime(card.get("data_arquivamento", "01/01/2000 00:00"), "%d/%m/%Y %H:%M") >= month_ago)
         
-        self.total_label.setText(f"Total: {total}")
-        self.week_label.setText(f"Esta semana: {week_count}")
-        self.month_label.setText(f"Este mês: {month_count}")
+        self.total_label.setText(_("total", "Total: {count}").format(count=total))
+        self.week_label.setText(_("this_week", "Esta semana: {count}").format(count=week_count))
+        self.month_label.setText(_("this_month", "Este mês: {count}").format(count=month_count))
         
     def apply_filters(self):
         """Aplica filtros"""
@@ -332,7 +339,7 @@ class ArchivedDialog(QDialog):
                     continue
             
             # Filtro de prioridade
-            if priority_filter != "Todas":
+            if priority_filter != _("all_priorities", "Todas"):
                 priority = priority_filter.split(" ", 1)[1]
                 if card.get("prioridade", "Normal") != priority:
                     continue
@@ -386,7 +393,7 @@ class ArchivedDialog(QDialog):
             restore_btn.clicked.connect(lambda checked, r=row: self.restore_card(r))
             
             delete_btn = QPushButton("🗑️")
-            delete_btn.setToolTip("Deletar permanentemente")
+            delete_btn.setToolTip(_("delete_permanently", "Deletar permanentemente"))
             delete_btn.setMaximumWidth(40)
             delete_btn.clicked.connect(lambda checked, r=row: self.delete_card(r))
             
@@ -403,8 +410,8 @@ class ArchivedDialog(QDialog):
             
         card = self.filtered_cards[row]
         
-        reply = QMessageBox.question(self, "Restaurar", 
-                                     f"Restaurar '{card.get('titulo', '')}' para 'Concluído'?",
+        reply = QMessageBox.question(self, _("restore", "Restaurar"), 
+                                     _("restore_card", "Restaurar '{title}' para 'Concluído'?").format(title=card.get('titulo', '')),
                                      QMessageBox.Yes | QMessageBox.No)
         if reply == QMessageBox.Yes:
             # Remover do arquivo
@@ -421,7 +428,7 @@ class ArchivedDialog(QDialog):
             
             # Atualizar dialog
             self.load_archived()
-            QMessageBox.information(self, "Sucesso", "Card restaurado!")
+            QMessageBox.information(self, _("restored", "Restaurado"), _("card_restored_msg", "Card restaurado com sucesso!"))
             
     def delete_card(self, row):
         """Deleta card permanentemente"""
@@ -430,19 +437,19 @@ class ArchivedDialog(QDialog):
             
         card = self.filtered_cards[row]
         
-        reply = QMessageBox.warning(self, "Atenção", 
-                                    f"Deletar permanentemente '{card.get('titulo', '')}'?\n\nEsta ação não pode ser desfeita!",
+        reply = QMessageBox.warning(self, _("warning", "Atenção"), 
+                                    _("delete_permanently_confirm", "Tem certeza que deseja deletar permanentemente '{title}'? Esta ação não pode ser desfeita!").format(title=card.get('titulo', '')),
                                     QMessageBox.Yes | QMessageBox.No)
         if reply == QMessageBox.Yes:
             self.archived_cards.remove(card)
             self.save_archive()
             self.load_archived()
-            QMessageBox.information(self, "Deletado", "Card removido permanentemente!")
+            QMessageBox.information(self, _("deleted_permanently", "Deletado"), _("deleted_permanently", "Card removido permanentemente!"))
             
     def export_csv(self):
         """Exporta para CSV"""
         if not self.filtered_cards:
-            QMessageBox.information(self, "Info", "Nenhum card para exportar!")
+            QMessageBox.information(self, _("info", "Info"), _("no_cards_to_export", "Nenhum card para exportar!"))
             return
             
         filename, _ = QFileDialog.getSaveFileName(self, "Exportar CSV", "kanban_arquivados.csv", "CSV Files (*.csv)")
@@ -464,24 +471,24 @@ class ArchivedDialog(QDialog):
                             card.get("data_arquivamento", "")
                         ])
                 
-                QMessageBox.information(self, "Sucesso", f"Exportado {len(self.filtered_cards)} cards para:\n{filename}")
+                QMessageBox.information(self, _("success", "Sucesso"), _("exported_success", "Exportado {count} cards para:\n{filename}").format(count=len(self.filtered_cards), filename=filename))
             except Exception as e:
                 QMessageBox.critical(self, "Erro", f"Erro ao exportar: {e}")
                 
     def clear_archive(self):
         """Limpa todo o arquivo"""
         if not self.archived_cards:
-            QMessageBox.information(self, "Info", "Arquivo já está vazio!")
+            QMessageBox.information(self, _("info", "Info"), _("archive_empty", "Arquivo já está vazio!"))
             return
             
-        reply = QMessageBox.warning(self, "ATENÇÃO", 
-                                    f"Deletar TODOS os {len(self.archived_cards)} cards arquivados?\n\n⚠️ ESTA AÇÃO NÃO PODE SER DESFEITA!",
+        reply = QMessageBox.warning(self, _("warning", "ATENÇÃO"), 
+                                    _("clear_archive_confirm", "ATENÇÃO: Isso vai remover TODOS os cards arquivados permanentemente! Tem certeza?"),
                                     QMessageBox.Yes | QMessageBox.No)
         if reply == QMessageBox.Yes:
             self.archived_cards = []
             self.save_archive()
             self.load_archived()
-            QMessageBox.information(self, "Limpo", "Todos os cards arquivados foram removidos!")
+            QMessageBox.information(self, _("archive_cleared", "Limpo"), _("archive_cleared", "Todos os cards arquivados foram removidos!"))
             
     def save_archive(self):
         """Salva arquivo"""
@@ -502,26 +509,26 @@ class CardDialog(QDialog):
             
     def setup_ui(self):
         """Configura interface do dialog"""
-        self.setWindowTitle("✏️ Editar Card" if self.card_data else "➕ Novo Card")
+        self.setWindowTitle(_("edit_card", "✏️ Editar Card") if self.card_data else _("new_card", "➕ Novo Card"))
         self.setModal(True)
         self.setMinimumWidth(500)
         
         layout = QVBoxLayout()
         
         # Título
-        layout.addWidget(QLabel("📝 Título:"))
+        layout.addWidget(QLabel(_("title_label", "📝 Título:")))
         self.title_input = QLineEdit()
-        self.title_input.setPlaceholderText("Digite o título do card...")
+        self.title_input.setPlaceholderText(_("title_placeholder", "Digite o título do card..."))
         layout.addWidget(self.title_input)
         
         # Caminho (opcional para criação manual)
-        layout.addWidget(QLabel("📂 Caminho (opcional):"))
+        layout.addWidget(QLabel(_("path_label", "📂 Caminho (opcional):")))
         self.path_input = QLineEdit()
-        self.path_input.setPlaceholderText("Deixe vazio ou cole um caminho de arquivo/pasta...")
+        self.path_input.setPlaceholderText(_("path_placeholder", "Deixe vazio ou cole um caminho de arquivo/pasta..."))
         layout.addWidget(self.path_input)
         
         # Notas com formatação
-        notes_group = QGroupBox("📋 Notas")
+        notes_group = QGroupBox(_("notes", "📋 Notas"))
         notes_layout = QVBoxLayout()
         
         # Barra de ferramentas de formatação para notas
@@ -531,7 +538,7 @@ class CardDialog(QDialog):
         self.notes_bold_btn.setCheckable(True)
         self.notes_bold_btn.setMaximumWidth(35)
         self.notes_bold_btn.setFont(QFont("Arial", 11, QFont.Bold))
-        self.notes_bold_btn.setToolTip("Negrito nas notas")
+        self.notes_bold_btn.setToolTip(_("bold_tooltip", "Negrito nas notas"))
         self.notes_bold_btn.clicked.connect(self.apply_notes_bold)
         
         self.notes_italic_btn = QPushButton("I")
@@ -540,7 +547,7 @@ class CardDialog(QDialog):
         notes_italic_font = QFont("Arial", 11)
         notes_italic_font.setItalic(True)
         self.notes_italic_btn.setFont(notes_italic_font)
-        self.notes_italic_btn.setToolTip("Itálico nas notas")
+        self.notes_italic_btn.setToolTip(_("italic_tooltip", "Itálico nas notas"))
         self.notes_italic_btn.clicked.connect(self.apply_notes_italic)
         
         self.notes_underline_btn = QPushButton("U")
@@ -549,7 +556,7 @@ class CardDialog(QDialog):
         notes_underline_font = QFont("Arial", 11)
         notes_underline_font.setUnderline(True)
         self.notes_underline_btn.setFont(notes_underline_font)
-        self.notes_underline_btn.setToolTip("Sublinhado nas notas")
+        self.notes_underline_btn.setToolTip(_("underline_tooltip", "Sublinhado nas notas"))
         self.notes_underline_btn.clicked.connect(self.apply_notes_underline)
         
         format_btn_style = """
@@ -579,7 +586,7 @@ class CardDialog(QDialog):
         notes_toolbar.addStretch()
         
         self.notes_input = QTextEdit()
-        self.notes_input.setPlaceholderText("Adicione observações, links, detalhes...")
+        self.notes_input.setPlaceholderText(_("notes_placeholder", "Adicione observações, links, detalhes..."))
         self.notes_input.setMaximumHeight(100)
         
         notes_layout.addLayout(notes_toolbar)
@@ -617,7 +624,7 @@ class CardDialog(QDialog):
         
         # Data Fim
         end_layout = QVBoxLayout()
-        end_layout.addWidget(QLabel("🏁 Data Fim:"))
+        end_layout.addWidget(QLabel(_("end_date_label", "🏁 Data Fim:")))
         self.end_date = QDateEdit()
         self.end_date.setCalendarPopup(True)
         self.end_date.setDate(QDate.currentDate().addDays(7))  # +7 dias por padrão
@@ -647,13 +654,13 @@ class CardDialog(QDialog):
         layout.addWidget(gantt_group)
         
         # Alerta/Lembrete COM DATA E HORA
-        alert_group = QGroupBox("⏰ Alerta/Lembrete (opcional)")
+        alert_group = QGroupBox(_("alert_reminder", "⏰ Alerta/Lembrete (opcional)"))
         alert_layout = QVBoxLayout()
         
         # Mensagem do alerta
-        alert_layout.addWidget(QLabel("📝 Mensagem:"))
+        alert_layout.addWidget(QLabel(_("alert_message", "📝 Mensagem:")))
         self.alert_input = QLineEdit()
-        self.alert_input.setPlaceholderText("Ex: Entregar relatório, Reunião importante...")
+        self.alert_input.setPlaceholderText(_("alert_message_placeholder", "Ex: Entregar relatório, Reunião importante..."))
         alert_layout.addWidget(self.alert_input)
         
         # Data e Hora do alerta
@@ -661,7 +668,7 @@ class CardDialog(QDialog):
         
         # Data
         date_layout = QVBoxLayout()
-        date_layout.addWidget(QLabel("📅 Data:"))
+        date_layout.addWidget(QLabel(_("alert_date_label", "📅 Data:")))
         self.alert_date = QDateEdit()
         self.alert_date.setCalendarPopup(True)
         self.alert_date.setDate(QDate.currentDate())
@@ -685,7 +692,7 @@ class CardDialog(QDialog):
         
         # Hora
         time_layout = QVBoxLayout()
-        time_layout.addWidget(QLabel("🕐 Hora:"))
+        time_layout.addWidget(QLabel(_("alert_time_label", "🕐 Hora:")))
         self.alert_time = QTimeEdit()
         self.alert_time.setDisplayFormat("HH:mm")
         self.alert_time.setTime(QTime.currentTime())
@@ -715,7 +722,7 @@ class CardDialog(QDialog):
         layout.addWidget(alert_group)
         
         # Prioridade (define cor automaticamente)
-        layout.addWidget(QLabel("⚡ Prioridade (define a cor do post-it):"))
+        layout.addWidget(QLabel(_("priority_label", "⚡ Prioridade (define a cor do post-it):")))
         self.priority_combo = QComboBox()
         for priority in PRIORITIES.keys():
             icon = PRIORITIES[priority]["icon"]
@@ -724,13 +731,13 @@ class CardDialog(QDialog):
         layout.addWidget(self.priority_combo)
         
         # Tags
-        layout.addWidget(QLabel("🏷️ Tags (separe por vírgula):"))
+        layout.addWidget(QLabel(_("tags_label", "🏷️ Tags (separe por vírgula):")))
         self.tags_input = QLineEdit()
-        self.tags_input.setPlaceholderText("Ex: urgente, trabalho, pessoal")
+        self.tags_input.setPlaceholderText(_("tags_placeholder", "Ex: urgente, trabalho, pessoal"))
         layout.addWidget(self.tags_input)
         
         # === FORMATAÇÃO DE TEXTO ===
-        format_group = QGroupBox("✏️ Formatação do Texto")
+        format_group = QGroupBox(_("text_formatting", "✏️ Formatação do Texto"))
         format_layout = QHBoxLayout()
         
         # Negrito
@@ -812,7 +819,7 @@ class CardDialog(QDialog):
         format_layout.addWidget(self.underline_checkbox)
         format_layout.addSpacing(20)
         
-        format_layout.addWidget(QLabel("Tamanho:"))
+        format_layout.addWidget(QLabel(_("font_size", "Tamanho:")))
         self.fontsize_combo = QComboBox()
         self.fontsize_combo.addItems(["8", "9", "10", "11", "12", "14", "16", "18", "20", "24"])
         self.fontsize_combo.setCurrentText("10")
@@ -3594,7 +3601,7 @@ class KanbanWindow(QMainWindow):
             license_btn.clicked.connect(self.show_activate_dialog)
             license_btn.setCursor(Qt.PointingHandCursor)
             license_btn.setStyleSheet(btn_style)
-            license_btn.setToolTip("Ativar ou verificar licença")
+            license_btn.setToolTip(_("activate_license", "Ativar ou verificar licença"))
             self.license_btn = license_btn  # Guardar referência para atualizar cor
             toolbar_layout.addWidget(license_btn)
             # Adicionar à lista de botões da toolbar para atualização de cor
@@ -3664,21 +3671,21 @@ class KanbanWindow(QMainWindow):
         buttons_layout = QHBoxLayout()
         
         # Always on top toggle
-        self.toggle_btn = QPushButton("📌 Always On Top: ON")
+        self.toggle_btn = QPushButton(_("always_on_top_on", "📌 Always On Top: ON"))
         self.toggle_btn.setCheckable(True)
         self.toggle_btn.setChecked(True)
         self.toggle_btn.clicked.connect(self.toggle_always_on_top)
         
         # Limpar concluídos
-        clear_completed_btn = QPushButton("🗑️ Limpar Concluídos")
-        clear_completed_btn.clicked.connect(self.clear_completed)
+        self.clear_completed_btn = QPushButton(_("clear_completed", "🗑️ Limpar Concluídos"))
+        self.clear_completed_btn.clicked.connect(self.clear_completed)
         
         # Ver arquivados
-        view_archived_btn = QPushButton("📂 Ver Arquivados")
-        view_archived_btn.clicked.connect(self.view_archived)
+        self.view_archived_btn = QPushButton(_("view_archived", "📂 Ver Arquivados"))
+        self.view_archived_btn.clicked.connect(self.view_archived)
         
         # Atalhos
-        shortcuts_btn = QPushButton("⌨️ Atalhos")
+        self.shortcuts_btn = QPushButton(_("shortcuts_button", "⌨️ Atalhos"))
         shortcuts_btn.clicked.connect(self.show_shortcuts)
         
         # Estilo unificado: Gradiente azul marinho → prata
@@ -3712,9 +3719,12 @@ class KanbanWindow(QMainWindow):
         self.bottom_buttons = [self.toggle_btn, clear_completed_btn, view_archived_btn, shortcuts_btn]
         
         buttons_layout.addWidget(self.toggle_btn)
-        buttons_layout.addWidget(clear_completed_btn)
-        buttons_layout.addWidget(view_archived_btn)
-        buttons_layout.addWidget(shortcuts_btn)
+        buttons_layout.addWidget(self.clear_completed_btn)
+        buttons_layout.addWidget(self.view_archived_btn)
+        buttons_layout.addWidget(self.shortcuts_btn)
+        
+        # Guardar referências para atualização de cor
+        self.bottom_buttons = [self.toggle_btn, self.clear_completed_btn, self.view_archived_btn, self.shortcuts_btn]
         
         # Copyright
         copyright_label = QLabel("© 2025 - Criado por Ede Machado")
@@ -3988,6 +3998,11 @@ class KanbanWindow(QMainWindow):
             self.gantt_btn.setText(f"📊 {_('gantt', 'Gantt')}")
         if hasattr(self, 'dashboard_btn'):
             self.dashboard_btn.setText(f"📈 {_('dashboard', 'Dashboard')}")
+        if hasattr(self, 'backup_btn'):
+            self.backup_btn.setText(f"💾 {_('backup', 'Backup')}")
+        if hasattr(self, 'license_btn'):
+            self.license_btn.setText(f"🔐 {_('license', 'Licença')}")
+            self.license_btn.setToolTip(_("activate_license", "Ativar ou verificar licença"))
         
         # Atualizar placeholder da busca
         if hasattr(self, 'search_input'):
@@ -4004,6 +4019,32 @@ class KanbanWindow(QMainWindow):
         # Atualizar copyright
         if hasattr(self, 'copyright_label'):
             self.copyright_label.setText(_("copyright", "© 2025 - Criado por Ede Machado"))
+        
+        # Atualizar botões do rodapé
+        if hasattr(self, 'toggle_btn'):
+            if self.toggle_btn.isChecked():
+                self.toggle_btn.setText(_("always_on_top_on", "📌 Always On Top: ON"))
+            else:
+                self.toggle_btn.setText(_("always_on_top_off", "📌 Always On Top: OFF"))
+        
+        if hasattr(self, 'clear_completed_btn'):
+            self.clear_completed_btn.setText(_("clear_completed", "🗑️ Limpar Concluídos"))
+        if hasattr(self, 'view_archived_btn'):
+            self.view_archived_btn.setText(_("view_archived", "📂 Ver Arquivados"))
+        if hasattr(self, 'shortcuts_btn'):
+            self.shortcuts_btn.setText(_("shortcuts_button", "⌨️ Atalhos"))
+        
+        # Atualizar labels de transparência
+        if hasattr(self, 'transparency_label'):
+            self.transparency_label.setText(_("transparency_label", "Transparência:"))
+        
+        # Atualizar todas as colunas
+        for col in self.columns:
+            # Atualizar contador de cards
+            col.update_card_count()
+            # Atualizar tooltip de edição
+            if hasattr(col, 'title_label'):
+                col.title_label.setToolTip(_("edit_column_name", "Duplo clique para editar nome"))
         
         # Forçar atualização visual
         self.update()
