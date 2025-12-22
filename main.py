@@ -1015,6 +1015,9 @@ class PostItCard(QFrame):
         self.gear_btn.setMaximumSize(QSize(20, 20))
         self.gear_btn.setToolTip("Opções do Card")
         self.gear_btn.setCursor(Qt.PointingHandCursor)
+        # Garantir que o botão receba eventos de mouse
+        self.gear_btn.setAttribute(Qt.WA_NoMouseReplay, False)
+        self.gear_btn.setFocusPolicy(Qt.NoFocus)  # Não roubar foco
         self.gear_btn.setStyleSheet("""
             QPushButton {
                 background-color: transparent;
@@ -1819,8 +1822,15 @@ class PostItCard(QFrame):
     def mousePressEvent(self, event):
         """Inicia drag, resize ou abre card"""
         if event.button() == Qt.LeftButton:
+            # Verificar se clicou na engrenagem
+            gear_btn_rect = self.gear_btn.geometry()
+            
             # Não iniciar drag se clicou na engrenagem
-            if self.gear_btn.geometry().contains(event.pos()):
+            if gear_btn_rect.contains(event.pos()):
+                # Passar o evento para o botão processar
+                event.ignore()
+                # Enviar evento diretamente para o botão
+                self.gear_btn.mousePressEvent(event)
                 return
             
             # Verificar se clicou na borda para resize
