@@ -1732,6 +1732,14 @@ class PostItCard(QFrame):
         if dialog.exec() == QDialog.Accepted:
             new_data = dialog.get_data()
             
+            # Validar dados (se validação habilitada)
+            if VALIDATION_ENABLED:
+                is_valid, message, sanitized_data = InputValidator.validate_card_data(new_data)
+                if not is_valid:
+                    QMessageBox.warning(self, "Dados Inválidos", f"Não foi possível salvar:\n{message}")
+                    return
+                new_data = sanitized_data
+            
             # Preservar data de criação original
             new_data["data_criacao"] = self.data_criacao
             
@@ -4039,8 +4047,24 @@ class KanbanWindow(QMainWindow):
         """Carrega dados do JSON (colunas dinâmicas)"""
         if os.path.exists(DATA_FILE):
             try:
-                with open(DATA_FILE, "r", encoding="utf-8") as f:
-                    data = json.load(f)
+                # Validar JSON antes de carregar (se validação habilitada)
+                if VALIDATION_ENABLED:
+                    is_valid, message, data = InputValidator.validate_json_file(DATA_FILE)
+                    if not is_valid:
+                        QMessageBox.warning(self, "Erro ao Carregar", 
+                                           f"Erro ao carregar dados:\n{message}\n\n"
+                                           "O arquivo pode estar corrompido. Um backup será criado.")
+                        # Criar backup do arquivo corrompido
+                        backup_name = f"{DATA_FILE}.corrupted_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+                        os.rename(DATA_FILE, backup_name)
+                        return
+                else:
+                    with open(DATA_FILE, "r", encoding="utf-8") as f:
+                        data = json.load(f)
+                
+                if not VALIDATION_ENABLED:
+                    with open(DATA_FILE, "r", encoding="utf-8") as f:
+                        data = json.load(f)
                 
                 # Verificar se é formato novo (com colunas)
                 if "columns" in data:
