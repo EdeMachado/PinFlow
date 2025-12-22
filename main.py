@@ -3579,6 +3579,9 @@ class KanbanWindow(QMainWindow):
         backup_btn.setStyleSheet(btn_style)
         backup_btn.setToolTip("Criar backup dos dados")
         
+        # GUARDAR REFERÊNCIAS DOS BOTÕES PARA ATUALIZAR CORES DEPOIS
+        self.toolbar_buttons = [new_column_btn, gantt_btn, dashboard_btn, backup_btn]
+        
         # Transparência
         transparency_label = QLabel("💎 Transparência:")
         
@@ -3715,6 +3718,9 @@ class KanbanWindow(QMainWindow):
         clear_completed_btn.setStyleSheet(button_style)
         view_archived_btn.setStyleSheet(button_style)
         shortcuts_btn.setStyleSheet(button_style)
+        
+        # GUARDAR REFERÊNCIAS DOS BOTÕES INFERIORES PARA ATUALIZAR CORES DEPOIS
+        self.bottom_buttons = [self.toggle_btn, clear_completed_btn, view_archived_btn, shortcuts_btn]
         
         buttons_layout.addWidget(self.toggle_btn)
         buttons_layout.addWidget(clear_completed_btn)
@@ -4469,6 +4475,10 @@ class KanbanWindow(QMainWindow):
             self.header_widget.setStyleSheet("background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #1e3a5f, stop:1 #8b9dc3); border-radius: 8px; padding: 10px;")
             if hasattr(self, 'title_label'):
                 self.title_label.setStyleSheet("color: #1e3a5f; padding: 10px;")
+            
+            # Restaurar cor padrão dos botões
+            default_color = QColor(30, 58, 95)  # #1e3a5f
+            self.update_buttons_color(default_color)
             
             QMessageBox.information(parent_dialog, "Cor Restaurada", "Cor do header restaurada ao padrão!")
         except Exception as e:
