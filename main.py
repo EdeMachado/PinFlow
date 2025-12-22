@@ -1856,14 +1856,28 @@ class PostItCard(QFrame):
         self.setCursor(Qt.OpenHandCursor)
         
     def mouseReleaseEvent(self, event):
-        """Finaliza drag ou resize"""
-        if self.resizing:
-            self.resizing = False
-            self.resize_start = None
-            self.resize_edge = None
-            self.parent_column.window.save_data()
-            self.setCursor(Qt.OpenHandCursor)
-        else:
+        """Finaliza drag, resize ou abre card"""
+        if event.button() == Qt.LeftButton:
+            # Se estava redimensionando, finalizar
+            if self.resizing:
+                self.resizing = False
+                self.resize_start = None
+                self.resize_edge = None
+                self.parent_column.window.save_data()
+                self.setCursor(Qt.OpenHandCursor)
+                return
+            
+            # Se moveu pouco, foi um clique simples - ABRIR CARD
+            if self.drag_start_position:
+                distance = (event.pos() - self.drag_start_position).manhattanLength()
+                if distance < 10:  # Clique simples (moveu menos de 10 pixels)
+                    self.edit_card()
+                    self.drag_start_position = None
+                    self.setCursor(Qt.OpenHandCursor)
+                    return
+            
+            # Finalizar drag
+            self.drag_start_position = None
             self.setCursor(Qt.OpenHandCursor)
         
     def open_folder(self):
