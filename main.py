@@ -3686,7 +3686,7 @@ class KanbanWindow(QMainWindow):
         
         # Atalhos
         self.shortcuts_btn = QPushButton(_("shortcuts_button", "⌨️ Atalhos"))
-        shortcuts_btn.clicked.connect(self.show_shortcuts)
+        self.shortcuts_btn.clicked.connect(self.show_shortcuts)
         
         # Estilo unificado: Gradiente azul marinho → prata
         button_style = """
@@ -3711,12 +3711,9 @@ class KanbanWindow(QMainWindow):
         """
         
         self.toggle_btn.setStyleSheet(button_style)
-        clear_completed_btn.setStyleSheet(button_style)
-        view_archived_btn.setStyleSheet(button_style)
-        shortcuts_btn.setStyleSheet(button_style)
-        
-        # GUARDAR REFERÊNCIAS DOS BOTÕES INFERIORES PARA ATUALIZAR CORES DEPOIS
-        self.bottom_buttons = [self.toggle_btn, clear_completed_btn, view_archived_btn, shortcuts_btn]
+        self.clear_completed_btn.setStyleSheet(button_style)
+        self.view_archived_btn.setStyleSheet(button_style)
+        self.shortcuts_btn.setStyleSheet(button_style)
         
         buttons_layout.addWidget(self.toggle_btn)
         buttons_layout.addWidget(self.clear_completed_btn)
