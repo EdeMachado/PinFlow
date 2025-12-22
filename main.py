@@ -2224,6 +2224,17 @@ class KanbanColumn(QFrame):
     
     def update_column_style(self):
         """Atualiza estilo da coluna baseado no tema"""
+        # Carregar cor salva dos headers das colunas
+        column_header_color_saved = None
+        try:
+            if os.path.exists("settings.json"):
+                with open("settings.json", "r", encoding="utf-8") as f:
+                    settings = json.load(f)
+                    if "column_header_color" in settings:
+                        column_header_color_saved = settings["column_header_color"]
+        except:
+            pass
+        
         if hasattr(self.window, 'dark_mode') and self.window.dark_mode:
             # MODO ESCURO - Gradiente preto elegante
             self.setStyleSheet(f"""
@@ -2234,6 +2245,17 @@ class KanbanColumn(QFrame):
                     border-radius: 10px;
                 }}
             """)
+            # Aplicar cor salva no header se houver
+            if column_header_color_saved and hasattr(self, 'header_container'):
+                color = QColor(column_header_color_saved)
+                r, g, b = color.red(), color.green(), color.blue()
+                self.header_container.setStyleSheet(f"""
+                    background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                        stop:0 rgb({r}, {g}, {b}), 
+                        stop:1 rgb({min(255, r+30)}, {min(255, g+30)}, {min(255, b+30)}));
+                    border-radius: 8px;
+                    padding: 8px;
+                """)
         else:
             # MODO CLARO - Cinza claro original
             self.setStyleSheet(f"""
@@ -2243,6 +2265,17 @@ class KanbanColumn(QFrame):
                     border-radius: 10px;
                 }}
             """)
+            # Aplicar cor salva no header se houver
+            if column_header_color_saved and hasattr(self, 'header_container'):
+                color = QColor(column_header_color_saved)
+                r, g, b = color.red(), color.green(), color.blue()
+                self.header_container.setStyleSheet(f"""
+                    background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                        stop:0 rgb({r}, {g}, {b}), 
+                        stop:1 rgb({min(255, r+30)}, {min(255, g+30)}, {min(255, b+30)}));
+                    border-radius: 8px;
+                    padding: 8px;
+                """)
     
     def edit_title(self):
         """Edita o título da coluna"""
@@ -3352,12 +3385,32 @@ class KanbanWindow(QMainWindow):
         # Header com logo
         header_layout = QHBoxLayout()
         
-        # Logo + Título no canto esquerdo com Flow em verde
-        title_label = QLabel("📌➜ Pin<span style='color: #00C853; font-weight: bold;'>Flow</span> <span style='color: #888888; font-size: 14px;'>Pro</span>")
-        title_label.setFont(QFont("Segoe UI", 16, QFont.Bold))
-        title_label.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
-        title_label.setTextFormat(Qt.RichText)
-        title_label.setStyleSheet("color: #1e3a5f; padding: 10px;")  # Azul marinho escuro
+        # Logo + Título no canto esquerdo - Mostrar nome do cliente ou PinFlow Pro
+        # Verificar se há licença ativada para mostrar nome do cliente
+        customer_name = None
+        if LICENSE_ENABLED and self.license_manager:
+            license_info = self.license_manager.get_license_info()
+            if license_info:
+                customer_name = license_info.get('customer_name', None)
+        
+        if customer_name:
+            title_text = f"<span style='color: #1e3a5f; font-weight: bold;'>{customer_name}</span>"
+            title_label = QLabel(title_text)
+            title_label.setFont(QFont("Segoe UI", 16, QFont.Bold))
+            title_label.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+            title_label.setTextFormat(Qt.RichText)
+            title_label.setStyleSheet("color: #1e3a5f; padding: 10px; cursor: pointer;")  # Cursor pointer para indicar clicável
+            title_label.setCursor(Qt.PointingHandCursor)
+            title_label.mousePressEvent = lambda e: self.show_config_dialog()  # Clicável para abrir configurações
+        else:
+            title_label = QLabel("📌➜ Pin<span style='color: #00C853; font-weight: bold;'>Flow</span> <span style='color: #888888; font-size: 14px;'>Pro</span>")
+            title_label.setFont(QFont("Segoe UI", 16, QFont.Bold))
+            title_label.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+            title_label.setTextFormat(Qt.RichText)
+            title_label.setStyleSheet("color: #1e3a5f; padding: 10px;")  # Azul marinho escuro
+        
+        # Guardar referência para não mudar cor quando header mudar
+        self.title_label = title_label
         
         # Logo e tema no canto superior direito (lado a lado)
         logo_theme_layout = QHBoxLayout()
@@ -3760,12 +3813,29 @@ class KanbanWindow(QMainWindow):
                 }
             """)
         else:
-            # MODO CLARO - GRADIENTE AZUL ESCURO → PRATA
-            self.header_widget.setStyleSheet("""
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
-                    stop:0 #1e3a5f, stop:1 #c0c0c0);
-                border-radius: 8px;
-            """)
+            # MODO CLARO - Carregar cor salva ou usar padrão
+            if header_color_saved:
+                # Usar cor salva
+                color = QColor(header_color_saved)
+                r, g, b = color.red(), color.green(), color.blue()
+                self.header_widget.setStyleSheet(f"""
+                    background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                        stop:0 rgb({r}, {g}, {b}), 
+                        stop:1 rgb({min(255, r+50)}, {min(255, g+50)}, {min(255, b+50)}));
+                    border-radius: 8px;
+                    padding: 10px;
+                """)
+            else:
+                # MODO CLARO - GRADIENTE AZUL ESCURO → PRATA
+                self.header_widget.setStyleSheet("""
+                    background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
+                        stop:0 #1e3a5f, stop:1 #c0c0c0);
+                    border-radius: 8px;
+                """)
+        
+        # Garantir que logo/título mantenha cor fixa (não muda com header)
+        if hasattr(self, 'title_label'):
+            self.title_label.setStyleSheet("color: #1e3a5f; padding: 10px;")
             self.copyright_label.setStyleSheet("""
                 color: #999999;
                 padding: 5px;
@@ -4134,6 +4204,12 @@ class KanbanWindow(QMainWindow):
         self.header_color_btn = QPushButton("Alterar Cor")
         self.header_color_btn.clicked.connect(lambda: self.change_header_color(dialog))
         header_color_layout.addWidget(self.header_color_btn)
+        
+        # Botão voltar ao padrão
+        self.header_reset_btn = QPushButton("↩️ Padrão")
+        self.header_reset_btn.setToolTip("Voltar à cor padrão do header")
+        self.header_reset_btn.clicked.connect(lambda: self.reset_header_color(dialog))
+        header_color_layout.addWidget(self.header_reset_btn)
         header_color_layout.addStretch()
         colors_layout.addLayout(header_color_layout)
         
@@ -4143,6 +4219,12 @@ class KanbanWindow(QMainWindow):
         self.column_color_btn = QPushButton("Alterar Cor")
         self.column_color_btn.clicked.connect(lambda: self.change_column_header_color(dialog))
         column_color_layout.addWidget(self.column_color_btn)
+        
+        # Botão voltar ao padrão
+        self.column_reset_btn = QPushButton("↩️ Padrão")
+        self.column_reset_btn.setToolTip("Voltar à cor padrão dos headers das colunas")
+        self.column_reset_btn.clicked.connect(lambda: self.reset_column_header_color(dialog))
+        column_color_layout.addWidget(self.column_reset_btn)
         column_color_layout.addStretch()
         colors_layout.addLayout(column_color_layout)
         
@@ -4243,7 +4325,18 @@ class KanbanWindow(QMainWindow):
     def change_header_color(self, parent_dialog):
         """Altera cor do header"""
         from PySide6.QtWidgets import QColorDialog
-        color = QColorDialog.getColor(QColor(30, 58, 95), parent_dialog, "Escolha cor do Header")
+        # Carregar cor atual ou usar padrão
+        current_color = QColor(30, 58, 95)  # Padrão
+        try:
+            if os.path.exists("settings.json"):
+                with open("settings.json", "r", encoding="utf-8") as f:
+                    settings = json.load(f)
+                    if "header_color" in settings:
+                        current_color = QColor(settings["header_color"])
+        except:
+            pass
+        
+        color = QColorDialog.getColor(current_color, parent_dialog, "Escolha cor do Header")
         if color.isValid():
             # Salvar cor nas configurações
             try:
@@ -4255,7 +4348,7 @@ class KanbanWindow(QMainWindow):
                 with open("settings.json", "w", encoding="utf-8") as f:
                     json.dump(settings, f, ensure_ascii=False, indent=2)
                 
-                # Aplicar cor imediatamente
+                # Aplicar cor imediatamente (mas manter logo/título com cor fixa)
                 r, g, b = color.red(), color.green(), color.blue()
                 gradient_style = f"""
                     background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
@@ -4265,6 +4358,9 @@ class KanbanWindow(QMainWindow):
                     padding: 10px;
                 """
                 self.header_widget.setStyleSheet(gradient_style)
+                # Garantir que logo/título mantenha cor fixa (não muda com header)
+                if hasattr(self, 'title_label'):
+                    self.title_label.setStyleSheet("color: #1e3a5f; padding: 10px;")
                 
                 QMessageBox.information(parent_dialog, "Cor Alterada", 
                     f"Cor do header alterada para: {color.name()}\n\nA mudança foi aplicada imediatamente!")
@@ -4274,7 +4370,18 @@ class KanbanWindow(QMainWindow):
     def change_column_header_color(self, parent_dialog):
         """Altera cor dos headers das colunas"""
         from PySide6.QtWidgets import QColorDialog
-        color = QColorDialog.getColor(QColor(30, 58, 95), parent_dialog, "Escolha cor dos Headers das Colunas")
+        # Carregar cor atual ou usar padrão
+        current_color = QColor(30, 58, 95)  # Padrão
+        try:
+            if os.path.exists("settings.json"):
+                with open("settings.json", "r", encoding="utf-8") as f:
+                    settings = json.load(f)
+                    if "column_header_color" in settings:
+                        current_color = QColor(settings["column_header_color"])
+        except:
+            pass
+        
+        color = QColorDialog.getColor(current_color, parent_dialog, "Escolha cor dos Headers das Colunas")
         if color.isValid():
             # Salvar cor nas configurações
             try:
@@ -4292,9 +4399,10 @@ class KanbanWindow(QMainWindow):
                     background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
                         stop:0 rgb({r}, {g}, {b}), 
                         stop:1 rgb({min(255, r+30)}, {min(255, g+30)}, {min(255, b+30)}));
-                    border-radius: 5px;
+                    border-radius: 8px;
                     padding: 8px;
                 """
+                # Aplicar em todas as colunas existentes
                 for column in self.columns:
                     if hasattr(column, 'header_container'):
                         column.header_container.setStyleSheet(gradient_style)
@@ -4303,6 +4411,54 @@ class KanbanWindow(QMainWindow):
                     f"Cor dos headers das colunas alterada para: {color.name()}\n\nA mudança foi aplicada imediatamente!")
             except Exception as e:
                 QMessageBox.warning(parent_dialog, "Erro", f"Erro ao salvar cor: {e}")
+    
+    def reset_header_color(self, parent_dialog):
+        """Volta cor do header ao padrão"""
+        try:
+            settings = {}
+            if os.path.exists("settings.json"):
+                with open("settings.json", "r", encoding="utf-8") as f:
+                    settings = json.load(f)
+            if "header_color" in settings:
+                del settings["header_color"]
+            with open("settings.json", "w", encoding="utf-8") as f:
+                json.dump(settings, f, ensure_ascii=False, indent=2)
+            
+            # Aplicar cor padrão
+            self.header_widget.setStyleSheet("background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #1e3a5f, stop:1 #8b9dc3); border-radius: 8px; padding: 10px;")
+            if hasattr(self, 'title_label'):
+                self.title_label.setStyleSheet("color: #1e3a5f; padding: 10px;")
+            
+            QMessageBox.information(parent_dialog, "Cor Restaurada", "Cor do header restaurada ao padrão!")
+        except Exception as e:
+            QMessageBox.warning(parent_dialog, "Erro", f"Erro ao restaurar cor: {e}")
+    
+    def reset_column_header_color(self, parent_dialog):
+        """Volta cor dos headers das colunas ao padrão"""
+        try:
+            settings = {}
+            if os.path.exists("settings.json"):
+                with open("settings.json", "r", encoding="utf-8") as f:
+                    settings = json.load(f)
+            if "column_header_color" in settings:
+                del settings["column_header_color"]
+            with open("settings.json", "w", encoding="utf-8") as f:
+                json.dump(settings, f, ensure_ascii=False, indent=2)
+            
+            # Aplicar cor padrão em todas as colunas IMEDIATAMENTE
+            default_style = """
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                    stop:0 #1e3a5f, stop:1 #2a5080);
+                border-radius: 8px;
+                padding: 8px;
+            """
+            for column in self.columns:
+                if hasattr(column, 'header_container'):
+                    column.header_container.setStyleSheet(default_style)
+            
+            QMessageBox.information(parent_dialog, "Cor Restaurada", "Cor dos headers das colunas restaurada ao padrão!")
+        except Exception as e:
+            QMessageBox.warning(parent_dialog, "Erro", f"Erro ao restaurar cor: {e}")
     
     def show_shortcuts(self):
         """Mostra dialog com atalhos"""
