@@ -3443,7 +3443,6 @@ class KanbanWindow(QMainWindow):
         self.header_widget = header_widget  # Guardar referência para modo escuro
         
         # Carregar cor do header salva (se houver)
-        header_color = "#1e3a5f"  # Padrão: azul marinho
         try:
             if os.path.exists("settings.json"):
                 with open("settings.json", "r", encoding="utf-8") as f:
@@ -3462,8 +3461,8 @@ class KanbanWindow(QMainWindow):
                         """)
                     else:
                         header_widget.setStyleSheet("background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #1e3a5f, stop:1 #8b9dc3); border-radius: 8px; padding: 10px;")
-                else:
-                    header_widget.setStyleSheet("background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #1e3a5f, stop:1 #8b9dc3); border-radius: 8px; padding: 10px;")
+            else:
+                header_widget.setStyleSheet("background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #1e3a5f, stop:1 #8b9dc3); border-radius: 8px; padding: 10px;")
         except:
             header_widget.setStyleSheet("background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #1e3a5f, stop:1 #8b9dc3); border-radius: 8px; padding: 10px;")
         
