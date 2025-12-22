@@ -2129,6 +2129,9 @@ class KanbanColumn(QFrame):
             """)
         header_container.setCursor(Qt.OpenHandCursor)  # Cursor de mão para arrastar
         
+        # GUARDAR REFERÊNCIA para poder atualizar depois
+        self.header_container = header_container
+        
         header_layout = QHBoxLayout()
         header_layout.setContentsMargins(5, 5, 5, 5)
         header_container.setLayout(header_layout)
