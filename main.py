@@ -1631,6 +1631,8 @@ class PostItCard(QFrame):
         
         # Botões
         buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        buttons.button(QDialogButtonBox.Ok).setText(_("save", "Salvar"))
+        buttons.button(QDialogButtonBox.Cancel).setText(_("cancel", "Cancelar"))
         buttons.accepted.connect(dialog.accept)
         buttons.rejected.connect(dialog.reject)
         layout.addWidget(buttons)
@@ -4129,6 +4131,8 @@ class KanbanWindow(QMainWindow):
         
         # Botões
         buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        buttons.button(QDialogButtonBox.Ok).setText(_("create", "Criar"))
+        buttons.button(QDialogButtonBox.Cancel).setText(_("cancel", "Cancelar"))
         buttons.accepted.connect(dialog.accept)
         buttons.rejected.connect(dialog.reject)
         layout.addWidget(buttons)
@@ -4443,6 +4447,7 @@ class KanbanWindow(QMainWindow):
         
         # Botões
         buttons = QDialogButtonBox(QDialogButtonBox.Ok)
+        buttons.button(QDialogButtonBox.Ok).setText(_("close", "Fechar"))
         buttons.accepted.connect(dialog.accept)
         layout.addWidget(buttons)
         
