@@ -2310,7 +2310,7 @@ class KanbanColumn(QFrame):
         
         new_title, ok = QInputDialog.getText(
             self,
-            "Editar Nome da Coluna",
+            _("column_name_edit", "Editar Nome da Coluna"),
             _("new_column_name", "Novo nome:"),
             QLineEdit.Normal,
             self.titulo
@@ -2360,7 +2360,7 @@ class KanbanColumn(QFrame):
         """Muda cor da coluna com paleta"""
         # Criar dialog com paleta de cores
         dialog = QDialog(self)
-        dialog.setWindowTitle("🎨 Escolha uma cor para a coluna")
+        dialog.setWindowTitle(_("choose_column_color", "🎨 Escolha uma cor para a coluna"))
         dialog.setModal(True)
         dialog.setFixedSize(450, 150)
         
