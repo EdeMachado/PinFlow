@@ -4024,9 +4024,14 @@ def main():
     app.setApplicationName("PinFlow Pro")
     
     window = KanbanWindow()
-    window.show()
     
-    sys.exit(app.exec())
+    # Verificar se janela foi criada (pode ser None se licença inválida)
+    if window:
+        window.show()
+        sys.exit(app.exec())
+    else:
+        # Licença inválida, sair
+        sys.exit(1)
 
 
 if __name__ == "__main__":
