@@ -3891,6 +3891,9 @@ class KanbanWindow(QMainWindow):
                 QWidget {
                     background-color: #fafafa;
                 }
+                KanbanColumn {
+                    background-color: #f5f5f5;
+                }
                 QLineEdit {
                     padding: 8px;
                     border: 2px solid #ddd;
