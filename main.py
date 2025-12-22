@@ -3854,13 +3854,43 @@ class KanbanWindow(QMainWindow):
                     border-radius: 8px;
                 """)
         
-        # Garantir que logo/título mantenha cor fixa (não muda com header ou tema)
-        if hasattr(self, 'title_label'):
-            # Se for nome do cliente (clicável), manter estilo com cursor
-            if hasattr(self.title_label, 'mousePressEvent'):
-                self.title_label.setStyleSheet("color: #1e3a5f; padding: 10px; cursor: pointer;")
-            else:
+            # Garantir que logo/título mantenha cor fixa (não muda com header ou tema) - MODO ESCURO
+            if hasattr(self, 'title_label'):
                 self.title_label.setStyleSheet("color: #1e3a5f; padding: 10px;")
+        else:
+            # MODO CLARO - Carregar cor salva ou usar padrão
+            if header_color_saved:
+                # Usar cor salva
+                color = QColor(header_color_saved)
+                r, g, b = color.red(), color.green(), color.blue()
+                # Calcular cor do texto baseado na luminosidade
+                text_color = self.get_text_color_for_background(color)
+                self.header_widget.setStyleSheet(f"""
+                    background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                        stop:0 rgb({r}, {g}, {b}), 
+                        stop:1 rgb({min(255, r+50)}, {min(255, g+50)}, {min(255, b+50)}));
+                    border-radius: 8px;
+                    padding: 10px;
+                    color: {text_color};
+                """)
+                # Atualizar cor do nome do cliente também (se houver)
+                if hasattr(self, 'customer_name_label'):
+                    self.customer_name_label.setStyleSheet(f"color: {text_color}; padding: 10px; cursor: pointer;")
+            else:
+                # MODO CLARO - GRADIENTE AZUL ESCURO → PRATA
+                self.header_widget.setStyleSheet("""
+                    background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
+                        stop:0 #1e3a5f, stop:1 #c0c0c0);
+                    border-radius: 8px;
+                """)
+            
+            # Garantir que logo/título mantenha cor fixa (não muda com header ou tema) - MODO CLARO
+            if hasattr(self, 'title_label'):
+                # Se for nome do cliente (clicável), manter estilo com cursor
+                if hasattr(self.title_label, 'mousePressEvent'):
+                    self.title_label.setStyleSheet("color: #1e3a5f; padding: 10px; cursor: pointer;")
+                else:
+                    self.title_label.setStyleSheet("color: #1e3a5f; padding: 10px;")
             self.copyright_label.setStyleSheet("""
                 color: #999999;
                 padding: 5px;
@@ -3879,6 +3909,10 @@ class KanbanWindow(QMainWindow):
                 )
             except:
                 pass
+            
+            # Garantir que widget central volte a ser claro no modo claro
+            if hasattr(self, 'central_widget'):
+                self.central_widget.setStyleSheet("background-color: #fafafa;")
             
             self.setStyleSheet("""
                 QMainWindow {
@@ -3917,10 +3951,6 @@ class KanbanWindow(QMainWindow):
                     background-color: #fafafa !important;
                 }
             """)
-            
-            # Garantir que widget central volte a ser claro no modo claro
-            if hasattr(self, 'central_widget'):
-                self.central_widget.setStyleSheet("background-color: #fafafa;")
     
     def toggle_theme(self, checked):
         """Alterna entre modo escuro e claro"""
