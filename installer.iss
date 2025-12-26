@@ -2,9 +2,9 @@
 ; Cria um instalador profissional para Windows
 
 #define MyAppName "PinFlow Pro"
-#define MyAppVersion "1.0"
+#define MyAppVersion "3.0"
 #define MyAppPublisher "Ede Machado"
-#define MyAppURL "https://www.seusite.com"
+#define MyAppURL "https://www.pinflowpro.com"
 #define MyAppExeName "PinFlow_Pro.exe"
 
 [Setup]
@@ -25,7 +25,7 @@ DefaultGroupName={#MyAppName}
 ; Arquivo de saída
 OutputDir=dist\installer
 OutputBaseFilename=PinFlow_Pro_Setup
-SetupIconFile=icon.ico
+SetupIconFile=alfinete_vermelho.ico
 UninstallDisplayIcon={app}\{#MyAppExeName}
 
 ; Compressão
@@ -53,26 +53,30 @@ VersionInfoCopyright=© 2025 Ede Machado
 Name: "brazilianportuguese"; MessagesFile: "compiler:Languages\BrazilianPortuguese.isl"
 
 [Tasks]
-Name: "desktopicon"; Description: "Criar ícone na Área de Trabalho"; GroupDescription: "Ícones adicionais:"
+Name: "desktopicon"; Description: "Criar ícone na Área de Trabalho"; GroupDescription: "Ícones adicionais:"; Flags: checked
 Name: "quicklaunchicon"; Description: "Criar ícone na Barra de Tarefas"; GroupDescription: "Ícones adicionais:"; Flags: unchecked
 Name: "startup"; Description: "Iniciar automaticamente com o Windows"; GroupDescription: "Opções de inicialização:"
 
 [Files]
 ; Executável principal
-Source: "dist\PinFlow_Pro\PinFlow_Pro.exe"; DestDir: "{app}"; Flags: ignoreversion
-; Todos os arquivos da pasta dist
-Source: "dist\PinFlow_Pro\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "dist\PinFlow_Pro.exe"; DestDir: "{app}"; Flags: ignoreversion
+; Arquivo de licenças válidas (necessário para validação)
+Source: "valid_licenses.json"; DestDir: "{app}"; Flags: ignoreversion
+; Ícone do alfinete vermelho
+Source: "alfinete_vermelho.ico"; DestDir: "{app}"; Flags: ignoreversion
+; Pasta de traduções (i18n) - copiar da pasta raiz se não estiver no dist
+Source: "i18n\*"; DestDir: "{app}\i18n"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; Documentação
 Source: "README.md"; DestDir: "{app}"; Flags: ignoreversion; DestName: "LEIA-ME.txt"
 Source: "EULA.txt"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
 ; Ícone no Menu Iniciar
-Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
+Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\{#MyAppExeName}"
 Name: "{group}\Desinstalar {#MyAppName}"; Filename: "{uninstallexe}"
-; Ícone na Área de Trabalho
-Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
-; Ícone na Barra de Tarefas
+; Ícone na Área de Trabalho (SEMPRE criado com ícone vermelho do alfinete)
+Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\alfinete_vermelho.ico"; Tasks: desktopicon
+; Ícone na Barra de Tarefas (opcional)
 Name: "{userappdata}\Microsoft\Internet Explorer\Quick Launch\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: quicklaunchicon
 
 [Registry]
@@ -82,6 +86,8 @@ Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: 
 [Run]
 ; Executar após instalação
 Filename: "{app}\{#MyAppExeName}"; Description: "Iniciar {#MyAppName}"; Flags: nowait postinstall skipifsilent
+; Abrir pasta de instalação após instalação
+Filename: "explorer.exe"; Parameters: "{app}"; Description: "Abrir pasta de instalação"; Flags: postinstall skipifsilent
 
 [UninstallDelete]
 ; Limpar dados ao desinstalar (opcional - comente se quiser manter os dados do usuário)
@@ -113,10 +119,19 @@ procedure CurStepChanged(CurStep: TSetupStep);
 begin
   if CurStep = ssPostInstall then
   begin
+    // Abrir pasta de instalação automaticamente
+    ShellExec('open', 'explorer.exe', ExpandConstant('{app}'), '', SW_SHOWNORMAL, ewNoWait, ErrorCode);
+    
     MsgBox('PinFlow Pro foi instalado com sucesso!' + #13#10#13#10 +
+           'Localização: ' + ExpandConstant('{app}') + #13#10#13#10 +
+           'O programa foi instalado em:' + #13#10 +
+           ExpandConstant('{app}') + #13#10#13#10 +
+           'Um atalho foi criado na Área de Trabalho com o ícone do alfinete.' + #13#10#13#10 +
+           'A pasta de instalação será aberta automaticamente.' + #13#10#13#10 +
            'Obrigado por escolher nosso produto!' + #13#10#13#10 +
            '© 2025 - Criado por Ede Machado',
            mbInformation, MB_OK);
   end;
 end;
+
 

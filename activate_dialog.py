@@ -65,6 +65,11 @@ class ActivateDialog(QDialog):
         form_group = QGroupBox(_("license_key_group", "Chave de Licença"))
         form_layout = QFormLayout()
         
+        # Campo de nome do usuário
+        self.name_input = QLineEdit()
+        self.name_input.setPlaceholderText(_("user_name_placeholder", "Digite seu nome"))
+        form_layout.addRow(_("user_name_label", "Seu Nome:"), self.name_input)
+        
         # Campo de chave
         self.license_input = QLineEdit()
         self.license_input.setPlaceholderText(_("license_key_placeholder", "XXXX-XXXX-XXXX-XXXX"))
@@ -158,6 +163,15 @@ class ActivateDialog(QDialog):
         info = self.license_manager.get_license_info()
         
         if info:
+            # Preencher campo de nome se já houver licença
+            if info.get('customer_name') and info['customer_name'] != 'N/A':
+                self.name_input.setText(info['customer_name'])
+            
+            # Se já houver licença válida, tornar campo de chave opcional
+            if info.get('hwid') and info['hwid'] != 'N/A':
+                self.license_input.setPlaceholderText(_("license_key_optional", "Chave (opcional - já ativada)"))
+                self.activate_btn.setText(_("update_name_button", "✅ Atualizar Nome"))
+            
             info_text = f"""
 <b>{_('customer_name', 'Cliente')}:</b> {info['customer_name']}<br>
 <b>{_('customer_email', 'Email')}:</b> {info['customer_email']}<br>
@@ -174,16 +188,43 @@ class ActivateDialog(QDialog):
     def activate_license(self):
         """Ativa a licença"""
         license_key = self.license_input.text().strip()
+        user_name = self.name_input.text().strip()
         
+        # Se já houver licença válida, pode ser apenas atualização de nome
+        existing_info = self.license_manager.get_license_info()
+        if existing_info and existing_info.get('hwid') != 'N/A':
+            # Licença já ativada, apenas atualizar nome se fornecido
+            if user_name:
+                if self.license_manager.license_data:
+                    self.license_manager.license_data["user_name"] = user_name
+                    self.license_manager.license_data["customer_name"] = user_name
+                    self.license_manager.save_license()
+                    QMessageBox.information(
+                        self, 
+                        _("success", "Sucesso!"), 
+                        f"Nome atualizado com sucesso!\n\nBem-vindo, {user_name}!"
+                    )
+                    self.load_license_info()
+                    self.accept()
+                    return
+            else:
+                QMessageBox.warning(self, _("warning", "Aviso"), _("user_name_empty", "Por favor, digite seu nome."))
+                return
+        
+        # Se não houver licença ou chave fornecida, ativar normalmente
         if not license_key:
             QMessageBox.warning(self, _("warning", "Aviso"), _("license_key_empty", "Por favor, digite sua chave de licença."))
+            return
+        
+        if not user_name:
+            QMessageBox.warning(self, _("warning", "Aviso"), _("user_name_empty", "Por favor, digite seu nome."))
             return
         
         # Remover hífens e espaços
         license_key = license_key.replace("-", "").replace(" ", "").upper()
         
         # Ativar
-        success, message = self.license_manager.activate_license(license_key)
+        success, message = self.license_manager.activate_license(license_key, user_name)
         
         if success:
             QMessageBox.information(

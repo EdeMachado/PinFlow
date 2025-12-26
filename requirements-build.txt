@@ -1,6 +1,0 @@
-# Dependências para BUILD/COMPILAÇÃO do instalador
-# Use este arquivo para gerar o executável e instalador
-
-pyinstaller>=6.0.0
-PySide6>=6.6.0
-

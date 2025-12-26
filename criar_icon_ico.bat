@@ -56,3 +56,4 @@ echo Depois de criar icon.ico, execute: gerar_instalador.bat
 echo.
 pause
 
+

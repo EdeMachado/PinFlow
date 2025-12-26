@@ -5,7 +5,19 @@ Suporte multilíngue para alcance mundial
 
 import json
 import os
+import sys
 from pathlib import Path
+
+def get_base_path():
+    """Retorna o caminho base para arquivos de recursos"""
+    # Se executando como .exe (PyInstaller)
+    if getattr(sys, 'frozen', False):
+        # PyInstaller cria uma pasta temporária e armazena o caminho em _MEIPASS
+        base_path = Path(sys._MEIPASS)
+    else:
+        # Executando como script Python normal
+        base_path = Path(__file__).parent
+    return base_path
 
 class I18nManager:
     """Gerenciador de traduções"""
@@ -27,7 +39,8 @@ class I18nManager:
             language = cls.current_language
         
         # Tentar carregar do arquivo
-        lang_file = Path(f"i18n/{language}.json")
+        base_path = get_base_path()
+        lang_file = base_path / "i18n" / f"{language}.json"
         if lang_file.exists():
             try:
                 with open(lang_file, 'r', encoding='utf-8') as f:

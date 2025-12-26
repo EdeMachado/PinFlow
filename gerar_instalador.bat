@@ -1,109 +1,69 @@
 @echo off
 chcp 65001 >nul
-echo.
-echo ╔═══════════════════════════════════════════════════════════╗
-echo ║     PINFLOW PRO - GERADOR DE INSTALADOR PROFISSIONAL     ║
-echo ╚═══════════════════════════════════════════════════════════╝
+echo ========================================
+echo Gerador de Instalador - PinFlow Pro
+echo ========================================
 echo.
 
-REM ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-echo [ETAPA 1/5] Verificando Python...
-echo ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-python --version >nul 2>&1
-if errorlevel 1 (
-    echo ❌ ERRO: Python não encontrado!
-    echo    Instale Python 3.8+ de https://www.python.org
+REM Verificar se o executável foi gerado
+if not exist "dist\PinFlow_Pro.exe" (
+    echo [ERRO] Executável não encontrado!
+    echo Por favor, execute primeiro: pyinstaller build.spec --clean --noconfirm
     pause
     exit /b 1
 )
-echo ✓ Python encontrado!
+
+echo [OK] Executável encontrado: dist\PinFlow_Pro.exe
 echo.
 
-REM ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-echo [ETAPA 2/5] Instalando PyInstaller...
-echo ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-python -m pip install --upgrade pyinstaller >nul 2>&1
-if errorlevel 1 (
-    echo ❌ ERRO ao instalar PyInstaller!
-    pause
-    exit /b 1
+REM Procurar Inno Setup em vários locais
+set ISCC_PATH=
+if exist "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" (
+    set ISCC_PATH=C:\Program Files (x86)\Inno Setup 6\ISCC.exe
+) else if exist "C:\Program Files\Inno Setup 6\ISCC.exe" (
+    set ISCC_PATH=C:\Program Files\Inno Setup 6\ISCC.exe
+) else if exist "C:\Program Files (x86)\Inno Setup 5\ISCC.exe" (
+    set ISCC_PATH=C:\Program Files (x86)\Inno Setup 5\ISCC.exe
+) else if exist "C:\Program Files\Inno Setup 5\ISCC.exe" (
+    set ISCC_PATH=C:\Program Files\Inno Setup 5\ISCC.exe
 )
-echo ✓ PyInstaller instalado!
-echo.
 
-REM ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-echo [ETAPA 3/5] Gerando executável com PyInstaller...
-echo ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-echo    Isso pode demorar alguns minutos...
-echo.
-
-REM Limpar builds anteriores
-if exist "build" rmdir /s /q "build"
-if exist "dist\PinFlow_Pro" rmdir /s /q "dist\PinFlow_Pro"
-
-REM Gerar executável
-pyinstaller --clean build.spec
-if errorlevel 1 (
-    echo ❌ ERRO ao gerar executável!
-    echo    Verifique o arquivo build.spec
-    pause
-    exit /b 1
-)
-echo ✓ Executável gerado em: dist\PinFlow_Pro\
-echo.
-
-REM ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-echo [ETAPA 4/5] Verificando Inno Setup...
-echo ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-set INNO_PATH=C:\Program Files (x86)\Inno Setup 6\ISCC.exe
-if not exist "%INNO_PATH%" (
-    echo ⚠️  Inno Setup não encontrado!
+if "%ISCC_PATH%"=="" (
+    echo [ERRO] Inno Setup não encontrado!
     echo.
-    echo    Para gerar o instalador, você precisa:
-    echo    1. Baixar Inno Setup 6: https://jrsoftware.org/isdl.php
-    echo    2. Instalar em: C:\Program Files (x86)\Inno Setup 6\
-    echo    3. Executar este script novamente
+    echo Por favor, instale o Inno Setup:
+    echo https://jrsoftware.org/isdl.php
     echo.
-    echo ✓ Executável já está pronto em: dist\PinFlow_Pro\PinFlow_Pro.exe
-    echo.
-    pause
-    exit /b 0
-)
-echo ✓ Inno Setup encontrado!
-echo.
-
-REM ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-echo [ETAPA 5/5] Gerando instalador com Inno Setup...
-echo ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-echo    Compilando instalador...
-echo.
-
-"%INNO_PATH%" "installer.iss"
-if errorlevel 1 (
-    echo ❌ ERRO ao gerar instalador!
+    echo Ou informe o caminho manualmente editando este arquivo.
     pause
     exit /b 1
 )
 
+echo [OK] Inno Setup encontrado: %ISCC_PATH%
 echo.
-echo ╔═══════════════════════════════════════════════════════════╗
-echo ║                   ✓ CONCLUÍDO COM SUCESSO!               ║
-echo ╚═══════════════════════════════════════════════════════════╝
+echo Gerando instalador...
 echo.
-echo 📦 INSTALADOR GERADO:
-echo    dist\installer\PinFlow_Pro_Setup.exe
-echo.
-echo 🚀 PRONTO PARA DISTRIBUIR!
-echo.
-echo ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-echo Próximos passos:
-echo ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-echo 1. Teste o instalador: dist\installer\PinFlow_Pro_Setup.exe
-echo 2. Distribua para seus clientes
-echo 3. Venda por R$ 9,99!
-echo ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-echo.
+
+"%ISCC_PATH%" installer.iss
+
+if %ERRORLEVEL% EQU 0 (
+    echo.
+    echo ========================================
+    echo [SUCESSO] Instalador gerado!
+    echo ========================================
+    echo.
+    echo O instalador está em: dist\installer\PinFlow_Pro_Setup.exe
+    echo.
+    echo Este instalador irá:
+    echo   - Instalar em: C:\Program Files\PinFlow Pro
+    echo   - Criar atalho no Desktop com ícone do alfinete
+    echo   - Abrir a pasta de instalação após instalação
+    echo.
+) else (
+    echo.
+    echo [ERRO] Falha ao gerar instalador!
+    echo.
+)
+
 pause
-explorer "dist\installer"
 

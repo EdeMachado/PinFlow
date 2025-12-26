@@ -5,6 +5,14 @@ import csv
 from datetime import datetime, timedelta
 from pathlib import Path
 
+# Configurar encoding UTF-8 para Windows
+if sys.platform == 'win32':
+    try:
+        sys.stdout.reconfigure(encoding='utf-8')
+        sys.stderr.reconfigure(encoding='utf-8')
+    except:
+        pass
+
 # Validação de entrada
 try:
     from validators import InputValidator
@@ -37,14 +45,50 @@ except ImportError:
     print("⚠️ Sistema de licenciamento não disponível")
     LICENSE_ENABLED = False
 
+# Obter diretório de dados do usuário (AppData)
+def get_data_directory():
+    """Retorna o diretório onde os dados do usuário serão salvos"""
+    if os.name == 'nt':  # Windows
+        appdata = os.getenv('APPDATA')
+        if appdata:
+            data_dir = os.path.join(appdata, 'PinFlow_Pro')
+            # Criar pasta se não existir
+            try:
+                os.makedirs(data_dir, exist_ok=True)
+            except:
+                pass
+            return data_dir
+    # Fallback: usar diretório do executável
+    if getattr(sys, 'frozen', False):
+        # Executando como .exe (PyInstaller)
+        return os.path.dirname(sys.executable)
+    else:
+        # Executando como script Python
+        return os.path.dirname(os.path.abspath(__file__)) if '__file__' in globals() else os.getcwd()
+
+# Definir diretório de dados e arquivos
+DATA_DIR = get_data_directory()
+DATA_FILE = os.path.join(DATA_DIR, "kanban.json")
+ARCHIVE_FILE = os.path.join(DATA_DIR, "kanban_arquivo.json")
+SETTINGS_FILE = os.path.join(DATA_DIR, "settings.json")
+
+# Importar para personalizar cor da barra de título no Windows
+try:
+    import ctypes
+    from ctypes import wintypes
+    DWMWA_CAPTION_COLOR = 35
+    DWMWA_USE_IMMERSIVE_DARK_MODE = 20
+except:
+    pass  # Se não for Windows, ignora
+
 # Sistema de Internacionalização (i18n)
 try:
     from i18n_manager import I18nManager
     I18N_ENABLED = True
     # Carregar idioma salvo ou usar padrão
     try:
-        if os.path.exists("settings.json"):
-            with open("settings.json", "r", encoding="utf-8") as f:
+        if os.path.exists(SETTINGS_FILE):
+            with open(SETTINGS_FILE, "r", encoding="utf-8") as f:
                 settings = json.load(f)
                 lang = settings.get("language", "pt_BR")
                 I18nManager.set_language(lang)
@@ -75,18 +119,6 @@ def _(key, default=None, **kwargs):
     if I18N_ENABLED:
         return I18nManager.get_text(key, default, **kwargs)
     return default if default else key
-
-# Importar para personalizar cor da barra de título no Windows
-try:
-    import ctypes
-    from ctypes import wintypes
-    DWMWA_CAPTION_COLOR = 35
-    DWMWA_USE_IMMERSIVE_DARK_MODE = 20
-except:
-    pass  # Se não for Windows, ignora
-
-DATA_FILE = "kanban.json"
-ARCHIVE_FILE = "kanban_arquivo.json"
 
 # Cores disponíveis para cards individuais (IGUAL POST-IT)
 CARD_COLORS = {
@@ -429,12 +461,27 @@ class ArchivedDialog(QDialog):
                 # Remove data de arquivamento
                 if "data_arquivamento" in card:
                     del card["data_arquivamento"]
-                self.parent_window.col_completed.add_card(card)
-                self.parent_window.save_data()
+                
+                # Procurar coluna "Concluído" (várias variações possíveis)
+                completed_col = None
+                for col in self.parent_window.columns:
+                    titulo_lower = col.titulo.lower()
+                    if "conclu" in titulo_lower or "done" in titulo_lower or "finalizado" in titulo_lower:
+                        completed_col = col
+                        break
+                
+                if completed_col:
+                    completed_col.add_card(card)
+                    self.parent_window.save_data()
+                    QMessageBox.information(self, _("restored", "Restaurado"), 
+                        f"Card '{card.get('titulo', '')}' restaurado com sucesso para a coluna '{completed_col.titulo}'!")
+                else:
+                    QMessageBox.warning(self, _("error", "Erro"), 
+                        "Nenhuma coluna 'Concluído' encontrada!\n\n"
+                        "Crie uma coluna com 'Concluído', 'Done' ou 'Finalizado' no nome.")
             
             # Atualizar dialog
             self.load_archived()
-            QMessageBox.information(self, _("restored", "Restaurado"), _("card_restored_msg", "Card restaurado com sucesso!"))
             
     def delete_card(self, row):
         """Deleta card permanentemente"""
@@ -535,8 +582,23 @@ class CardDialog(QDialog):
         self.setWindowTitle(_("edit_card", "✏️ Editar Card") if self.card_data else _("new_card", "➕ Novo Card"))
         self.setModal(True)
         self.setMinimumWidth(500)
+        self.setMinimumHeight(400)
+        self.setMaximumHeight(900)  # Limitar altura máxima
         
+        # Layout principal com scroll
+        main_layout = QVBoxLayout()
+        
+        # Área de scroll
+        scroll_area = QScrollArea()
+        scroll_area.setWidgetResizable(True)
+        scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        
+        # Widget container para o conteúdo
+        content_widget = QWidget()
         layout = QVBoxLayout()
+        layout.setSpacing(10)
+        layout.setContentsMargins(10, 10, 10, 10)
         
         # Título
         layout.addWidget(QLabel(_("title_label", "📝 Título:")))
@@ -870,15 +932,22 @@ class CardDialog(QDialog):
         format_group.setLayout(format_layout)
         layout.addWidget(format_group)
         
-        # Botões
+        # Fechar layout do conteúdo
+        content_widget.setLayout(layout)
+        scroll_area.setWidget(content_widget)
+        
+        # Adicionar scroll area ao layout principal
+        main_layout.addWidget(scroll_area)
+        
+        # Botões (fora do scroll, sempre visíveis)
         buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         buttons.button(QDialogButtonBox.Ok).setText(_("save", "Salvar"))
         buttons.button(QDialogButtonBox.Cancel).setText(_("cancel", "Cancelar"))
         buttons.accepted.connect(self.accept)
         buttons.rejected.connect(self.reject)
-        layout.addWidget(buttons)
+        main_layout.addWidget(buttons)
         
-        self.setLayout(layout)
+        self.setLayout(main_layout)
     
     def apply_notes_bold(self):
         """Aplica negrito no texto selecionado das notas"""
@@ -1485,8 +1554,11 @@ class PostItCard(QFrame):
             card_width = 250  # Largura padrão
             card_height = 120  # Altura padrão
         
-        # Definir tamanho fixo
-        self.setFixedSize(card_width, card_height)
+        # Definir tamanho mínimo e máximo (permitir redimensionamento)
+        self.setMinimumSize(150, 80)  # Tamanho mínimo
+        self.setMaximumSize(600, 1000)  # Tamanho máximo
+        # Definir tamanho preferencial (mas permitir redimensionar)
+        self.resize(card_width, card_height)
     
     def show_menu(self):
         """Mostra menu de opções ao clicar na engrenagem (COMPLETO IGUAL POST-IT)"""
@@ -2142,8 +2214,8 @@ class KanbanColumn(QFrame):
         header_container = QWidget()
         # Carregar cor salva (se houver)
         try:
-            if os.path.exists("settings.json"):
-                with open("settings.json", "r", encoding="utf-8") as f:
+            if os.path.exists(SETTINGS_FILE):
+                with open(SETTINGS_FILE, "r", encoding="utf-8") as f:
                     settings = json.load(f)
                     if "column_header_color" in settings:
                         column_header_color = settings["column_header_color"]
@@ -2291,8 +2363,8 @@ class KanbanColumn(QFrame):
         # Carregar cor salva dos headers das colunas (apenas para modo claro)
         column_header_color_saved = None
         try:
-            if os.path.exists("settings.json"):
-                with open("settings.json", "r", encoding="utf-8") as f:
+            if os.path.exists(SETTINGS_FILE):
+                with open(SETTINGS_FILE, "r", encoding="utf-8") as f:
                     settings = json.load(f)
                     if "column_header_color" in settings:
                         column_header_color_saved = settings["column_header_color"]
@@ -2723,6 +2795,7 @@ class KanbanColumn(QFrame):
         """Remove um card"""
         if card in self.cards:
             self.cards.remove(card)
+            self.cards_layout.removeWidget(card)
             card.deleteLater()
             self.update_counter()
             if save:
@@ -3404,6 +3477,8 @@ class KanbanWindow(QMainWindow):
         self.setup_shortcuts()
         self.setup_tray()
         self.load_data()
+        # Carregar cores DEPOIS de tudo estar criado
+        self.load_colors_from_settings()
     
     def check_license(self):
         """Verifica licença no startup"""
@@ -3427,6 +3502,18 @@ class KanbanWindow(QMainWindow):
                     "Por favor, ative sua licença para continuar."
                 )
                 return False
+        
+        # Verificar se há nome do usuário
+        license_info = self.license_manager.get_license_info()
+        if license_info:
+            customer_name = license_info.get('customer_name', '')
+            # Se não houver nome ou for "N/A", pedir o nome
+            if not customer_name or customer_name == 'N/A' or customer_name.strip() == '':
+                # Mostrar dialog de ativação apenas para pedir o nome
+                dialog = ActivateDialog(self)
+                if dialog.exec() == QDialog.Accepted:
+                    # Nome cadastrado, continuar
+                    return True
         
         return True
     
@@ -3455,8 +3542,19 @@ class KanbanWindow(QMainWindow):
         
     def setup_ui(self):
         """Configura interface"""
-        self.setWindowTitle("📌 PinFlow Pro")
+        self.setWindowTitle("● PinFlow Pro")
         self.setGeometry(100, 100, 1500, 750)
+        
+        # Definir ícone da janela
+        # Tentar usar ícone do executável (quando compilado) ou arquivo local
+        if getattr(sys, 'frozen', False):
+            # Executando como .exe compilado - usar ícone do executável
+            self.setWindowIcon(QIcon(sys.executable))
+        else:
+            # Executando como script Python - usar arquivo .ico
+            icon_path = "alfinete_vermelho.ico"
+            if os.path.exists(icon_path):
+                self.setWindowIcon(QIcon(icon_path))
         
         # Garantir que o botão de fechar sempre esteja habilitado
         self.setWindowFlag(Qt.WindowCloseButtonHint, True)
@@ -3480,8 +3578,8 @@ class KanbanWindow(QMainWindow):
         # Header com logo
         header_layout = QHBoxLayout()
         
-        # Logo + Título no canto esquerdo - SEMPRE PinFlow Pro
-        title_label = QLabel("📌➜ Pin<span style='color: #00C853; font-weight: bold;'>Flow</span> <span style='color: #888888; font-size: 14px;'>Pro</span>")
+        # Logo + Título no canto esquerdo - SEMPRE PinFlow Pro (design original)
+        title_label = QLabel("<span style='color: #ffffff;'>📌➜ Pin</span><span style='color: #00C853; font-weight: bold;'>Flow</span> <span style='color: #ffffff;'>Pro</span>")
         title_label.setFont(QFont("Segoe UI", 16, QFont.Bold))
         title_label.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
         title_label.setTextFormat(Qt.RichText)
@@ -3554,29 +3652,8 @@ class KanbanWindow(QMainWindow):
         header_widget.setLayout(header_layout)
         self.header_widget = header_widget  # Guardar referência para modo escuro
         
-        # Carregar cor do header salva (se houver)
-        try:
-            if os.path.exists("settings.json"):
-                with open("settings.json", "r", encoding="utf-8") as f:
-                    settings = json.load(f)
-                    if "header_color" in settings:
-                        header_color = settings["header_color"]
-                        # Converter hex para RGB
-                        color = QColor(header_color)
-                        r, g, b = color.red(), color.green(), color.blue()
-                        header_widget.setStyleSheet(f"""
-                            background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-                                stop:0 rgb({r}, {g}, {b}), 
-                                stop:1 rgb({min(255, r+50)}, {min(255, g+50)}, {min(255, b+50)}));
-                            border-radius: 8px;
-                            padding: 10px;
-                        """)
-                    else:
-                        header_widget.setStyleSheet("background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #1e3a5f, stop:1 #8b9dc3); border-radius: 8px; padding: 10px;")
-            else:
-                header_widget.setStyleSheet("background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #1e3a5f, stop:1 #8b9dc3); border-radius: 8px; padding: 10px;")
-        except:
-            header_widget.setStyleSheet("background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #1e3a5f, stop:1 #8b9dc3); border-radius: 8px; padding: 10px;")
+        # Cor padrão do header (será sobrescrita por load_colors_from_settings se houver cor salva)
+        header_widget.setStyleSheet("background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #1e3a5f, stop:1 #8b9dc3); border-radius: 8px; padding: 10px;")
         
         # Barra de ferramentas
         toolbar_layout = QHBoxLayout()
@@ -3737,7 +3814,7 @@ class KanbanWindow(QMainWindow):
         buttons_layout = QHBoxLayout()
         
         # Always on top toggle
-        self.toggle_btn = QPushButton(f"📌 {_('always_on_top_on', 'Always On Top: ON')}")
+        self.toggle_btn = QPushButton(f"🟢 {_('always_on_top_on', 'Always On Top: ON')}")
         self.toggle_btn.setCheckable(True)
         self.toggle_btn.setChecked(True)
         self.toggle_btn.clicked.connect(self.toggle_always_on_top)
@@ -3817,8 +3894,8 @@ class KanbanWindow(QMainWindow):
         # Carregar cor do header salva (se houver) antes de aplicar tema
         header_color_saved = None
         try:
-            if os.path.exists("settings.json"):
-                with open("settings.json", "r", encoding="utf-8") as f:
+            if os.path.exists(SETTINGS_FILE):
+                with open(SETTINGS_FILE, "r", encoding="utf-8") as f:
                     settings = json.load(f)
                     if "header_color" in settings:
                         header_color_saved = settings["header_color"]
@@ -4097,16 +4174,17 @@ class KanbanWindow(QMainWindow):
         
         # === 4. TÍTULO E COPYRIGHT ===
         if hasattr(self, 'title_label'):
-            self.title_label.setText(_("app_title", "📌➜ PinFlow Pro"))
+            # Manter design original com alfinete vermelho e seta
+            self.title_label.setText("<span style='color: #ffffff;'>📌➜ Pin</span><span style='color: #00C853; font-weight: bold;'>Flow</span> <span style='color: #ffffff;'>Pro</span>")
         if hasattr(self, 'copyright_label'):
             self.copyright_label.setText(_("copyright", "© 2025 - Criado por Ede Machado"))
         
         # === 5. BOTÕES DO RODAPÉ ===
         if hasattr(self, 'toggle_btn'):
             if self.toggle_btn.isChecked():
-                self.toggle_btn.setText(f"📌 {_('always_on_top_on', 'Always On Top: ON')}")
+                self.toggle_btn.setText(f"🟢 {_('always_on_top_on', 'Always On Top: ON')}")
             else:
-                self.toggle_btn.setText(f"📌 {_('always_on_top_off', 'Always On Top: OFF')}")
+                self.toggle_btn.setText(f"🟢 {_('always_on_top_off', 'Always On Top: OFF')}")
         if hasattr(self, 'clear_completed_btn'):
             self.clear_completed_btn.setText(f"🗑️ {_('clear_completed', 'Limpar Concluídos')}")
         if hasattr(self, 'view_archived_btn'):
@@ -4327,8 +4405,18 @@ class KanbanWindow(QMainWindow):
         """Configura ícone na bandeja do sistema"""
         self.tray_icon = QSystemTrayIcon(self)
         
-        # Criar ícone simples
-        icon = QApplication.style().standardIcon(QApplication.style().StandardPixmap.SP_FileDialogListView)
+        # Usar ícone do aplicativo
+        if getattr(sys, 'frozen', False):
+            # Executando como .exe compilado - usar ícone do executável
+            icon = QIcon(sys.executable)
+        else:
+            # Executando como script Python - usar arquivo .ico
+            icon_path = "alfinete_vermelho.ico"
+            if os.path.exists(icon_path):
+                icon = QIcon(icon_path)
+            else:
+                # Fallback para ícone padrão se não encontrar
+                icon = QApplication.style().standardIcon(QApplication.style().StandardPixmap.SP_FileDialogListView)
         self.tray_icon.setIcon(icon)
         
         # Menu do tray
@@ -4428,11 +4516,11 @@ class KanbanWindow(QMainWindow):
                         # Salvar preferência
                         try:
                             settings = {}
-                            if os.path.exists("settings.json"):
-                                with open("settings.json", "r", encoding="utf-8") as f:
+                            if os.path.exists(SETTINGS_FILE):
+                                with open(SETTINGS_FILE, "r", encoding="utf-8") as f:
                                     settings = json.load(f)
                             settings["language"] = lang_code
-                            with open("settings.json", "w", encoding="utf-8") as f:
+                            with open(SETTINGS_FILE, "w", encoding="utf-8") as f:
                                 json.dump(settings, f, ensure_ascii=False, indent=2)
                             # Atualizar interface imediatamente
                             self.update_ui_language()
@@ -4447,11 +4535,11 @@ class KanbanWindow(QMainWindow):
                 # Mesmo sem I18N, salvar preferência
                 try:
                     settings = {}
-                    if os.path.exists("settings.json"):
-                        with open("settings.json", "r", encoding="utf-8") as f:
+                    if os.path.exists(SETTINGS_FILE):
+                        with open(SETTINGS_FILE, "r", encoding="utf-8") as f:
                             settings = json.load(f)
                     settings["language"] = lang_code
-                    with open("settings.json", "w", encoding="utf-8") as f:
+                    with open(SETTINGS_FILE, "w", encoding="utf-8") as f:
                         json.dump(settings, f, ensure_ascii=False, indent=2)
                     QMessageBox.information(dialog, _("language", "Idioma"), 
                         _("language_saved", "Preferência de idioma salva: {code}").format(code=lang_code) + "\n\n" +
@@ -4501,6 +4589,31 @@ class KanbanWindow(QMainWindow):
         
         colors_group.setLayout(colors_layout)
         appearance_layout.addWidget(colors_group)
+        
+        # Espaçamento
+        appearance_layout.addSpacing(20)
+        
+        # Botão Salvar Configurações (GRANDE E VISÍVEL)
+        save_config_btn = QPushButton("💾 SALVAR CONFIGURAÇÕES")
+        save_config_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #00C853;
+                color: white;
+                font-weight: bold;
+                padding: 15px 30px;
+                border-radius: 8px;
+                font-size: 16px;
+                min-height: 50px;
+            }
+            QPushButton:hover {
+                background-color: #00A043;
+            }
+            QPushButton:pressed {
+                background-color: #008035;
+            }
+        """)
+        save_config_btn.clicked.connect(lambda: self.save_all_settings(dialog))
+        appearance_layout.addWidget(save_config_btn)
         
         appearance_layout.addStretch()
         appearance_tab.setLayout(appearance_layout)
@@ -4612,8 +4725,8 @@ class KanbanWindow(QMainWindow):
         # Carregar cor atual ou usar padrão
         current_color = QColor(30, 58, 95)  # Padrão
         try:
-            if os.path.exists("settings.json"):
-                with open("settings.json", "r", encoding="utf-8") as f:
+            if os.path.exists(SETTINGS_FILE):
+                with open(SETTINGS_FILE, "r", encoding="utf-8") as f:
                     settings = json.load(f)
                     if "header_color" in settings:
                         current_color = QColor(settings["header_color"])
@@ -4622,19 +4735,100 @@ class KanbanWindow(QMainWindow):
         
         color = QColorDialog.getColor(current_color, parent_dialog, _("choose_header_color", "Escolha cor do Header"))
         if color.isValid():
-            # Salvar cor nas configurações
-            try:
-                settings = {}
-                if os.path.exists("settings.json"):
-                    with open("settings.json", "r", encoding="utf-8") as f:
-                        settings = json.load(f)
-                settings["header_color"] = color.name()
-                with open("settings.json", "w", encoding="utf-8") as f:
-                    json.dump(settings, f, ensure_ascii=False, indent=2)
-                
-                # Aplicar cor imediatamente (mas manter logo/título com cor fixa)
+            # Armazenar cor temporariamente (não salvar ainda)
+            if not hasattr(self, '_temp_settings'):
+                self._temp_settings = {}
+            self._temp_settings["header_color"] = color.name()
+            
+            # Aplicar cor imediatamente (visual)
+            r, g, b = color.red(), color.green(), color.blue()
+            # Calcular cor do texto baseado na luminosidade
+            text_color = self.get_text_color_for_background(color)
+            gradient_style = f"""
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                    stop:0 rgb({r}, {g}, {b}), 
+                    stop:1 rgb({min(255, r+50)}, {min(255, g+50)}, {min(255, b+50)}));
+                border-radius: 8px;
+                padding: 10px;
+                color: {text_color};
+            """
+            self.header_widget.setStyleSheet(gradient_style)
+            
+            # Atualizar cor do título e nome do cliente baseado na luminosidade
+            if hasattr(self, 'title_label'):
+                self.title_label.setStyleSheet(f"color: {text_color}; padding: 10px;")
+            
+            if hasattr(self, 'customer_name_label'):
+                self.customer_name_label.setStyleSheet(f"color: {text_color}; padding: 5px; cursor: pointer;")
+            
+            # Atualizar cor dos botões (tom mais escuro do header) - INCLUINDO RODAPÉ
+            self.update_buttons_color(color)
+    
+    def change_column_header_color(self, parent_dialog):
+        """Altera cor dos headers das colunas"""
+        from PySide6.QtWidgets import QColorDialog
+        # Carregar cor atual ou usar padrão
+        current_color = QColor(30, 58, 95)  # Padrão
+        try:
+            if os.path.exists(SETTINGS_FILE):
+                with open(SETTINGS_FILE, "r", encoding="utf-8") as f:
+                    settings = json.load(f)
+                    if "column_header_color" in settings:
+                        current_color = QColor(settings["column_header_color"])
+        except:
+            pass
+        
+        color = QColorDialog.getColor(current_color, parent_dialog, "Escolha cor dos Headers das Colunas")
+        if color.isValid():
+            # Armazenar cor temporariamente (não salvar ainda)
+            if not hasattr(self, '_temp_settings'):
+                self._temp_settings = {}
+            self._temp_settings["column_header_color"] = color.name()
+            
+            # Aplicar cor imediatamente em todas as colunas (visual)
+            r, g, b = color.red(), color.green(), color.blue()
+            # Calcular cor do texto baseado na luminosidade
+            text_color = self.get_text_color_for_background(color)
+            gradient_style = f"""
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                    stop:0 rgb({r}, {g}, {b}), 
+                    stop:1 rgb({min(255, r+30)}, {min(255, g+30)}, {min(255, b+30)}));
+                border-radius: 8px;
+                padding: 8px;
+                color: {text_color};
+            """
+            # Aplicar em todas as colunas existentes IMEDIATAMENTE
+            for column in self.columns:
+                if hasattr(column, 'header_container'):
+                    column.header_container.setStyleSheet(gradient_style)
+                    # Atualizar cor do texto do título da coluna também
+                    if hasattr(column, 'title_label'):
+                        column.title_label.setStyleSheet(f"color: {text_color}; padding: 5px;")
+                    # Forçar atualização visual imediata
+                    column.header_container.update()
+                    column.header_container.repaint()
+                    # Também atualizar a coluna inteira
+                    column.update()
+                    column.repaint()
+            
+            # Forçar atualização da janela principal
+            self.update()
+            self.repaint()
+    
+    def load_colors_from_settings(self):
+        """Carrega cores salvas do settings.json e aplica"""
+        try:
+            if not os.path.exists(SETTINGS_FILE):
+                return
+            
+            with open(SETTINGS_FILE, "r", encoding="utf-8") as f:
+                settings = json.load(f)
+            
+            # Carregar cor do header
+            if "header_color" in settings:
+                header_color = settings["header_color"]
+                color = QColor(header_color)
                 r, g, b = color.red(), color.green(), color.blue()
-                # Calcular cor do texto baseado na luminosidade
                 text_color = self.get_text_color_for_background(color)
                 gradient_style = f"""
                     background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
@@ -4644,54 +4838,19 @@ class KanbanWindow(QMainWindow):
                     padding: 10px;
                     color: {text_color};
                 """
-                self.header_widget.setStyleSheet(gradient_style)
-                
-                # Atualizar cor do título e nome do cliente baseado na luminosidade
+                if hasattr(self, 'header_widget'):
+                    self.header_widget.setStyleSheet(gradient_style)
                 if hasattr(self, 'title_label'):
                     self.title_label.setStyleSheet(f"color: {text_color}; padding: 10px;")
-                
                 if hasattr(self, 'customer_name_label'):
                     self.customer_name_label.setStyleSheet(f"color: {text_color}; padding: 5px; cursor: pointer;")
-                
-                # Atualizar cor dos botões (tom mais escuro do header) - INCLUINDO RODAPÉ
                 self.update_buttons_color(color)
-                
-                QMessageBox.information(parent_dialog, "Cor Alterada", "Cor do header alterada com sucesso!")
-                
-                QMessageBox.information(parent_dialog, "Cor Alterada", 
-                    f"Cor do header alterada para: {color.name()}\n\nA mudança foi aplicada imediatamente!")
-            except Exception as e:
-                QMessageBox.warning(parent_dialog, "Erro", f"Erro ao salvar cor: {e}")
-    
-    def change_column_header_color(self, parent_dialog):
-        """Altera cor dos headers das colunas"""
-        from PySide6.QtWidgets import QColorDialog
-        # Carregar cor atual ou usar padrão
-        current_color = QColor(30, 58, 95)  # Padrão
-        try:
-            if os.path.exists("settings.json"):
-                with open("settings.json", "r", encoding="utf-8") as f:
-                    settings = json.load(f)
-                    if "column_header_color" in settings:
-                        current_color = QColor(settings["column_header_color"])
-        except:
-            pass
-        
-        color = QColorDialog.getColor(current_color, parent_dialog, "Escolha cor dos Headers das Colunas")
-        if color.isValid():
-            # Salvar cor nas configurações
-            try:
-                settings = {}
-                if os.path.exists("settings.json"):
-                    with open("settings.json", "r", encoding="utf-8") as f:
-                        settings = json.load(f)
-                settings["column_header_color"] = color.name()
-                with open("settings.json", "w", encoding="utf-8") as f:
-                    json.dump(settings, f, ensure_ascii=False, indent=2)
-                
-                # Aplicar cor imediatamente em todas as colunas
+            
+            # Carregar cor das colunas
+            if "column_header_color" in settings:
+                column_header_color = settings["column_header_color"]
+                color = QColor(column_header_color)
                 r, g, b = color.red(), color.green(), color.blue()
-                # Calcular cor do texto baseado na luminosidade
                 text_color = self.get_text_color_for_background(color)
                 gradient_style = f"""
                     background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
@@ -4701,39 +4860,117 @@ class KanbanWindow(QMainWindow):
                     padding: 8px;
                     color: {text_color};
                 """
-                # Aplicar em todas as colunas existentes IMEDIATAMENTE
                 for column in self.columns:
                     if hasattr(column, 'header_container'):
                         column.header_container.setStyleSheet(gradient_style)
-                        # Atualizar cor do texto do título da coluna também
-                        if hasattr(column, 'title_label'):
-                            column.title_label.setStyleSheet(f"color: {text_color}; padding: 5px;")
-                        # Forçar atualização visual imediata
-                        column.header_container.update()
-                        column.header_container.repaint()
-                        # Também atualizar a coluna inteira
-                        column.update()
-                        column.repaint()
+                    if hasattr(column, 'title_label'):
+                        column.title_label.setStyleSheet(f"color: {text_color}; padding: 5px;")
+        except Exception as e:
+            print(f"Erro ao carregar cores do settings.json: {e}")
+    
+    def save_all_settings(self, parent_dialog):
+        """Salva todas as configurações (cores, etc)"""
+        try:
+            # Carregar configurações existentes
+            settings = {}
+            if os.path.exists(SETTINGS_FILE):
+                try:
+                    with open(SETTINGS_FILE, "r", encoding="utf-8") as f:
+                        settings = json.load(f)
+                except:
+                    settings = {}
+            
+            # Salvar configurações temporárias (se houver)
+            saved_anything = False
+            if hasattr(self, '_temp_settings'):
+                if "header_color" in self._temp_settings:
+                    settings["header_color"] = self._temp_settings["header_color"]
+                    saved_anything = True
+                    # Aplicar cor do header imediatamente
+                    color = QColor(self._temp_settings["header_color"])
+                    r, g, b = color.red(), color.green(), color.blue()
+                    text_color = self.get_text_color_for_background(color)
+                    gradient_style = f"""
+                        background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                            stop:0 rgb({r}, {g}, {b}), 
+                            stop:1 rgb({min(255, r+50)}, {min(255, g+50)}, {min(255, b+50)}));
+                        border-radius: 8px;
+                        padding: 10px;
+                        color: {text_color};
+                    """
+                    self.header_widget.setStyleSheet(gradient_style)
+                    if hasattr(self, 'title_label'):
+                        self.title_label.setStyleSheet(f"color: {text_color}; padding: 10px;")
+                    if hasattr(self, 'customer_name_label'):
+                        self.customer_name_label.setStyleSheet(f"color: {text_color}; padding: 5px; cursor: pointer;")
+                    self.update_buttons_color(color)
                 
-                # Forçar atualização da janela principal
-                self.update()
-                self.repaint()
+                if "column_header_color" in self._temp_settings:
+                    settings["column_header_color"] = self._temp_settings["column_header_color"]
+                    saved_anything = True
+                    # Aplicar cor das colunas imediatamente
+                    color = QColor(self._temp_settings["column_header_color"])
+                    r, g, b = color.red(), color.green(), color.blue()
+                    text_color = self.get_text_color_for_background(color)
+                    gradient_style = f"""
+                        background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                            stop:0 rgb({r}, {g}, {b}), 
+                            stop:1 rgb({min(255, r+30)}, {min(255, g+30)}, {min(255, b+30)}));
+                        border-radius: 8px;
+                        padding: 8px;
+                        color: {text_color};
+                    """
+                    for column in self.columns:
+                        if hasattr(column, 'header_container'):
+                            column.header_container.setStyleSheet(gradient_style)
+                            if hasattr(column, 'title_label'):
+                                column.title_label.setStyleSheet(f"color: {text_color}; padding: 5px;")
+            
+            # Garantir que o diretório existe
+            os.makedirs(os.path.dirname(SETTINGS_FILE), exist_ok=True)
+            
+            # Salvar no arquivo
+            with open(SETTINGS_FILE, "w", encoding="utf-8") as f:
+                json.dump(settings, f, ensure_ascii=False, indent=2)
+            
+            # Verificar se realmente salvou
+            if os.path.exists(SETTINGS_FILE):
+                # Ler de volta para confirmar
+                with open(SETTINGS_FILE, "r", encoding="utf-8") as f:
+                    saved_settings = json.load(f)
                 
-                QMessageBox.information(parent_dialog, "Cor Alterada", 
-                    f"Cor dos headers das colunas alterada para: {color.name()}\n\nA mudança foi aplicada imediatamente!")
-            except Exception as e:
-                QMessageBox.warning(parent_dialog, "Erro", f"Erro ao salvar cor: {e}")
+                if saved_anything:
+                    QMessageBox.information(parent_dialog, "✅ SALVAS AS ALTERAÇÕES NO SISTEMA", 
+                        f"✅ Configurações salvas com sucesso!\n\n"
+                        f"📁 Arquivo: {SETTINGS_FILE}\n\n"
+                        f"✓ As alterações serão mantidas ao reiniciar o aplicativo.\n"
+                        f"✓ Cores aplicadas e salvas permanentemente.")
+                else:
+                    QMessageBox.information(parent_dialog, "Informação", 
+                        "Nenhuma alteração pendente para salvar.")
+            else:
+                QMessageBox.warning(parent_dialog, "Erro", 
+                    f"Não foi possível criar o arquivo de configurações:\n{SETTINGS_FILE}")
+            
+            # Limpar configurações temporárias
+            if hasattr(self, '_temp_settings'):
+                del self._temp_settings
+                
+        except Exception as e:
+            import traceback
+            error_msg = f"Erro ao salvar configurações:\n{str(e)}\n\nArquivo: {SETTINGS_FILE}\n\nTraceback:\n{traceback.format_exc()}"
+            QMessageBox.warning(parent_dialog, "Erro", error_msg)
     
     def reset_header_color(self, parent_dialog):
         """Volta cor do header ao padrão"""
         try:
             settings = {}
-            if os.path.exists("settings.json"):
-                with open("settings.json", "r", encoding="utf-8") as f:
+            if os.path.exists(SETTINGS_FILE):
+                with open(SETTINGS_FILE, "r", encoding="utf-8") as f:
                     settings = json.load(f)
             if "header_color" in settings:
                 del settings["header_color"]
-            with open("settings.json", "w", encoding="utf-8") as f:
+            with open(SETTINGS_FILE, "w", encoding="utf-8") as f:
                 json.dump(settings, f, ensure_ascii=False, indent=2)
             
             # Aplicar cor padrão
@@ -4759,12 +4996,12 @@ class KanbanWindow(QMainWindow):
         """Volta cor dos headers das colunas ao padrão"""
         try:
             settings = {}
-            if os.path.exists("settings.json"):
-                with open("settings.json", "r", encoding="utf-8") as f:
+            if os.path.exists(SETTINGS_FILE):
+                with open(SETTINGS_FILE, "r", encoding="utf-8") as f:
                     settings = json.load(f)
             if "column_header_color" in settings:
                 del settings["column_header_color"]
-            with open("settings.json", "w", encoding="utf-8") as f:
+            with open(SETTINGS_FILE, "w", encoding="utf-8") as f:
                 json.dump(settings, f, ensure_ascii=False, indent=2)
             
             # Aplicar cor padrão em todas as colunas IMEDIATAMENTE
@@ -4956,9 +5193,9 @@ class KanbanWindow(QMainWindow):
         self.setWindowFlag(Qt.WindowCloseButtonHint, True)
         
         if checked:
-            self.toggle_btn.setText(f"📌 {_('always_on_top_on', 'Always On Top: ON')}")
+            self.toggle_btn.setText(f"🟢 {_('always_on_top_on', 'Always On Top: ON')}")
         else:
-            self.toggle_btn.setText(f"📌 {_('always_on_top_off', 'Always On Top: OFF')}")
+            self.toggle_btn.setText(f"🟢 {_('always_on_top_off', 'Always On Top: OFF')}")
         self.show()
         
     def change_transparency(self, value):
@@ -4980,26 +5217,67 @@ class KanbanWindow(QMainWindow):
                 
     def clear_completed(self):
         """Limpa cards concluídos"""
-        # Procurar coluna "Concluído"
+        # Procurar coluna "Concluído" (várias variações possíveis)
         completed_col = None
         for col in self.columns:
-            if "conclu" in col.titulo.lower():
+            titulo_lower = col.titulo.lower()
+            if "conclu" in titulo_lower or "done" in titulo_lower or "finalizado" in titulo_lower:
                 completed_col = col
                 break
         
-        if not completed_col or not completed_col.cards:
-            QMessageBox.information(self, _("info", "Info"), _("no_cards_to_export", "Nenhum card concluído para limpar!"))
+        if not completed_col:
+            QMessageBox.information(self, _("info", "Info"), 
+                "Nenhuma coluna 'Concluído' encontrada!\n\nProcure por uma coluna com 'Concluído', 'Done' ou 'Finalizado' no nome.")
+            return
+        
+        if not completed_col.cards or len(completed_col.cards) == 0:
+            QMessageBox.information(self, _("info", "Info"), "Nenhum card concluído para limpar!")
             return
             
         reply = QMessageBox.question(self, _("confirm", "Confirmar"), 
-                                     _("confirm_delete_card", "Remover {count} card(s) concluído(s)?").format(count=len(completed_col.cards)),
+                                     f"Arquivar {len(completed_col.cards)} card(s) concluído(s) da coluna '{completed_col.titulo}'?\n\n"
+                                     f"Os cards serão movidos para o arquivo e poderão ser visualizados em 'Ver Arquivados'.",
                                      QMessageBox.Yes | QMessageBox.No)
         if reply == QMessageBox.Yes:
-            # Remover todos os cards
-            for card in list(completed_col.cards):
-                completed_col.remove_card(card, save=False)
+            # Carregar arquivo de arquivamento existente
+            archived_cards = []
+            if os.path.exists(ARCHIVE_FILE):
+                try:
+                    with open(ARCHIVE_FILE, "r", encoding="utf-8") as f:
+                        archived_cards = json.load(f)
+                except:
+                    archived_cards = []
+            
+            # Criar cópia da lista para evitar problemas durante iteração
+            cards_to_archive = list(completed_col.cards)
+            archived_count = 0
+            
+            # Arquivar todos os cards
+            for card in cards_to_archive:
+                if card in completed_col.cards:  # Verificar se ainda existe
+                    # Adicionar data de arquivamento
+                    archive_data = card.data.copy()
+                    archive_data["data_arquivamento"] = datetime.now().strftime("%d/%m/%Y %H:%M")
+                    archived_cards.append(archive_data)
+                    archived_count += 1
+                    
+                    # Remover da coluna
+                    completed_col.remove_card(card, save=False)
+            
+            # Salvar arquivo de arquivamento
+            if archived_count > 0:
+                with open(ARCHIVE_FILE, "w", encoding="utf-8") as f:
+                    json.dump(archived_cards, f, indent=2, ensure_ascii=False)
+            
+            # Salvar dados do kanban
             self.save_data()
-            QMessageBox.information(self, _("success", "Sucesso"), _("archive_cleared", "Cards concluídos removidos!"))
+            
+            # Atualizar contador da coluna
+            completed_col.update_counter()
+            
+            QMessageBox.information(self, _("success", "Sucesso"), 
+                f"{archived_count} card(s) concluído(s) arquivado(s) com sucesso!\n\n"
+                f"Você pode visualizá-los clicando em 'Ver Arquivados'.")
     
     def view_archived(self):
         """Abre dialog de cards arquivados"""
@@ -5039,8 +5317,8 @@ class KanbanWindow(QMainWindow):
     def create_backup(self):
         """Cria backup dos dados"""
         try:
-            # Pasta de backups
-            backup_dir = Path("backups")
+            # Pasta de backups (na pasta de dados do usuário)
+            backup_dir = Path(DATA_DIR) / "backups"
             backup_dir.mkdir(exist_ok=True)
             
             # Nome do arquivo com timestamp
@@ -5119,6 +5397,8 @@ class KanbanWindow(QMainWindow):
             }
             data["columns"].append(column_data)
         
+        # Garantir que o diretório existe
+        os.makedirs(DATA_DIR, exist_ok=True)
         with open(DATA_FILE, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2, ensure_ascii=False)
             
@@ -5203,7 +5483,47 @@ class KanbanWindow(QMainWindow):
                         col.update_column_style()
                         for card in col.cards:
                             card.update_card_style()
-                    
+                
+                # Carregar cores do header e colunas (se houver)
+                if "header_color" in settings:
+                    header_color = settings["header_color"]
+                    color = QColor(header_color)
+                    r, g, b = color.red(), color.green(), color.blue()
+                    text_color = self.get_text_color_for_background(color)
+                    gradient_style = f"""
+                        background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                            stop:0 rgb({r}, {g}, {b}), 
+                            stop:1 rgb({min(255, r+50)}, {min(255, g+50)}, {min(255, b+50)}));
+                        border-radius: 8px;
+                        padding: 10px;
+                        color: {text_color};
+                    """
+                    if hasattr(self, 'header_widget'):
+                        self.header_widget.setStyleSheet(gradient_style)
+                    if hasattr(self, 'title_label'):
+                        self.title_label.setStyleSheet(f"color: {text_color}; padding: 10px;")
+                    if hasattr(self, 'customer_name_label'):
+                        self.customer_name_label.setStyleSheet(f"color: {text_color}; padding: 5px; cursor: pointer;")
+                    self.update_buttons_color(color)
+                
+                if "column_header_color" in settings:
+                    column_header_color = settings["column_header_color"]
+                    color = QColor(column_header_color)
+                    r, g, b = color.red(), color.green(), color.blue()
+                    text_color = self.get_text_color_for_background(color)
+                    gradient_style = f"""
+                        background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                            stop:0 rgb({r}, {g}, {b}), 
+                            stop:1 rgb({min(255, r+30)}, {min(255, g+30)}, {min(255, b+30)}));
+                        border-radius: 8px;
+                        padding: 8px;
+                        color: {text_color};
+                    """
+                    for column in self.columns:
+                        if hasattr(column, 'header_container'):
+                            column.header_container.setStyleSheet(gradient_style)
+                        if hasattr(column, 'title_label'):
+                            column.title_label.setStyleSheet(f"color: {text_color}; padding: 5px;")
             except Exception as e:
                 print(f"Erro ao carregar dados: {e}")
                 

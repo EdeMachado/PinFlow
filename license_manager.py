@@ -7,8 +7,20 @@ import hashlib
 import json
 import os
 import platform
+import sys
 from datetime import datetime, timedelta
 from pathlib import Path
+
+def get_base_path():
+    """Retorna o caminho base para arquivos de recursos"""
+    # Se executando como .exe (PyInstaller)
+    if getattr(sys, 'frozen', False):
+        # PyInstaller cria uma pasta temporária e armazena o caminho em _MEIPASS
+        base_path = Path(sys._MEIPASS)
+    else:
+        # Executando como script Python normal
+        base_path = Path(__file__).parent
+    return base_path
 
 class LicenseManager:
     """Gerenciador de licenças"""
@@ -116,10 +128,20 @@ class LicenseManager:
             
             # Verificar se existe arquivo de licenças válidas
             # Em produção, isso viria de um servidor ou banco de dados
-            valid_licenses_file = "valid_licenses.json"
+            base_path = get_base_path()
+            valid_licenses_file = base_path / "valid_licenses.json"
             
-            if os.path.exists(valid_licenses_file):
-                with open(valid_licenses_file, 'r', encoding='utf-8') as f:
+            # Se não encontrar no base_path, tentar no diretório do executável
+            if not valid_licenses_file.exists() and getattr(sys, 'frozen', False):
+                exe_dir = Path(sys.executable).parent
+                valid_licenses_file = exe_dir / "valid_licenses.json"
+            
+            # Se ainda não encontrar, tentar no diretório atual
+            if not valid_licenses_file.exists():
+                valid_licenses_file = Path("valid_licenses.json")
+            
+            if valid_licenses_file.exists():
+                with open(str(valid_licenses_file), 'r', encoding='utf-8') as f:
                     valid_licenses = json.load(f)
                 
                 # Procurar chave
@@ -139,12 +161,13 @@ class LicenseManager:
         except Exception as e:
             return False, f"Erro ao validar: {str(e)}", None
     
-    def activate_license(self, license_key):
+    def activate_license(self, license_key, user_name=None):
         """
         Ativa uma licença no sistema atual
         
         Args:
             license_key: Chave de licença
+            user_name: Nome do usuário (opcional, será salvo na licença local)
         
         Returns:
             tuple: (success, message)
@@ -166,6 +189,12 @@ class LicenseManager:
         license_data["hwid"] = current_hwid
         license_data["activated_date"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         license_data["activated"] = True
+        
+        # Se o usuário forneceu um nome, usar ele (sobrescreve o nome da licença original)
+        if user_name:
+            license_data["user_name"] = user_name
+            # Também atualizar customer_name para exibição
+            license_data["customer_name"] = user_name
         
         # Salvar licença local
         self.license_data = license_data
@@ -236,8 +265,11 @@ class LicenseManager:
         if not self.license_data:
             return None
         
+        # Priorizar user_name (nome digitado pelo usuário) sobre customer_name (nome da licença)
+        customer_name = self.license_data.get("user_name") or self.license_data.get("customer_name", "N/A")
+        
         info = {
-            "customer_name": self.license_data.get("customer_name", "N/A"),
+            "customer_name": customer_name,
             "customer_email": self.license_data.get("customer_email", "N/A"),
             "issue_date": self.license_data.get("issue_date", "N/A"),
             "expiry_date": self.license_data.get("expiry_date", "N/A"),
