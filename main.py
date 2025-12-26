@@ -1175,23 +1175,29 @@ class PostItCard(QFrame):
         
         # Engrenagem (menu de opções) - CANTO SUPERIOR DIREITO
         self.gear_btn = QPushButton("⚙")
-        self.gear_btn.setMaximumSize(QSize(20, 20))
+        self.gear_btn.setMinimumSize(QSize(25, 25))
+        self.gear_btn.setMaximumSize(QSize(25, 25))
         self.gear_btn.setToolTip(_("card_options_tooltip", "Opções do Card"))
         self.gear_btn.setCursor(Qt.PointingHandCursor)
         # Garantir que o botão receba eventos de mouse
         self.gear_btn.setAttribute(Qt.WA_NoMouseReplay, False)
-        self.gear_btn.setFocusPolicy(Qt.NoFocus)  # Não roubar foco
+        self.gear_btn.setFocusPolicy(Qt.StrongFocus)  # Permitir foco para garantir cliques
+        self.gear_btn.setAttribute(Qt.WA_TransparentForMouseEvents, False)  # Garantir que recebe eventos
         self.gear_btn.setStyleSheet("""
             QPushButton {
                 background-color: transparent;
                 border: none;
-                font-size: 16px;
+                font-size: 18px;
                 font-weight: bold;
                 color: rgba(0, 0, 0, 0.6);
             }
             QPushButton:hover {
                 color: rgba(0, 0, 0, 0.9);
-                transform: scale(1.2);
+                background-color: rgba(0, 0, 0, 0.1);
+                border-radius: 3px;
+            }
+            QPushButton:pressed {
+                background-color: rgba(0, 0, 0, 0.2);
             }
         """)
         self.gear_btn.clicked.connect(self.show_menu)
@@ -1969,10 +1975,9 @@ class PostItCard(QFrame):
             
             # Não iniciar drag se clicou na engrenagem
             if gear_btn_rect.contains(pos):
-                # Passar o evento para o botão processar
-                event.ignore()
-                # Enviar evento diretamente para o botão
-                self.gear_btn.mousePressEvent(event)
+                # Chamar diretamente o menu
+                event.accept()
+                self.show_menu()
                 return
             
             # Verificar se clicou na borda para resize
