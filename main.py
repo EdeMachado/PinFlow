@@ -2,6 +2,7 @@ import sys
 import json
 import os
 import csv
+import uuid
 from datetime import datetime, timedelta
 from pathlib import Path
 
@@ -71,6 +72,8 @@ DATA_DIR = get_data_directory()
 DATA_FILE = os.path.join(DATA_DIR, "kanban.json")
 ARCHIVE_FILE = os.path.join(DATA_DIR, "kanban_arquivo.json")
 SETTINGS_FILE = os.path.join(DATA_DIR, "settings.json")
+AGENDA_FILE = os.path.join(DATA_DIR, "agenda.json")
+CONTACTS_FILE = os.path.join(DATA_DIR, "contacts.json")
 
 # Importar para personalizar cor da barra de título no Windows
 try:
@@ -1060,7 +1063,7 @@ class CardDialog(QDialog):
         start_date_str = self.start_date.date().toString("dd/MM/yyyy")
         end_date_str = self.end_date.date().toString("dd/MM/yyyy")
         
-        return {
+        data_dict = {
             "titulo": self.title_input.text().strip(),
             "caminho": self.path_input.text().strip(),
             "notas": self.notes_input.toPlainText().strip(),
@@ -1082,6 +1085,13 @@ class CardDialog(QDialog):
             "fonte_sublinhado": self.underline_checkbox.isChecked(),
             "fonte_tamanho": int(self.fontsize_combo.currentText())
         }
+        # Preservar ID se existir (ao editar)
+        if self.card_data and "id" in self.card_data:
+            data_dict["id"] = self.card_data["id"]
+        else:
+            # Criar novo ID se for card novo
+            data_dict["id"] = str(uuid.uuid4())
+        return data_dict
 
 
 def get_event_pos(event):
@@ -1096,6 +1106,9 @@ class PostItCard(QFrame):
     def __init__(self, data, parent_column):
         super().__init__()
         self.data = data
+        # Garantir que o card tenha um ID
+        if "id" not in self.data or not self.data.get("id"):
+            self.data["id"] = str(uuid.uuid4())
         self.titulo = data.get("titulo", _("no_title", "Sem título"))
         self.caminho = data.get("caminho", "")
         self.notas = data.get("notas", "")
@@ -3459,6 +3472,841 @@ class GanttDialog(QDialog):
         return f'#{r:02x}{g:02x}{b:02x}'
 
 
+class AgendaDialog(QDialog):
+    """Dialog para gerenciar Agenda (Compromissos e Contatos)"""
+    
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.parent_window = parent
+        self.appointments = []
+        self.contacts = []
+        self.setup_ui()
+        self.load_data()
+    
+    def setup_ui(self):
+        """Configura interface da Agenda"""
+        self.setWindowTitle("📅 Agenda - PinFlow Pro")
+        self.setModal(False)
+        self.setMinimumSize(1000, 700)
+        
+        layout = QVBoxLayout()
+        
+        # Header
+        header_label = QLabel("📅 AGENDA - COMPROMISSOS E CONTATOS")
+        header_label.setFont(QFont("Arial", 16, QFont.Bold))
+        header_label.setAlignment(Qt.AlignCenter)
+        header_label.setStyleSheet("""
+            background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                stop:0 #1e3a5f, stop:1 #8b9dc3);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        """)
+        layout.addWidget(header_label)
+        
+        # Abas
+        tabs = QTabWidget()
+        
+        # === ABA 1: COMPROMISSOS ===
+        appointments_tab = QWidget()
+        appointments_layout = QVBoxLayout()
+        
+        # Botões de ação
+        appointments_actions = QHBoxLayout()
+        add_appointment_btn = QPushButton("➕ Novo Compromisso")
+        add_appointment_btn.clicked.connect(self.add_appointment)
+        add_appointment_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #00C853;
+                color: white;
+                font-weight: bold;
+                padding: 10px 20px;
+                border-radius: 5px;
+            }
+            QPushButton:hover {
+                background-color: #00A043;
+            }
+        """)
+        appointments_actions.addWidget(add_appointment_btn)
+        appointments_actions.addStretch()
+        
+        # Filtro de data
+        filter_label = QLabel("Filtrar por data:")
+        appointments_actions.addWidget(filter_label)
+        self.date_filter_combo = QComboBox()
+        self.date_filter_combo.addItem("📅 Todas as datas", "")
+        self.date_filter_combo.addItem("📅 Hoje", QDate.currentDate().toString("yyyy-MM-dd"))
+        self.date_filter_combo.addItem("📅 Esta semana", "")
+        self.date_filter_combo.addItem("📅 Este mês", "")
+        self.date_filter_combo.addItem("📅 Data específica...", "custom")
+        self.date_filter_combo.currentTextChanged.connect(self.on_date_filter_changed)
+        appointments_actions.addWidget(self.date_filter_combo)
+        
+        self.date_filter = QDateEdit()
+        self.date_filter.setCalendarPopup(True)
+        self.date_filter.setDate(QDate.currentDate())
+        self.date_filter.dateChanged.connect(self.filter_appointments)
+        self.date_filter.setVisible(False)
+        appointments_actions.addWidget(self.date_filter)
+        
+        appointments_layout.addLayout(appointments_actions)
+        
+        # Tabela de compromissos
+        self.appointments_table = QTableWidget()
+        self.appointments_table.setColumnCount(6)
+        self.appointments_table.setHorizontalHeaderLabels([
+            "Data", "Hora", "Título", "Contato", "Card Vinculado", "Ações"
+        ])
+        self.appointments_table.horizontalHeader().setStretchLastSection(True)
+        self.appointments_table.setSelectionBehavior(QTableWidget.SelectRows)
+        self.appointments_table.setEditTriggers(QTableWidget.NoEditTriggers)
+        appointments_layout.addWidget(self.appointments_table)
+        
+        appointments_tab.setLayout(appointments_layout)
+        tabs.addTab(appointments_tab, "📅 Compromissos")
+        
+        # === ABA 2: CONTATOS ===
+        contacts_tab = QWidget()
+        contacts_layout = QVBoxLayout()
+        
+        # Botões de ação
+        contacts_actions = QHBoxLayout()
+        add_contact_btn = QPushButton("➕ Novo Contato")
+        add_contact_btn.clicked.connect(self.add_contact)
+        add_contact_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #00C853;
+                color: white;
+                font-weight: bold;
+                padding: 10px 20px;
+                border-radius: 5px;
+            }
+            QPushButton:hover {
+                background-color: #00A043;
+            }
+        """)
+        contacts_actions.addWidget(add_contact_btn)
+        contacts_actions.addStretch()
+        
+        # Busca de contatos
+        search_contact_label = QLabel("🔍 Buscar:")
+        contacts_actions.addWidget(search_contact_label)
+        self.contact_search = QLineEdit()
+        self.contact_search.setPlaceholderText("Nome, telefone, email...")
+        self.contact_search.textChanged.connect(self.filter_contacts)
+        self.contact_search.setMaximumWidth(300)
+        contacts_actions.addWidget(self.contact_search)
+        
+        contacts_layout.addLayout(contacts_actions)
+        
+        # Tabela de contatos
+        self.contacts_table = QTableWidget()
+        self.contacts_table.setColumnCount(5)
+        self.contacts_table.setHorizontalHeaderLabels([
+            "Nome", "Telefone", "Email", "Empresa", "Ações"
+        ])
+        self.contacts_table.horizontalHeader().setStretchLastSection(True)
+        self.contacts_table.setSelectionBehavior(QTableWidget.SelectRows)
+        self.contacts_table.setEditTriggers(QTableWidget.NoEditTriggers)
+        contacts_layout.addWidget(self.contacts_table)
+        
+        contacts_tab.setLayout(contacts_layout)
+        tabs.addTab(contacts_tab, "👥 Contatos")
+        
+        layout.addWidget(tabs)
+        
+        # Botões de fechar
+        buttons = QDialogButtonBox(QDialogButtonBox.Close)
+        buttons.button(QDialogButtonBox.Close).setText("Fechar")
+        buttons.rejected.connect(self.accept)
+        layout.addWidget(buttons)
+        
+        self.setLayout(layout)
+    
+    def load_data(self):
+        """Carrega dados da agenda"""
+        # Carregar compromissos
+        if os.path.exists(AGENDA_FILE):
+            try:
+                with open(AGENDA_FILE, "r", encoding="utf-8") as f:
+                    self.appointments = json.load(f)
+            except:
+                self.appointments = []
+        else:
+            self.appointments = []
+        
+        # Carregar contatos
+        if os.path.exists(CONTACTS_FILE):
+            try:
+                with open(CONTACTS_FILE, "r", encoding="utf-8") as f:
+                    self.contacts = json.load(f)
+            except:
+                self.contacts = []
+        else:
+            self.contacts = []
+        
+        self.refresh_appointments()
+        self.refresh_contacts()
+    
+    def save_data(self):
+        """Salva dados da agenda"""
+        # Salvar compromissos
+        with open(AGENDA_FILE, "w", encoding="utf-8") as f:
+            json.dump(self.appointments, f, indent=2, ensure_ascii=False)
+        
+        # Salvar contatos
+        with open(CONTACTS_FILE, "w", encoding="utf-8") as f:
+            json.dump(self.contacts, f, indent=2, ensure_ascii=False)
+    
+    def refresh_appointments(self):
+        """Atualiza tabela de compromissos"""
+        self.appointments_table.setRowCount(0)
+        
+        for apt in self.appointments:
+            row = self.appointments_table.rowCount()
+            self.appointments_table.insertRow(row)
+            
+            # Data
+            date_str = apt.get("date", "")
+            self.appointments_table.setItem(row, 0, QTableWidgetItem(date_str))
+            
+            # Hora
+            time_str = apt.get("time", "")
+            self.appointments_table.setItem(row, 1, QTableWidgetItem(time_str))
+            
+            # Título
+            title = apt.get("title", "")
+            self.appointments_table.setItem(row, 2, QTableWidgetItem(title))
+            
+            # Contato
+            contact_id = apt.get("contact_id", "")
+            contact_name = self.get_contact_name(contact_id)
+            self.appointments_table.setItem(row, 3, QTableWidgetItem(contact_name))
+            
+            # Card vinculado
+            card_id = apt.get("card_id", "")
+            card_title = self.get_card_title(card_id)
+            self.appointments_table.setItem(row, 4, QTableWidgetItem(card_title))
+            
+            # Ações
+            actions_widget = QWidget()
+            actions_layout = QHBoxLayout()
+            actions_layout.setContentsMargins(5, 5, 5, 5)
+            
+            edit_btn = QPushButton("✏️")
+            edit_btn.setMaximumWidth(40)
+            edit_btn.clicked.connect(lambda checked, r=row: self.edit_appointment(r))
+            actions_layout.addWidget(edit_btn)
+            
+            delete_btn = QPushButton("🗑️")
+            delete_btn.setMaximumWidth(40)
+            delete_btn.clicked.connect(lambda checked, r=row: self.delete_appointment(r))
+            actions_layout.addWidget(delete_btn)
+            
+            actions_widget.setLayout(actions_layout)
+            self.appointments_table.setCellWidget(row, 5, actions_widget)
+    
+    def refresh_contacts(self):
+        """Atualiza tabela de contatos"""
+        self.contacts_table.setRowCount(0)
+        
+        for contact in self.contacts:
+            row = self.contacts_table.rowCount()
+            self.contacts_table.insertRow(row)
+            
+            # Nome
+            name = contact.get("name", "")
+            self.contacts_table.setItem(row, 0, QTableWidgetItem(name))
+            
+            # Telefone
+            phone = contact.get("phone", "")
+            self.contacts_table.setItem(row, 1, QTableWidgetItem(phone))
+            
+            # Email
+            email = contact.get("email", "")
+            self.contacts_table.setItem(row, 2, QTableWidgetItem(email))
+            
+            # Empresa
+            company = contact.get("company", "")
+            self.contacts_table.setItem(row, 3, QTableWidgetItem(company))
+            
+            # Ações
+            actions_widget = QWidget()
+            actions_layout = QHBoxLayout()
+            actions_layout.setContentsMargins(5, 5, 5, 5)
+            
+            edit_btn = QPushButton("✏️")
+            edit_btn.setMaximumWidth(40)
+            edit_btn.clicked.connect(lambda checked, r=row: self.edit_contact(r))
+            actions_layout.addWidget(edit_btn)
+            
+            delete_btn = QPushButton("🗑️")
+            delete_btn.setMaximumWidth(40)
+            delete_btn.clicked.connect(lambda checked, r=row: self.delete_contact(r))
+            actions_layout.addWidget(delete_btn)
+            
+            actions_widget.setLayout(actions_layout)
+            self.contacts_table.setCellWidget(row, 4, actions_widget)
+    
+    def get_contact_name(self, contact_id):
+        """Retorna nome do contato pelo ID"""
+        if not contact_id:
+            return ""
+        for contact in self.contacts:
+            if contact.get("id") == contact_id:
+                return contact.get("name", "")
+        return ""
+    
+    def get_card_title(self, card_id):
+        """Retorna título do card pelo ID"""
+        if not card_id or not self.parent_window:
+            return ""
+        for col in self.parent_window.columns:
+            for card in col.cards:
+                # Garantir que o card tenha ID
+                if "id" not in card.data or not card.data.get("id"):
+                    card.data["id"] = str(uuid.uuid4())
+                if card.data.get("id") == card_id:
+                    return card.titulo
+        return ""
+    
+    def manage_linked_card(self, appointment_data):
+        """Gerencia o card vinculado ao compromisso - cria ou move para a coluna escolhida"""
+        if not hasattr(self, 'parent_window') or not self.parent_window:
+            return
+        
+        card_id = appointment_data.get("card_id", "")
+        column_name = appointment_data.get("column_name", "")
+        
+        if not card_id or not column_name:
+            return
+        
+        # Encontrar a coluna de destino
+        target_column = None
+        for col in self.parent_window.columns:
+            if col.titulo == column_name:
+                target_column = col
+                break
+        
+        if not target_column:
+            return
+        
+        # Procurar o card em todas as colunas
+        existing_card = None
+        source_column = None
+        for col in self.parent_window.columns:
+            for card in col.cards:
+                if card.data.get("id", "") == card_id:
+                    existing_card = card
+                    source_column = col
+                    break
+            if existing_card:
+                break
+        
+        if existing_card:
+            # Card existe - mover para a coluna escolhida se necessário
+            if source_column != target_column:
+                # Remover da coluna atual (sem deletar)
+                source_column.cards.remove(existing_card)
+                source_column.cards_layout.removeWidget(existing_card)
+                source_column.update_counter()
+                # Adicionar à nova coluna
+                target_column.cards_layout.addWidget(existing_card)
+                target_column.cards.append(existing_card)
+                # Atualizar parent_column do card
+                existing_card.parent_column = target_column
+                target_column.update_counter()
+        else:
+            # Card não existe - criar novo card na coluna escolhida
+            new_card_data = {
+                "id": card_id,
+                "titulo": appointment_data.get("title", "Novo Card"),
+                "notas": appointment_data.get("description", ""),
+                "data_criacao": datetime.now().strftime("%d/%m/%Y %H:%M"),
+                "prioridade": "Normal",
+                "tags": []
+            }
+            target_column.add_card(new_card_data)
+        
+        # Salvar dados
+        self.parent_window.save_data()
+    
+    def add_appointment(self):
+        """Adiciona novo compromisso"""
+        dialog = AppointmentDialog(self)
+        if dialog.exec() == QDialog.Accepted:
+            appointment_data = dialog.get_data()
+            if appointment_data:
+                appointment_data["id"] = str(uuid.uuid4())
+                # Se não tiver card_id mas tiver coluna escolhida, criar novo card
+                if not appointment_data.get("card_id") and appointment_data.get("column_name"):
+                    # Criar novo card
+                    card_id = str(uuid.uuid4())
+                    appointment_data["card_id"] = card_id
+                    self.manage_linked_card(appointment_data)
+                elif appointment_data.get("card_id"):
+                    # Gerenciar card existente ou novo
+                    self.manage_linked_card(appointment_data)
+                
+                self.appointments.append(appointment_data)
+                self.save_data()
+                self.refresh_appointments()
+                QMessageBox.information(self, "Sucesso", "Compromisso adicionado com sucesso!")
+    
+    def edit_appointment(self, row):
+        """Edita compromisso"""
+        if row >= len(self.appointments):
+            return
+        appointment = self.appointments[row]
+        dialog = AppointmentDialog(self, appointment)
+        if dialog.exec() == QDialog.Accepted:
+            appointment_data = dialog.get_data()
+            if appointment_data:
+                # Se não tiver card_id mas tiver coluna escolhida, criar novo card
+                if not appointment_data.get("card_id") and appointment_data.get("column_name"):
+                    # Criar novo card
+                    card_id = str(uuid.uuid4())
+                    appointment_data["card_id"] = card_id
+                    self.manage_linked_card(appointment_data)
+                elif appointment_data.get("card_id"):
+                    # Gerenciar card existente ou novo
+                    self.manage_linked_card(appointment_data)
+                
+                self.appointments[row] = appointment_data
+                self.save_data()
+                self.refresh_appointments()
+                QMessageBox.information(self, "Sucesso", "Compromisso atualizado com sucesso!")
+    
+    def delete_appointment(self, row):
+        """Exclui compromisso"""
+        if row >= len(self.appointments):
+            return
+        appointment = self.appointments[row]
+        reply = QMessageBox.question(self, "Confirmar", 
+            f"Excluir compromisso '{appointment.get('title', '')}'?",
+            QMessageBox.Yes | QMessageBox.No)
+        if reply == QMessageBox.Yes:
+            self.appointments.pop(row)
+            self.save_data()
+            self.refresh_appointments()
+            QMessageBox.information(self, "Sucesso", "Compromisso excluído!")
+    
+    def on_date_filter_changed(self, text):
+        """Quando o filtro de data muda"""
+        filter_data = self.date_filter_combo.currentData()
+        if filter_data == "custom":
+            self.date_filter.setVisible(True)
+            self.date_filter.setFocus()
+        else:
+            self.date_filter.setVisible(False)
+        self.filter_appointments()
+    
+    def filter_appointments(self):
+        """Filtra compromissos por data"""
+        filter_data = self.date_filter_combo.currentData()
+        filter_text = self.date_filter_combo.currentText()
+        filter_date = None
+        
+        if filter_data == "custom":
+            filter_date = self.date_filter.date().toString("yyyy-MM-dd")
+        elif filter_data:
+            filter_date = filter_data
+        
+        self.appointments_table.setRowCount(0)
+        
+        filtered_appointments = []
+        today = QDate.currentDate()
+        
+        for apt in self.appointments:
+            apt_date_str = apt.get("date", "")
+            if not apt_date_str:
+                continue
+            
+            try:
+                apt_date = QDate.fromString(apt_date_str, "yyyy-MM-dd")
+            except:
+                continue
+            
+            # Aplicar filtro
+            if filter_text == "📅 Todas as datas" or not filter_data:
+                # Todas as datas
+                filtered_appointments.append(apt)
+            elif filter_text == "📅 Hoje" and filter_date:
+                # Hoje
+                if apt_date_str == filter_date:
+                    filtered_appointments.append(apt)
+            elif filter_text == "📅 Esta semana":
+                # Esta semana
+                week_start = today.addDays(-today.dayOfWeek() + 1)
+                week_end = week_start.addDays(6)
+                if week_start <= apt_date <= week_end:
+                    filtered_appointments.append(apt)
+            elif filter_text == "📅 Este mês":
+                # Este mês
+                if apt_date.year() == today.year() and apt_date.month() == today.month():
+                    filtered_appointments.append(apt)
+            elif filter_data == "custom" and filter_date:
+                # Data específica
+                if apt_date_str == filter_date:
+                    filtered_appointments.append(apt)
+        
+        # Ordenar por data e hora
+        filtered_appointments.sort(key=lambda x: (x.get("date", ""), x.get("time", "")))
+        
+        for apt in filtered_appointments:
+            row = self.appointments_table.rowCount()
+            self.appointments_table.insertRow(row)
+            
+            self.appointments_table.setItem(row, 0, QTableWidgetItem(apt.get("date", "")))
+            self.appointments_table.setItem(row, 1, QTableWidgetItem(apt.get("time", "")))
+            self.appointments_table.setItem(row, 2, QTableWidgetItem(apt.get("title", "")))
+            
+            contact_id = apt.get("contact_id", "")
+            contact_name = self.get_contact_name(contact_id)
+            self.appointments_table.setItem(row, 3, QTableWidgetItem(contact_name))
+            
+            card_id = apt.get("card_id", "")
+            card_title = self.get_card_title(card_id)
+            self.appointments_table.setItem(row, 4, QTableWidgetItem(card_title))
+            
+            # Ações - usar índice original da lista
+            original_idx = self.appointments.index(apt)
+            actions_widget = QWidget()
+            actions_layout = QHBoxLayout()
+            actions_layout.setContentsMargins(5, 5, 5, 5)
+            
+            edit_btn = QPushButton("✏️")
+            edit_btn.setMaximumWidth(40)
+            edit_btn.clicked.connect(lambda checked, r=original_idx: self.edit_appointment(r))
+            actions_layout.addWidget(edit_btn)
+            
+            delete_btn = QPushButton("🗑️")
+            delete_btn.setMaximumWidth(40)
+            delete_btn.clicked.connect(lambda checked, r=original_idx: self.delete_appointment(r))
+            actions_layout.addWidget(delete_btn)
+            
+            actions_widget.setLayout(actions_layout)
+            self.appointments_table.setCellWidget(row, 5, actions_widget)
+    
+    def add_contact(self):
+        """Adiciona novo contato"""
+        dialog = ContactDialog(self)
+        if dialog.exec() == QDialog.Accepted:
+            contact_data = dialog.get_data()
+            if contact_data:
+                contact_data["id"] = str(uuid.uuid4())
+                self.contacts.append(contact_data)
+                self.save_data()
+                self.refresh_contacts()
+                QMessageBox.information(self, "Sucesso", "Contato adicionado com sucesso!")
+    
+    def edit_contact(self, row):
+        """Edita contato"""
+        if row >= len(self.contacts):
+            return
+        contact = self.contacts[row]
+        dialog = ContactDialog(self, contact)
+        if dialog.exec() == QDialog.Accepted:
+            contact_data = dialog.get_data()
+            if contact_data:
+                self.contacts[row] = contact_data
+                self.save_data()
+                self.refresh_contacts()
+                QMessageBox.information(self, "Sucesso", "Contato atualizado com sucesso!")
+    
+    def delete_contact(self, row):
+        """Exclui contato"""
+        if row >= len(self.contacts):
+            return
+        contact = self.contacts[row]
+        reply = QMessageBox.question(self, "Confirmar", 
+            f"Excluir contato '{contact.get('name', '')}'?",
+            QMessageBox.Yes | QMessageBox.No)
+        if reply == QMessageBox.Yes:
+            self.contacts.pop(row)
+            self.save_data()
+            self.refresh_contacts()
+            QMessageBox.information(self, "Sucesso", "Contato excluído!")
+    
+    def filter_contacts(self, text):
+        """Filtra contatos por texto"""
+        text = text.lower()
+        self.contacts_table.setRowCount(0)
+        
+        filtered_contacts = []
+        for contact in self.contacts:
+            name = contact.get("name", "").lower()
+            phone = contact.get("phone", "").lower()
+            email = contact.get("email", "").lower()
+            company = contact.get("company", "").lower()
+            
+            if not text or text in name or text in phone or text in email or text in company:
+                filtered_contacts.append(contact)
+        
+        for contact in filtered_contacts:
+            row = self.contacts_table.rowCount()
+            self.contacts_table.insertRow(row)
+            
+            self.contacts_table.setItem(row, 0, QTableWidgetItem(contact.get("name", "")))
+            self.contacts_table.setItem(row, 1, QTableWidgetItem(contact.get("phone", "")))
+            self.contacts_table.setItem(row, 2, QTableWidgetItem(contact.get("email", "")))
+            self.contacts_table.setItem(row, 3, QTableWidgetItem(contact.get("company", "")))
+            
+            # Ações - usar índice original da lista
+            original_idx = self.contacts.index(contact)
+            actions_widget = QWidget()
+            actions_layout = QHBoxLayout()
+            actions_layout.setContentsMargins(5, 5, 5, 5)
+            
+            edit_btn = QPushButton("✏️")
+            edit_btn.setMaximumWidth(40)
+            edit_btn.clicked.connect(lambda checked, r=original_idx: self.edit_contact(r))
+            actions_layout.addWidget(edit_btn)
+            
+            delete_btn = QPushButton("🗑️")
+            delete_btn.setMaximumWidth(40)
+            delete_btn.clicked.connect(lambda checked, r=original_idx: self.delete_contact(r))
+            actions_layout.addWidget(delete_btn)
+            
+            actions_widget.setLayout(actions_layout)
+            self.contacts_table.setCellWidget(row, 4, actions_widget)
+
+
+class AppointmentDialog(QDialog):
+    """Dialog para criar/editar compromisso"""
+    
+    def __init__(self, parent=None, appointment_data=None):
+        super().__init__(parent)
+        self.appointment_data = appointment_data
+        self.setup_ui()
+    
+    def setup_ui(self):
+        """Configura interface"""
+        self.setWindowTitle("Novo Compromisso" if not self.appointment_data else "Editar Compromisso")
+        self.setModal(True)
+        self.setMinimumWidth(500)
+        
+        layout = QVBoxLayout()
+        
+        # Data
+        layout.addWidget(QLabel("📅 Data:"))
+        self.date_input = QDateEdit()
+        self.date_input.setCalendarPopup(True)
+        if self.appointment_data:
+            date_str = self.appointment_data.get("date", "")
+            if date_str:
+                date = QDate.fromString(date_str, "yyyy-MM-dd")
+                self.date_input.setDate(date)
+            else:
+                self.date_input.setDate(QDate.currentDate())
+        else:
+            self.date_input.setDate(QDate.currentDate())
+        layout.addWidget(self.date_input)
+        
+        # Hora
+        layout.addWidget(QLabel("🕐 Hora:"))
+        self.time_input = QTimeEdit()
+        self.time_input.setDisplayFormat("HH:mm")
+        if self.appointment_data:
+            time_str = self.appointment_data.get("time", "")
+            if time_str:
+                time = QTime.fromString(time_str, "HH:mm")
+                self.time_input.setTime(time)
+            else:
+                self.time_input.setTime(QTime.currentTime())
+        else:
+            self.time_input.setTime(QTime.currentTime())
+        layout.addWidget(self.time_input)
+        
+        # Título
+        layout.addWidget(QLabel("📝 Título:"))
+        self.title_input = QLineEdit()
+        if self.appointment_data:
+            self.title_input.setText(self.appointment_data.get("title", ""))
+        layout.addWidget(self.title_input)
+        
+        # Descrição
+        layout.addWidget(QLabel("📋 Descrição:"))
+        self.description_input = QTextEdit()
+        if self.appointment_data:
+            self.description_input.setPlainText(self.appointment_data.get("description", ""))
+        self.description_input.setMaximumHeight(100)
+        layout.addWidget(self.description_input)
+        
+        # Contato
+        layout.addWidget(QLabel("👤 Contato (opcional):"))
+        self.contact_combo = QComboBox()
+        self.contact_combo.addItem("Nenhum", "")
+        parent_agenda = self.parent()
+        if parent_agenda and hasattr(parent_agenda, 'contacts'):
+            for contact in parent_agenda.contacts:
+                name = contact.get("name", "")
+                contact_id = contact.get("id", "")
+                self.contact_combo.addItem(name, contact_id)
+        if self.appointment_data:
+            contact_id = self.appointment_data.get("contact_id", "")
+            index = self.contact_combo.findData(contact_id)
+            if index >= 0:
+                self.contact_combo.setCurrentIndex(index)
+        layout.addWidget(self.contact_combo)
+        
+        # Card vinculado
+        layout.addWidget(QLabel("📌 Card do Kanban (opcional):"))
+        self.card_combo = QComboBox()
+        self.card_combo.addItem("Nenhum", "")
+        self.card_combo.addItem("➕ Criar novo card", "NEW_CARD")
+        parent_agenda = self.parent()
+        if parent_agenda and hasattr(parent_agenda, 'parent_window') and parent_agenda.parent_window:
+            for col in parent_agenda.parent_window.columns:
+                for card in col.cards:
+                    title = card.titulo
+                    card_id = card.data.get("id", "")
+                    if not card_id:
+                        card_id = str(uuid.uuid4())
+                        card.data["id"] = card_id
+                    self.card_combo.addItem(f"{col.titulo}: {title}", card_id)
+        if self.appointment_data:
+            card_id = self.appointment_data.get("card_id", "")
+            if card_id:
+                index = self.card_combo.findData(card_id)
+                if index >= 0:
+                    self.card_combo.setCurrentIndex(index)
+                else:
+                    # Se não encontrou, pode ser um card novo, usar "Criar novo card"
+                    self.card_combo.setCurrentIndex(1)  # "Criar novo card"
+        layout.addWidget(self.card_combo)
+        
+        # Coluna de destino
+        layout.addWidget(QLabel("📋 Coluna de destino:"))
+        self.column_combo = QComboBox()
+        parent_agenda = self.parent()
+        if parent_agenda and hasattr(parent_agenda, 'parent_window') and parent_agenda.parent_window:
+            for col in parent_agenda.parent_window.columns:
+                self.column_combo.addItem(col.titulo, col.titulo)
+        # Se estiver editando e já tiver um card, tentar encontrar a coluna atual
+        if self.appointment_data:
+            column_name = self.appointment_data.get("column_name", "")
+            if column_name:
+                index = self.column_combo.findData(column_name)
+                if index >= 0:
+                    self.column_combo.setCurrentIndex(index)
+            else:
+                # Tentar encontrar pela coluna do card
+                card_id = self.appointment_data.get("card_id", "")
+                if card_id and parent_agenda and hasattr(parent_agenda, 'parent_window') and parent_agenda.parent_window:
+                    # Procurar o card nas colunas
+                    for col in parent_agenda.parent_window.columns:
+                        for card in col.cards:
+                            if card.data.get("id", "") == card_id:
+                                index = self.column_combo.findData(col.titulo)
+                                if index >= 0:
+                                    self.column_combo.setCurrentIndex(index)
+                                break
+                        else:
+                            continue
+                        break
+        layout.addWidget(self.column_combo)
+        
+        # Botões
+        buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        buttons.accepted.connect(self.accept)
+        buttons.rejected.connect(self.reject)
+        layout.addWidget(buttons)
+        
+        self.setLayout(layout)
+    
+    def get_data(self):
+        """Retorna dados do compromisso"""
+        card_data = self.card_combo.currentData()
+        # Se for "NEW_CARD", retornar string vazia (será criado depois)
+        if card_data == "NEW_CARD":
+            card_data = ""
+        
+        return {
+            "id": self.appointment_data.get("id", "") if self.appointment_data else "",
+            "date": self.date_input.date().toString("yyyy-MM-dd"),
+            "time": self.time_input.time().toString("HH:mm"),
+            "title": self.title_input.text(),
+            "description": self.description_input.toPlainText(),
+            "contact_id": self.contact_combo.currentData(),
+            "card_id": card_data if card_data else "",
+            "column_name": self.column_combo.currentData() if self.column_combo.currentData() else ""
+        }
+
+
+class ContactDialog(QDialog):
+    """Dialog para criar/editar contato"""
+    
+    def __init__(self, parent=None, contact_data=None):
+        super().__init__(parent)
+        self.contact_data = contact_data
+        self.setup_ui()
+    
+    def setup_ui(self):
+        """Configura interface"""
+        self.setWindowTitle("Novo Contato" if not self.contact_data else "Editar Contato")
+        self.setModal(True)
+        self.setMinimumWidth(500)
+        
+        layout = QVBoxLayout()
+        
+        # Nome
+        layout.addWidget(QLabel("👤 Nome:"))
+        self.name_input = QLineEdit()
+        if self.contact_data:
+            self.name_input.setText(self.contact_data.get("name", ""))
+        layout.addWidget(self.name_input)
+        
+        # Telefone
+        layout.addWidget(QLabel("📞 Telefone:"))
+        self.phone_input = QLineEdit()
+        if self.contact_data:
+            self.phone_input.setText(self.contact_data.get("phone", ""))
+        layout.addWidget(self.phone_input)
+        
+        # Email
+        layout.addWidget(QLabel("📧 Email:"))
+        self.email_input = QLineEdit()
+        if self.contact_data:
+            self.email_input.setText(self.contact_data.get("email", ""))
+        layout.addWidget(self.email_input)
+        
+        # Empresa
+        layout.addWidget(QLabel("🏢 Empresa:"))
+        self.company_input = QLineEdit()
+        if self.contact_data:
+            self.company_input.setText(self.contact_data.get("company", ""))
+        layout.addWidget(self.company_input)
+        
+        # Observações
+        layout.addWidget(QLabel("📋 Observações:"))
+        self.notes_input = QTextEdit()
+        if self.contact_data:
+            self.notes_input.setPlainText(self.contact_data.get("notes", ""))
+        self.notes_input.setMaximumHeight(100)
+        layout.addWidget(self.notes_input)
+        
+        # Botões
+        buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        buttons.accepted.connect(self.accept)
+        buttons.rejected.connect(self.reject)
+        layout.addWidget(buttons)
+        
+        self.setLayout(layout)
+    
+    def get_data(self):
+        """Retorna dados do contato"""
+        return {
+            "id": self.contact_data.get("id", "") if self.contact_data else "",
+            "name": self.name_input.text(),
+            "phone": self.phone_input.text(),
+            "email": self.email_input.text(),
+            "company": self.company_input.text(),
+            "notes": self.notes_input.toPlainText()
+        }
+
+
 class KanbanWindow(QMainWindow):
     """Janela principal do Kanban"""
     
@@ -3715,8 +4563,16 @@ class KanbanWindow(QMainWindow):
         backup_btn.setStyleSheet(btn_style)
         backup_btn.setToolTip(_("create_backup_tooltip", "Criar backup dos dados"))
         
+        # Botão Agenda
+        agenda_btn = QPushButton("📅 Agenda")
+        agenda_btn.clicked.connect(self.show_agenda)
+        agenda_btn.setCursor(Qt.PointingHandCursor)
+        agenda_btn.setStyleSheet(btn_style)
+        agenda_btn.setToolTip("Gerenciar compromissos e contatos")
+        self.agenda_btn = agenda_btn  # Guardar referência
+        
         # GUARDAR REFERÊNCIAS DOS BOTÕES PARA ATUALIZAR CORES DEPOIS
-        self.toolbar_buttons = [new_column_btn, gantt_btn, dashboard_btn, backup_btn]
+        self.toolbar_buttons = [new_column_btn, gantt_btn, dashboard_btn, backup_btn, agenda_btn]
         
         # Transparência
         transparency_label = QLabel("💎 Transparência:")
@@ -3734,6 +4590,7 @@ class KanbanWindow(QMainWindow):
         toolbar_layout.addWidget(search_label)
         toolbar_layout.addWidget(self.search_input)
         toolbar_layout.addWidget(new_column_btn)
+        toolbar_layout.addWidget(agenda_btn)
         toolbar_layout.addWidget(gantt_btn)
         toolbar_layout.addWidget(dashboard_btn)
         toolbar_layout.addWidget(backup_btn)
@@ -5311,6 +6168,21 @@ class KanbanWindow(QMainWindow):
                 _("error", "Erro ao abrir Dashboard:") + f"\n{str(e)}\n\n" + _("error", "Detalhes técnicos:") + f"\n{type(e).__name__}"
             )
             print(f"ERRO DASHBOARD: {e}")
+            import traceback
+            traceback.print_exc()
+    
+    def show_agenda(self):
+        """Abre dialog da Agenda"""
+        try:
+            dialog = AgendaDialog(self)
+            dialog.exec()
+        except Exception as e:
+            QMessageBox.critical(
+                self,
+                "❌ Erro ao abrir Agenda",
+                f"Erro ao abrir Agenda:\n{str(e)}\n\nDetalhes técnicos:\n{type(e).__name__}"
+            )
+            print(f"ERRO AGENDA: {e}")
             import traceback
             traceback.print_exc()
         

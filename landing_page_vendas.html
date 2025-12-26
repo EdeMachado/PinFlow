@@ -744,9 +744,11 @@
         }
         
         .support-logo {
-            display: inline-block;
+            display: inline-flex;
+            align-items: center;
+            gap: 20px;
             background: white;
-            padding: 30px 50px;
+            padding: 25px 40px;
             border-radius: 15px;
             box-shadow: var(--shadow);
             transition: all 0.3s ease;
@@ -759,17 +761,44 @@
             box-shadow: var(--shadow-hover);
         }
         
+        .support-logo-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            background: linear-gradient(90deg, #2196F3 0%, #00BCD4 100%);
+            position: relative;
+            flex-shrink: 0;
+        }
+        
+        .support-logo-icon::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 40px;
+            height: 30px;
+            background: white;
+            clip-path: path('M 5,20 Q 10,10 15,15 Q 20,20 25,10 Q 30,5 35,15');
+        }
+        
+        .support-logo-text {
+            text-align: left;
+        }
+        
         .support-logo h4 {
-            font-size: 32px;
+            font-size: 24px;
             font-weight: 800;
             margin: 0;
-            color: var(--primary-color);
+            color: #333;
+            line-height: 1.2;
         }
         
         .support-logo p {
-            font-size: 16px;
-            color: var(--text-light);
-            margin: 10px 0 0 0;
+            font-size: 14px;
+            color: #666;
+            margin: 5px 0 0 0;
+            font-weight: 400;
         }
         
         /* Footer - Melhorado */
@@ -901,7 +930,7 @@
                     <!-- Plano Único -->
                     <div class="pricing-card featured fade-in">
                         <h3>💎 PinFlow Pro</h3>
-                        <div class="price">R$ 14,99</div>
+                        <div class="price">R$ 19,99</div>
                         <p class="price-note" style="color: var(--accent-color); font-weight: 700;">Pagamento único • Sem mensalidades</p>
                         <ul>
                             <li>Acesso completo ao PinFlow Pro</li>
@@ -1216,7 +1245,7 @@
                     <li><strong>Cancele quando quiser:</strong> Se não gostar, simplesmente não assine</li>
                     <li><strong>Dados preservados:</strong> Se decidir assinar, seus dados do teste serão mantidos</li>
                 </ul>
-                <p style="margin-top: 15px;">Após os 3 dias, você pode adquirir o PinFlow Pro por R$ 14,99 (pagamento único) ou simplesmente não comprar.</p>
+                <p style="margin-top: 15px;">Após os 3 dias, você pode adquirir o PinFlow Pro por R$ 19,99 (pagamento único) ou simplesmente não comprar.</p>
             </div>
             
             <div class="faq-item">
@@ -1228,12 +1257,12 @@
                     <li><strong>Cancele quando quiser:</strong> Se não gostar, simplesmente não assine</li>
                     <li><strong>Dados preservados:</strong> Se decidir assinar, seus dados do teste serão mantidos</li>
                 </ul>
-                <p style="margin-top: 15px;">Após os 3 dias, você pode adquirir o PinFlow Pro por R$ 14,99 (pagamento único) ou simplesmente não comprar.</p>
+                <p style="margin-top: 15px;">Após os 3 dias, você pode adquirir o PinFlow Pro por R$ 19,99 (pagamento único) ou simplesmente não comprar.</p>
             </div>
             
             <div class="faq-item">
                 <h3>Como funciona o preço?</h3>
-                <p>O PinFlow Pro tem um preço único de <strong>R$ 14,99</strong>.</p>
+                <p>O PinFlow Pro tem um preço único de <strong>R$ 19,99</strong>.</p>
                 <ul style="margin-left: 25px; margin-top: 15px; line-height: 2;">
                     <li><strong>Pagamento único</strong> - Sem mensalidades ou renovações</li>
                     <li><strong>Licença permanente</strong> - Use para sempre</li>
@@ -1287,7 +1316,7 @@
                 <div class="pricing-grid" style="max-width: 500px; margin: 0 auto;">
                     <div class="pricing-card featured fade-in">
                         <h3>💎 PinFlow Pro</h3>
-                        <div class="price">R$ 14,99</div>
+                        <div class="price">R$ 19,99</div>
                         <p class="price-note" style="color: var(--accent-color); font-weight: 700;">Pagamento único • Sem mensalidades</p>
                         <a href="https://hotmart.com/seu-link" class="cta-button" target="_blank">🛒 Comprar Agora</a>
                     </div>
@@ -1308,8 +1337,11 @@
         <div class="container">
             <h3>🤝 Apoio</h3>
             <a href="https://www.grupobiomed.com" target="_blank" class="support-logo" rel="noopener noreferrer">
-                <h4>GrupoBiomed</h4>
-                <p>www.grupobiomed.com</p>
+                <div class="support-logo-icon"></div>
+                <div class="support-logo-text">
+                    <h4>GRUPOBIOMED</h4>
+                    <p>Saúde Ocupacional</p>
+                </div>
             </a>
         </div>
     </section>
