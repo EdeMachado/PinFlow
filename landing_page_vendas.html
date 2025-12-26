@@ -925,22 +925,38 @@
             
             <!-- Pricing Section -->
             <div class="pricing-section" id="pricing">
-                <h2>💰 Preço Único</h2>
-                <div class="pricing-grid" style="max-width: 500px; margin: 0 auto;">
-                    <!-- Plano Único -->
-                    <div class="pricing-card featured fade-in">
-                        <h3>💎 PinFlow Pro</h3>
-                        <div class="price">R$ 19,99</div>
-                        <p class="price-note" style="color: var(--accent-color); font-weight: 700;">Pagamento único • Sem mensalidades</p>
+                <h2>💰 Planos e Preços</h2>
+                <div class="pricing-grid two-columns">
+                    <!-- Plano Mensal -->
+                    <div class="pricing-card fade-in">
+                        <h3>📅 Mensal</h3>
+                        <div class="price">R$ 10,99<small>/mês</small></div>
+                        <p class="price-note">Cobrança mensal recorrente</p>
                         <ul>
                             <li>Acesso completo ao PinFlow Pro</li>
-                            <li>Licença permanente</li>
+                            <li>Atualizações gratuitas</li>
+                            <li>Suporte por email</li>
                             <li>Licença para 1 computador</li>
                             <li>Uso pessoal e comercial</li>
-                            <li>Sem renovações</li>
-                            <li>Sem compromissos</li>
+                            <li>Cancele quando quiser</li>
                         </ul>
-                        <a href="https://hotmart.com/seu-link" class="cta-button" target="_blank">🛒 Comprar Agora</a>
+                        <a href="https://hotmart.com/seu-link-mensal" class="cta-button" target="_blank">🛒 Assinar Mensal</a>
+                    </div>
+                    
+                    <!-- Plano Anual -->
+                    <div class="pricing-card featured fade-in">
+                        <h3>💎 Anual</h3>
+                        <div class="price">R$ 99,99<small>/ano</small></div>
+                        <p class="price-note" style="color: var(--accent-color); font-weight: 700;">Economize 24% • Melhor custo-benefício</p>
+                        <ul>
+                            <li>Acesso completo ao PinFlow Pro</li>
+                            <li>Atualizações gratuitas</li>
+                            <li>Suporte por email</li>
+                            <li>Licença para 1 computador</li>
+                            <li>Uso pessoal e comercial</li>
+                            <li>Economia de R$ 32,89/ano</li>
+                        </ul>
+                        <a href="https://hotmart.com/seu-link-anual" class="cta-button" target="_blank">🛒 Assinar Anual</a>
                     </div>
                 </div>
             </div>
@@ -994,6 +1010,12 @@
                     <h3>Sempre Visível</h3>
                     <p>Always On Top mantém suas tarefas sempre à vista. Inicie automaticamente com o Windows e nunca perca o foco.</p>
                 </div>
+                
+                <div class="benefit-card fade-in">
+                    <div class="benefit-icon">📅</div>
+                    <h3>Agenda Integrada</h3>
+                    <p>Gerencie compromissos e contatos diretamente no PinFlow Pro. Vincule a cards do Kanban e receba alertas automáticos quando a data/hora chegam.</p>
+                </div>
             </div>
         </div>
     </section>
@@ -1030,6 +1052,17 @@
                     <div class="icon">⏰</div>
                     <h3>Sistema de Alertas Inteligentes</h3>
                     <p>Configure alertas com data e hora. O card pisca quando o prazo chega, garantindo que nada passe despercebido. Marque como lido quando visualizar.</p>
+                </div>
+                
+                <div class="feature-card highlight fade-in">
+                    <div class="icon">📅</div>
+                    <h3>⭐ Agenda Integrada com Kanban</h3>
+                    <p><strong style="color: var(--accent-color); font-size: 1.1em;">NOVO! AGENDA COMPLETA!</strong><br><br>
+                    <strong>Compromissos:</strong> Crie compromissos com data, hora, título e descrição. Vincule a cards do Kanban e escolha em qual coluna o card será criado ou movido.<br><br>
+                    <strong>Contatos:</strong> Gerencie seus contatos pessoais e profissionais com nome, telefone, email, empresa e observações.<br><br>
+                    <strong>Integração Total:</strong> Vincule compromissos a contatos e cards do Kanban. Filtre por data (hoje, esta semana, este mês). Busque contatos rapidamente.<br><br>
+                    <strong>Alertas Automáticos:</strong> Compromissos vinculados a cards ativam alertas automáticos no Kanban quando a data/hora chegam!<br><br>
+                    <em style="color: var(--accent-color);">Organize sua vida pessoal e profissional em um só lugar!</em></p>
                 </div>
                 
                 <div class="feature-card fade-in">
@@ -1150,8 +1183,13 @@
                             <td class="cross">✗</td>
                         </tr>
                         <tr>
+                            <td><strong>Agenda Integrada com Kanban</strong></td>
+                            <td class="check">✓</td>
+                            <td class="cross">✗</td>
+                        </tr>
+                        <tr>
                             <td><strong>Preço Acessível</strong></td>
-                            <td class="check">✓ A partir de R$ 8,25/mês</td>
+                            <td class="check">✓ A partir de R$ 10,99/mês</td>
                             <td class="cross">✗ Mais caro</td>
                         </tr>
                     </tbody>
@@ -1245,7 +1283,7 @@
                     <li><strong>Cancele quando quiser:</strong> Se não gostar, simplesmente não assine</li>
                     <li><strong>Dados preservados:</strong> Se decidir assinar, seus dados do teste serão mantidos</li>
                 </ul>
-                <p style="margin-top: 15px;">Após os 3 dias, você pode adquirir o PinFlow Pro por R$ 19,99 (pagamento único) ou simplesmente não comprar.</p>
+                <p style="margin-top: 15px;">Após os 3 dias, você pode assinar o PinFlow Pro por R$ 10,99/mês ou R$ 99,99/ano, ou simplesmente não assinar.</p>
             </div>
             
             <div class="faq-item">
@@ -1257,17 +1295,18 @@
                     <li><strong>Cancele quando quiser:</strong> Se não gostar, simplesmente não assine</li>
                     <li><strong>Dados preservados:</strong> Se decidir assinar, seus dados do teste serão mantidos</li>
                 </ul>
-                <p style="margin-top: 15px;">Após os 3 dias, você pode adquirir o PinFlow Pro por R$ 19,99 (pagamento único) ou simplesmente não comprar.</p>
+                <p style="margin-top: 15px;">Após os 3 dias, você pode assinar o PinFlow Pro por R$ 10,99/mês ou R$ 99,99/ano, ou simplesmente não assinar.</p>
             </div>
             
             <div class="faq-item">
                 <h3>Como funciona o preço?</h3>
-                <p>O PinFlow Pro tem um preço único de <strong>R$ 19,99</strong>.</p>
+                <p>O PinFlow Pro oferece dois planos flexíveis:</p>
                 <ul style="margin-left: 25px; margin-top: 15px; line-height: 2;">
-                    <li><strong>Pagamento único</strong> - Sem mensalidades ou renovações</li>
-                    <li><strong>Licença permanente</strong> - Use para sempre</li>
-                    <li><strong>Sem atualizações</strong> - Você recebe a versão atual</li>
-                    <li><strong>Sem manutenção</strong> - Nenhum suporte técnico incluído</li>
+                    <li><strong>Plano Mensal:</strong> R$ 10,99/mês - Cobrança mensal recorrente</li>
+                    <li><strong>Plano Anual:</strong> R$ 99,99/ano - Economize 24% (equivalente a R$ 8,33/mês)</li>
+                    <li><strong>Atualizações gratuitas</strong> - Receba todas as novas funcionalidades</li>
+                    <li><strong>Suporte por email</strong> - Suporte técnico incluído</li>
+                    <li><strong>Cancele quando quiser</strong> - Sem compromisso de permanência</li>
                 </ul>
             </div>
             
@@ -1283,7 +1322,23 @@
             
             <div class="faq-item">
                 <h3>Há atualizações gratuitas?</h3>
-                <p>Não. O PinFlow Pro é vendido como está, sem atualizações ou manutenção incluídas. Você paga uma vez e usa a versão adquirida.</p>
+                <p>Sim! Todos os planos incluem atualizações gratuitas. Você receberá automaticamente todas as novas funcionalidades e melhorias, incluindo a nova Agenda Integrada com Kanban!</p>
+            </div>
+            
+            <div class="faq-item highlight">
+                <h3>⭐ Como funciona a Agenda Integrada com Kanban?</h3>
+                <p style="font-size: 1.1em; line-height: 1.8; margin-bottom: 15px;"><strong>Nova funcionalidade exclusiva do PinFlow Pro!</strong></p>
+                <ol style="margin-left: 25px; font-size: 1.1em; line-height: 2.2; margin-bottom: 15px;">
+                    <li><strong>Compromissos:</strong> Crie compromissos com data, hora, título e descrição</li>
+                    <li><strong>Contatos:</strong> Gerencie seus contatos com nome, telefone, email e empresa</li>
+                    <li><strong>Vincule:</strong> Conecte compromissos a contatos e cards do Kanban</li>
+                    <li><strong>Escolha a coluna:</strong> Ao vincular um card, escolha em qual coluna ele será criado ou movido</li>
+                    <li><strong>Filtros inteligentes:</strong> Filtre compromissos por data (hoje, esta semana, este mês, data específica)</li>
+                    <li><strong>Alertas automáticos:</strong> Compromissos vinculados a cards ativam alertas no Kanban quando a data/hora chegam</li>
+                </ol>
+                <p style="font-size: 1.1em; margin-top: 15px; font-weight: bold; color: var(--accent-color); padding: 15px; background: rgba(0, 200, 83, 0.1); border-radius: 5px;">
+                    ⭐ Organize sua vida pessoal e profissional em um só lugar! A agenda está totalmente integrada ao Kanban.
+                </p>
             </div>
             
             <div class="faq-item">
@@ -1312,13 +1367,19 @@
     <section class="hero" style="padding: 80px 0;">
         <div class="container">
             <h2 style="margin-bottom: 30px; font-size: 42px;">Pronto para Transformar Sua Produtividade?</h2>
-            <div class="pricing-section" style="max-width: 500px;">
-                <div class="pricing-grid" style="max-width: 500px; margin: 0 auto;">
+            <div class="pricing-section">
+                <div class="pricing-grid two-columns">
+                    <div class="pricing-card fade-in">
+                        <h3>📅 Mensal</h3>
+                        <div class="price">R$ 10,99<small>/mês</small></div>
+                        <p class="price-note">Cobrança mensal recorrente</p>
+                        <a href="https://hotmart.com/seu-link-mensal" class="cta-button" target="_blank">🛒 Assinar Mensal</a>
+                    </div>
                     <div class="pricing-card featured fade-in">
-                        <h3>💎 PinFlow Pro</h3>
-                        <div class="price">R$ 19,99</div>
-                        <p class="price-note" style="color: var(--accent-color); font-weight: 700;">Pagamento único • Sem mensalidades</p>
-                        <a href="https://hotmart.com/seu-link" class="cta-button" target="_blank">🛒 Comprar Agora</a>
+                        <h3>💎 Anual</h3>
+                        <div class="price">R$ 99,99<small>/ano</small></div>
+                        <p class="price-note" style="color: var(--accent-color); font-weight: 700;">Economize 24% • Melhor custo-benefício</p>
+                        <a href="https://hotmart.com/seu-link-anual" class="cta-button" target="_blank">🛒 Assinar Anual</a>
                     </div>
                 </div>
             </div>
@@ -1327,7 +1388,7 @@
                 <span>✅ Ativação Imediata</span>
                 <span>✅ Suporte Garantido</span>
                 <span>✅ 7 Dias de Garantia</span>
-                <span>✅ Licença Permanente</span>
+                <span>✅ Atualizações Gratuitas</span>
             </div>
         </div>
     </section>
