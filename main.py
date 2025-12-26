@@ -1171,6 +1171,7 @@ class PostItCard(QFrame):
         # Título
         self.title_label = QLabel(self.titulo)
         self.title_label.setWordWrap(True)
+        self.title_label.setStyleSheet("background-color: transparent !important;")
         self.apply_text_formatting(self.title_label)
         
         # Engrenagem (menu de opções) - CANTO SUPERIOR DIREITO
@@ -1275,11 +1276,11 @@ class PostItCard(QFrame):
         footer_layout.setSpacing(5)
         
         # Data
-        date_label = QLabel(f"🕐 {self.data_criacao}")
-        date_label.setFont(QFont("Segoe UI", 7))
-        date_label.setStyleSheet("color: #000000;")
+        self.date_label = QLabel(f"🕐 {self.data_criacao}")
+        self.date_label.setFont(QFont("Segoe UI", 7))
+        self.date_label.setStyleSheet("color: #000000; background-color: transparent !important;")
         
-        footer_layout.addWidget(date_label, stretch=1)
+        footer_layout.addWidget(self.date_label, stretch=1)
         
         # Montar layout
         layout.addLayout(header_layout)
@@ -1315,28 +1316,89 @@ class PostItCard(QFrame):
         self.setFocusPolicy(Qt.StrongFocus)
         self.setAttribute(Qt.WA_KeyboardFocusChange, True)
     
+    def update_all_child_widgets(self):
+        """Atualiza todos os widgets filhos para garantir fundo transparente"""
+        # Atualizar labels principais explicitamente
+        if hasattr(self, 'title_label'):
+            current_style = self.title_label.styleSheet() or ""
+            if "background-color: transparent" not in current_style:
+                self.title_label.setStyleSheet(current_style + " background-color: transparent !important;")
+            self.title_label.update()
+            self.title_label.repaint()
+        
+        if hasattr(self, 'date_label'):
+            current_style = self.date_label.styleSheet() or ""
+            if "background-color: transparent" not in current_style:
+                self.date_label.setStyleSheet(current_style + " background-color: transparent !important;")
+            self.date_label.update()
+            self.date_label.repaint()
+        
+        if hasattr(self, 'notes_label'):
+            current_style = self.notes_label.styleSheet() or ""
+            if "background-color" not in current_style or "transparent" not in current_style:
+                self.notes_label.setStyleSheet(current_style + " background-color: transparent !important;")
+            self.notes_label.update()
+            self.notes_label.repaint()
+        
+        # Percorrer todos os widgets filhos e garantir fundo transparente
+        for child in self.findChildren(QWidget):
+            if isinstance(child, QLabel):
+                # Manter estilo de labels específicos (tags, alertas) mas garantir transparência
+                current_style = child.styleSheet() or ""
+                # Pular tags e alertas que têm estilos específicos
+                if "rgba(0, 0, 0, 0.7)" in current_style or "rgba(255, 235, 59" in current_style:
+                    continue
+                if "background-color: transparent" not in current_style:
+                    child.setStyleSheet(current_style + " background-color: transparent !important;")
+                child.update()
+                child.repaint()
+            elif isinstance(child, QPushButton):
+                # Manter estilo do botão da engrenagem mas garantir transparência
+                current_style = child.styleSheet() or ""
+                if "background-color: transparent" not in current_style and "background-color: rgba" not in current_style:
+                    child.setStyleSheet(current_style + " background-color: transparent !important;")
+                child.update()
+                child.repaint()
+    
     def update_card_style(self):
         """Atualiza estilo do card baseado no tema"""
         border_color = PRIORITIES[self.prioridade]["color"]
         
         # Cards sempre com fundo da cor selecionada (todo amarelo, todo rosa, etc.)
-        self.setStyleSheet(f"""
+        # Garantir que TODOS os elementos internos tenham fundo transparente
+        style = f"""
             PostItCard {{
-                background-color: {self.cor};
+                background-color: {self.cor} !important;
                 border: none;
                 border-radius: 5px;
                 min-height: 80px;
                 color: #000000;
             }}
             PostItCard:hover {{
-                background-color: {self.cor};
+                background-color: {self.cor} !important;
                 filter: brightness(1.05);
             }}
-            QLabel {{
+            PostItCard QLabel {{
                 color: #000000;
-                background-color: transparent;
+                background-color: transparent !important;
             }}
-        """)
+            PostItCard QPushButton {{
+                background-color: transparent !important;
+            }}
+            PostItCard QWidget {{
+                background-color: transparent !important;
+            }}
+            PostItCard QHBoxLayout {{
+                background-color: transparent !important;
+            }}
+            PostItCard QVBoxLayout {{
+                background-color: transparent !important;
+            }}
+        """
+        self.setStyleSheet(style)
+        # Forçar atualização imediata
+        self.style().unpolish(self)
+        self.style().polish(self)
     
     def darken_color(self, hex_color, factor=0.3):
         """Escurece uma cor hex por um fator (0.0 a 1.0)"""
@@ -1391,6 +1453,10 @@ class PostItCard(QFrame):
         font.setItalic(self.fonte_italico)
         font.setUnderline(self.fonte_sublinhado)
         label.setFont(font)
+        # Garantir que o fundo seja sempre transparente
+        current_style = label.styleSheet() or ""
+        if "background-color: transparent" not in current_style:
+            label.setStyleSheet(current_style + " background-color: transparent !important;")
     
     def check_alert(self):
         """Verifica se o alerta deve ser ativado"""
@@ -1871,22 +1937,14 @@ class PostItCard(QFrame):
         self.cor_custom = color
         self.cor = color
         self.data["cor_custom"] = color
-        self.setStyleSheet(f"""
-            PostItCard {{
-                background-color: {self.cor};
-                border-left: 5px solid {PRIORITIES[self.prioridade]["color"]};
-                border-right: 1px solid #e6d000;
-                border-top: 1px solid #e6d000;
-                border-bottom: 1px solid #e6d000;
-                border-radius: 5px;
-                min-height: 80px;
-                max-width: 250px;
-            }}
-            PostItCard:hover {{
-                background-color: {self.cor};
-                filter: brightness(1.1);
-            }}
-        """)
+        # Aplicar estilo completo garantindo que todo o card fique colorido
+        self.update_card_style()
+        # Forçar atualização de todos os widgets filhos
+        self.update_all_child_widgets()
+        # Forçar repaint
+        self.update()
+        self.repaint()
+        # Salvar dados
         self.parent_column.window.save_data()
     
     def reset_color(self):
@@ -1894,22 +1952,14 @@ class PostItCard(QFrame):
         self.cor_custom = None
         self.cor = PRIORITIES[self.prioridade]["postit_color"]
         self.data["cor_custom"] = None
-        self.setStyleSheet(f"""
-            PostItCard {{
-                background-color: {self.cor};
-                border-left: 5px solid {PRIORITIES[self.prioridade]["color"]};
-                border-right: 1px solid #e6d000;
-                border-top: 1px solid #e6d000;
-                border-bottom: 1px solid #e6d000;
-                border-radius: 5px;
-                min-height: 80px;
-                max-width: 250px;
-            }}
-            PostItCard:hover {{
-                background-color: {self.cor};
-                filter: brightness(1.1);
-            }}
-        """)
+        # Aplicar estilo completo garantindo que todo o card fique colorido
+        self.update_card_style()
+        # Forçar atualização de todos os widgets filhos
+        self.update_all_child_widgets()
+        # Forçar repaint
+        self.update()
+        self.repaint()
+        # Salvar dados
         self.parent_column.window.save_data()
     
     def duplicate_card(self):
@@ -4576,8 +4626,16 @@ class KanbanWindow(QMainWindow):
         agenda_btn.setToolTip("Gerenciar compromissos e contatos")
         self.agenda_btn = agenda_btn  # Guardar referência
         
+        # Botão Ajuda/Manual
+        help_btn = QPushButton("❓ Ajuda")
+        help_btn.clicked.connect(self.show_help_manual)
+        help_btn.setCursor(Qt.PointingHandCursor)
+        help_btn.setStyleSheet(btn_style)
+        help_btn.setToolTip("Manual completo com todas as funcionalidades")
+        self.help_btn = help_btn  # Guardar referência
+        
         # GUARDAR REFERÊNCIAS DOS BOTÕES PARA ATUALIZAR CORES DEPOIS
-        self.toolbar_buttons = [new_column_btn, gantt_btn, dashboard_btn, backup_btn, agenda_btn]
+        self.toolbar_buttons = [new_column_btn, gantt_btn, dashboard_btn, backup_btn, agenda_btn, help_btn]
         
         # Transparência
         transparency_label = QLabel("💎 Transparência:")
@@ -4599,6 +4657,7 @@ class KanbanWindow(QMainWindow):
         toolbar_layout.addWidget(gantt_btn)
         toolbar_layout.addWidget(dashboard_btn)
         toolbar_layout.addWidget(backup_btn)
+        toolbar_layout.addWidget(help_btn)
         
         # Botão Licença (se habilitado)
         if LICENSE_ENABLED and self.license_manager:
@@ -4681,8 +4740,8 @@ class KanbanWindow(QMainWindow):
         self.toggle_btn.setChecked(True)
         self.toggle_btn.clicked.connect(self.toggle_always_on_top)
         
-        # Limpar concluídos
-        self.clear_completed_btn = QPushButton(f"🗑️ {_('clear_completed', 'Limpar Concluídos')}")
+        # Arquivar concluídos
+        self.clear_completed_btn = QPushButton(f"📦 {_('clear_completed', 'Arquivar Concluídos')}")
         self.clear_completed_btn.clicked.connect(self.clear_completed)
         
         # Ver arquivados
@@ -5048,7 +5107,7 @@ class KanbanWindow(QMainWindow):
             else:
                 self.toggle_btn.setText(f"🟢 {_('always_on_top_off', 'Always On Top: OFF')}")
         if hasattr(self, 'clear_completed_btn'):
-            self.clear_completed_btn.setText(f"🗑️ {_('clear_completed', 'Limpar Concluídos')}")
+            self.clear_completed_btn.setText(f"📦 {_('clear_completed', 'Arquivar Concluídos')}")
         if hasattr(self, 'view_archived_btn'):
             self.view_archived_btn.setText(f"📂 {_('view_archived', 'Ver Arquivados')}")
         if hasattr(self, 'shortcuts_btn'):
@@ -6078,7 +6137,7 @@ class KanbanWindow(QMainWindow):
                 col.filter_cards(text)
                 
     def clear_completed(self):
-        """Limpa cards concluídos"""
+        """Arquiva cards concluídos"""
         # Procurar coluna "Concluído" (várias variações possíveis)
         completed_col = None
         for col in self.columns:
@@ -6093,7 +6152,7 @@ class KanbanWindow(QMainWindow):
             return
         
         if not completed_col.cards or len(completed_col.cards) == 0:
-            QMessageBox.information(self, _("info", "Info"), "Nenhum card concluído para limpar!")
+            QMessageBox.information(self, _("info", "Info"), "Nenhum card concluído para arquivar!")
             return
             
         reply = QMessageBox.question(self, _("confirm", "Confirmar"), 
@@ -6190,6 +6249,324 @@ class KanbanWindow(QMainWindow):
             print(f"ERRO AGENDA: {e}")
             import traceback
             traceback.print_exc()
+    
+    def show_help_manual(self):
+        """Abre manual completo de ajuda"""
+        dialog = QDialog(self)
+        dialog.setWindowTitle("❓ Manual de Ajuda - PinFlow Pro")
+        dialog.setModal(True)
+        dialog.setMinimumSize(900, 700)
+        
+        layout = QVBoxLayout()
+        
+        # Título
+        title = QLabel("📚 MANUAL COMPLETO - PINFLOW PRO")
+        title.setFont(QFont("Segoe UI", 18, QFont.Bold))
+        title.setStyleSheet("color: #1e3a5f; padding: 10px;")
+        layout.addWidget(title)
+        
+        # Área de scroll com conteúdo
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setStyleSheet("""
+            QScrollArea {
+                border: 1px solid #ddd;
+                border-radius: 5px;
+            }
+        """)
+        
+        content_widget = QWidget()
+        content_layout = QVBoxLayout()
+        content_layout.setSpacing(15)
+        content_layout.setContentsMargins(20, 20, 20, 20)
+        
+        # ========== SEÇÃO 1: KANBAN BÁSICO ==========
+        section1 = QLabel("📋 1. KANBAN BÁSICO")
+        section1.setFont(QFont("Segoe UI", 14, QFont.Bold))
+        section1.setStyleSheet("color: #1e3a5f; margin-top: 10px;")
+        content_layout.addWidget(section1)
+        
+        help_text1 = QLabel("""
+        <b>Colunas:</b><br>
+        • <b>Criar Coluna:</b> Clique no botão "➕ Nova Coluna" na toolbar<br>
+        • <b>Renomear Coluna:</b> Clique no botão ⚙️ no header da coluna → "✏️ Editar"<br>
+        • <b>Mover Coluna:</b> Arraste o header da coluna para a posição desejada<br>
+        • <b>Mudar Cor da Coluna:</b> Clique no botão ⚙️ no header → "🎨 Mudar Cor"<br>
+        • <b>Remover Coluna:</b> Clique no botão ⚙️ no header → "🗑️ Remover"<br><br>
+        
+        <b>Cards:</b><br>
+        • <b>Criar Card:</b> Clique no botão ➕ no header de qualquer coluna<br>
+        • <b>Editar Card:</b> Clique duas vezes no card OU clique na engrenagem ⚙️ → "✏️ Editar"<br>
+        • <b>Mover Card:</b> Arraste o card para outra coluna<br>
+        • <b>Duplicar Card:</b> Clique na engrenagem ⚙️ → "📋 Duplicar" (ou Alt+D)<br>
+        • <b>Arquivar Card:</b> Clique na engrenagem ⚙️ → "📦 Arquivar"<br>
+        • <b>Remover Card:</b> Clique na engrenagem ⚙️ → "🗑️ Eliminar Nota" (ou Alt+Del)<br>
+        """)
+        help_text1.setWordWrap(True)
+        help_text1.setStyleSheet("padding: 10px; background-color: #f5f5f5; border-radius: 5px;")
+        content_layout.addWidget(help_text1)
+        
+        # ========== SEÇÃO 2: APARÊNCIA DOS CARDS ==========
+        section2 = QLabel("🎨 2. APARÊNCIA DOS CARDS")
+        section2.setFont(QFont("Segoe UI", 14, QFont.Bold))
+        section2.setStyleSheet("color: #1e3a5f; margin-top: 10px;")
+        content_layout.addWidget(section2)
+        
+        help_text2 = QLabel("""
+        <b>Mudar Cor do Card:</b><br>
+        • Clique na engrenagem ⚙️ no canto superior direito do card<br>
+        • Selecione "🎨 Cor"<br>
+        • Escolha uma das 24 cores disponíveis<br>
+        • O card inteiro ficará colorido com a cor escolhida<br>
+        • Para voltar à cor automática: Escolha "🔄 Cor Automática (Por Prioridade)"<br><br>
+        
+        <b>Mudar Tamanho do Card:</b><br>
+        • Clique na engrenagem ⚙️ → "📐 Tamanho"<br>
+        • Escolha: Pequeno (200px), Médio (250px) ou Grande (320px)<br>
+        • Você também pode redimensionar manualmente arrastando o canto inferior direito<br><br>
+        
+        <b>Prioridades:</b><br>
+        • Cada card tem uma prioridade: Baixa 🔽, Normal ⚪, Alta 🔶, Urgente 🔴<br>
+        • A prioridade define a cor automática do card (se não houver cor customizada)<br>
+        • Edite o card para mudar a prioridade<br>
+        """)
+        help_text2.setWordWrap(True)
+        help_text2.setStyleSheet("padding: 10px; background-color: #f5f5f5; border-radius: 5px;")
+        content_layout.addWidget(help_text2)
+        
+        # ========== SEÇÃO 3: ARQUIVOS E ANEXOS ==========
+        section3 = QLabel("📁 3. ARQUIVOS E ANEXOS")
+        section3.setFont(QFont("Segoe UI", 14, QFont.Bold))
+        section3.setStyleSheet("color: #1e3a5f; margin-top: 10px;")
+        content_layout.addWidget(section3)
+        
+        help_text3 = QLabel("""
+        <b>Anexar Arquivo/Pasta:</b><br>
+        • <b>MÉTODO 1:</b> Arraste arquivo ou pasta do Windows Explorer diretamente para o card<br>
+        • <b>MÉTODO 2:</b> Ao criar/editar card, clique em "📁 Anexar Arquivo/Pasta"<br>
+        • O caminho completo do arquivo aparecerá no card<br>
+        • <b>Clique no caminho</b> para abrir a pasta no Windows Explorer<br>
+        • <b>DIFERENCIAL ÚNICO:</b> Esta funcionalidade não existe em outros Kanbans!<br><br>
+        
+        <b>Abrir Arquivo/Pasta:</b><br>
+        • Clique na engrenagem ⚙️ → "📂 Abrir Arquivo/Pasta"<br>
+        • Ou clique diretamente no caminho exibido no card<br>
+        """)
+        help_text3.setWordWrap(True)
+        help_text3.setStyleSheet("padding: 10px; background-color: #f5f5f5; border-radius: 5px;")
+        content_layout.addWidget(help_text3)
+        
+        # ========== SEÇÃO 4: ALERTAS ==========
+        section4 = QLabel("⏰ 4. SISTEMA DE ALERTAS")
+        section4.setFont(QFont("Segoe UI", 14, QFont.Bold))
+        section4.setStyleSheet("color: #1e3a5f; margin-top: 10px;")
+        content_layout.addWidget(section4)
+        
+        help_text4 = QLabel("""
+        <b>Configurar Alerta:</b><br>
+        • Ao criar/editar card, preencha "Data do Alerta" e "Hora do Alerta"<br>
+        • Quando a data/hora chegarem, o card começará a piscar<br>
+        • O card ficará vermelho e piscando até você marcar como lido<br><br>
+        
+        <b>Marcar Alerta como Lido:</b><br>
+        • Clique na engrenagem ⚙️ → "✓ Marcar como Lido (Parar de Piscar)"<br>
+        • O card parará de piscar e voltará à cor normal<br>
+        """)
+        help_text4.setWordWrap(True)
+        help_text4.setStyleSheet("padding: 10px; background-color: #f5f5f5; border-radius: 5px;")
+        content_layout.addWidget(help_text4)
+        
+        # ========== SEÇÃO 5: AGENDA ==========
+        section5 = QLabel("📅 5. AGENDA INTEGRADA")
+        section5.setFont(QFont("Segoe UI", 14, QFont.Bold))
+        section5.setStyleSheet("color: #1e3a5f; margin-top: 10px;")
+        content_layout.addWidget(section5)
+        
+        help_text5 = QLabel("""
+        <b>Acessar Agenda:</b><br>
+        • Clique no botão "📅 Agenda" na toolbar<br>
+        • A agenda tem duas abas: "Compromissos" e "Contatos"<br><br>
+        
+        <b>Compromissos:</b><br>
+        • <b>Criar:</b> Clique em "➕ Novo Compromisso"<br>
+        • Preencha: Data, Hora, Título, Descrição<br>
+        • <b>Vincular a Contato:</b> Selecione um contato da lista (opcional)<br>
+        • <b>Vincular a Card:</b> Escolha um card existente OU "➕ Criar novo card"<br>
+        • <b>Escolher Coluna:</b> Selecione em qual coluna o card será criado/movido<br>
+        • <b>Filtros:</b> Use os filtros para ver compromissos por data (Hoje, Esta semana, Este mês, Data específica)<br>
+        • <b>Editar/Excluir:</b> Use os botões ✏️ e 🗑️ na tabela<br><br>
+        
+        <b>Contatos:</b><br>
+        • <b>Criar:</b> Clique em "➕ Novo Contato"<br>
+        • Preencha: Nome, Telefone, Email, Empresa, Observações<br>
+        • <b>Buscar:</b> Digite no campo de busca para filtrar contatos<br>
+        • <b>Editar/Excluir:</b> Use os botões ✏️ e 🗑️ na tabela<br><br>
+        
+        <b>Integração com Kanban:</b><br>
+        • Compromissos vinculados a cards criam/movem cards automaticamente<br>
+        • Quando a data/hora do compromisso chegam, o card vinculado recebe alerta automático<br>
+        """)
+        help_text5.setWordWrap(True)
+        help_text5.setStyleSheet("padding: 10px; background-color: #f5f5f5; border-radius: 5px;")
+        content_layout.addWidget(help_text5)
+        
+        # ========== SEÇÃO 6: BUSCA E FILTROS ==========
+        section6 = QLabel("🔍 6. BUSCA E FILTROS")
+        section6.setFont(QFont("Segoe UI", 14, QFont.Bold))
+        section6.setStyleSheet("color: #1e3a5f; margin-top: 10px;")
+        content_layout.addWidget(section6)
+        
+        help_text6 = QLabel("""
+        <b>Buscar Cards:</b><br>
+        • Digite no campo "🔍 Buscar cards..." na toolbar<br>
+        • A busca procura em: Título, Notas, Tags e Caminho de arquivo<br>
+        • Os cards que não correspondem ficam ocultos automaticamente<br>
+        • Limpe o campo para ver todos os cards novamente<br><br>
+        
+        <b>Tags:</b><br>
+        • Adicione tags aos cards para organizá-los por categorias<br>
+        • Ao editar card, adicione tags separadas por vírgula<br>
+        • As tags aparecem no card e podem ser usadas na busca<br>
+        """)
+        help_text6.setWordWrap(True)
+        help_text6.setStyleSheet("padding: 10px; background-color: #f5f5f5; border-radius: 5px;")
+        content_layout.addWidget(help_text6)
+        
+        # ========== SEÇÃO 7: FERRAMENTAS AVANÇADAS ==========
+        section7 = QLabel("📊 7. FERRAMENTAS AVANÇADAS")
+        section7.setFont(QFont("Segoe UI", 14, QFont.Bold))
+        section7.setStyleSheet("color: #1e3a5f; margin-top: 10px;")
+        content_layout.addWidget(section7)
+        
+        help_text7 = QLabel("""
+        <b>Dashboard:</b><br>
+        • Clique em "📈 Dashboard" na toolbar<br>
+        • Veja estatísticas: Total de cards, por coluna, por prioridade, com alertas<br>
+        • Visualize gráficos de produtividade<br><br>
+        
+        <b>Gantt Chart:</b><br>
+        • Clique em "📊 Gantt" na toolbar<br>
+        • Visualize cronograma visual do projeto<br>
+        • Filtre por coluna<br>
+        • Veja prazos e datas de início/término dos cards<br><br>
+        
+        <b>Backup:</b><br>
+        • Clique em "💾 Backup" na toolbar<br>
+        • Crie backup manual dos seus dados<br>
+        • Os backups são salvos automaticamente também<br>
+        • Exporte dados para CSV se necessário<br><br>
+        
+        <b>Cards Arquivados:</b><br>
+        • Acesse pelo menu "📦 Arquivar" em qualquer card<br>
+        • Ou use "Arquivar Concluídos" para arquivar todos os cards da coluna "Concluído"<br>
+        • Veja histórico completo de cards arquivados<br>
+        • Restaure cards arquivados quando necessário<br>
+        """)
+        help_text7.setWordWrap(True)
+        help_text7.setStyleSheet("padding: 10px; background-color: #f5f5f5; border-radius: 5px;")
+        content_layout.addWidget(help_text7)
+        
+        # ========== SEÇÃO 8: CONFIGURAÇÕES ==========
+        section8 = QLabel("⚙️ 8. CONFIGURAÇÕES")
+        section8.setFont(QFont("Segoe UI", 14, QFont.Bold))
+        section8.setStyleSheet("color: #1e3a5f; margin-top: 10px;")
+        content_layout.addWidget(section8)
+        
+        help_text8 = QLabel("""
+        <b>Acessar Configurações:</b><br>
+        • Clique no nome do cliente no header (se configurado)<br>
+        • Ou use o menu do sistema<br><br>
+        
+        <b>Personalizar Cores:</b><br>
+        • <b>Cor do Header:</b> Mude a cor do cabeçalho principal<br>
+        • <b>Cor dos Headers das Colunas:</b> Mude a cor dos cabeçalhos das colunas<br>
+        • <b>Salvar Configurações:</b> Clique em "Salvar Configurações" para manter as alterações<br>
+        • As cores são aplicadas imediatamente e salvas permanentemente<br><br>
+        
+        <b>Modo Claro/Escuro:</b><br>
+        • Clique no botão 🌓/🌙 no header para alternar tema<br>
+        • O tema é salvo automaticamente<br><br>
+        
+        <b>Transparência:</b><br>
+        • Use o slider "💎 Transparência" na toolbar<br>
+        • Ajuste de 30% a 100%<br>
+        • Útil para manter o PinFlow Pro visível sobre outras janelas<br><br>
+        
+        <b>Always On Top:</b><br>
+        • Mantém o PinFlow Pro sempre visível sobre outras janelas<br>
+        • Ative/desative pelo menu do sistema<br>
+        """)
+        help_text8.setWordWrap(True)
+        help_text8.setStyleSheet("padding: 10px; background-color: #f5f5f5; border-radius: 5px;")
+        content_layout.addWidget(help_text8)
+        
+        # ========== SEÇÃO 9: ATALHOS DE TECLADO ==========
+        section9 = QLabel("⌨️ 9. ATALHOS DE TECLADO")
+        section9.setFont(QFont("Segoe UI", 14, QFont.Bold))
+        section9.setStyleSheet("color: #1e3a5f; margin-top: 10px;")
+        content_layout.addWidget(section9)
+        
+        help_text9 = QLabel("""
+        <b>Navegação:</b><br>
+        • <b>Tab:</b> Navegar entre elementos<br>
+        • <b>Enter:</b> Confirmar ação / Abrir card<br>
+        • <b>Setas:</b> Navegar entre cards e colunas<br>
+        • <b>Esc:</b> Fechar diálogos / Cancelar<br><br>
+        
+        <b>Ações Rápidas:</b><br>
+        • <b>Alt+D:</b> Duplicar card (quando card estiver focado)<br>
+        • <b>Alt+Del:</b> Eliminar card (quando card estiver focado)<br>
+        • <b>Duplo Clique:</b> Editar card<br><br>
+        
+        <b>Drag & Drop:</b><br>
+        • <b>Arrastar Card:</b> Mover card entre colunas<br>
+        • <b>Arrastar Coluna:</b> Reordenar colunas<br>
+        • <b>Arrastar Arquivo:</b> Anexar arquivo/pasta ao card<br>
+        """)
+        help_text9.setWordWrap(True)
+        help_text9.setStyleSheet("padding: 10px; background-color: #f5f5f5; border-radius: 5px;")
+        content_layout.addWidget(help_text9)
+        
+        # ========== SEÇÃO 10: DICAS E TRUQUES ==========
+        section10 = QLabel("💡 10. DICAS E TRUQUES")
+        section10.setFont(QFont("Segoe UI", 14, QFont.Bold))
+        section10.setStyleSheet("color: #1e3a5f; margin-top: 10px;")
+        content_layout.addWidget(section10)
+        
+        help_text10 = QLabel("""
+        <b>Produtividade:</b><br>
+        • Use tags para categorizar cards (ex: #urgente, #pessoal, #trabalho)<br>
+        • Configure alertas para não esquecer tarefas importantes<br>
+        • Use o Dashboard para acompanhar sua produtividade<br>
+        • Arquivar cards concluídos mantém o Kanban limpo<br><br>
+        
+        <b>Organização:</b><br>
+        • Crie colunas por projeto, status ou prioridade<br>
+        • Use cores diferentes para identificar rapidamente os cards<br>
+        • Vincule compromissos da agenda a cards para integração total<br>
+        • Use o Gantt Chart para visualizar prazos do projeto<br><br>
+        
+        <b>Backup e Segurança:</b><br>
+        • Faça backups regulares dos seus dados<br>
+        • Os dados são salvos automaticamente em: %APPDATA%\\PinFlow_Pro\\<br>
+        • Exporte para CSV se precisar trabalhar com os dados em outras ferramentas<br>
+        """)
+        help_text10.setWordWrap(True)
+        help_text10.setStyleSheet("padding: 10px; background-color: #f5f5f5; border-radius: 5px;")
+        content_layout.addWidget(help_text10)
+        
+        content_widget.setLayout(content_layout)
+        scroll.setWidget(content_widget)
+        layout.addWidget(scroll)
+        
+        # Botão Fechar
+        buttons = QDialogButtonBox(QDialogButtonBox.Close)
+        buttons.button(QDialogButtonBox.Close).setText("Fechar")
+        buttons.rejected.connect(dialog.reject)
+        layout.addWidget(buttons)
+        
+        dialog.setLayout(layout)
+        dialog.exec()
         
     def create_backup(self):
         """Cria backup dos dados"""
