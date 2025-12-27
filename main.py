@@ -3,8 +3,11 @@ import json
 import os
 import csv
 import uuid
+import smtplib
 from datetime import datetime, timedelta
 from pathlib import Path
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
 # Configurar encoding UTF-8 para Windows
 if sys.platform == 'win32':
@@ -45,6 +48,17 @@ try:
 except ImportError:
     print("⚠️ Sistema de licenciamento não disponível")
     LICENSE_ENABLED = False
+
+# Configurações de Email para Feedback
+FEEDBACK_EMAIL_CONFIG = {
+    "smtp_server": "smtp.gmail.com",  # Alterar se usar outro provedor
+    "smtp_port": 587,
+    "sender_email": "machado.ede@gmail.com",  # Email para enviar (precisa de senha de app)
+    "sender_password": "yqhn nzzr nfpy pjxb",  # Senha de app do Gmail (com espaços)
+    "sender_name": "PinFlow Pro",  # Nome que aparece como remetente
+    "recipient_email": "machado.ede@gmail.com",  # Email onde receber os feedbacks
+    "enabled": True  # Mudar para False para desabilitar envio por email
+}
 
 # Obter diretório de dados do usuário (AppData)
 def get_data_directory():
@@ -552,9 +566,14 @@ class ArchivedDialog(QDialog):
             
         card = self.filtered_cards[row]
         
-        reply = QMessageBox.question(self, _("restore", "Restaurar"), 
-                                     _("restore_card", "Restaurar '{title}' para 'Concluído'?").format(title=card.get('titulo', '')),
-                                     QMessageBox.Yes | QMessageBox.No)
+        msg_box = QMessageBox(self)
+        msg_box.setWindowTitle(_("restore", "Restaurar"))
+        msg_box.setText(_("restore_card", "Restaurar '{title}' para 'Concluído'?").format(title=card.get('titulo', '')))
+        msg_box.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+        msg_box.setDefaultButton(QMessageBox.No)
+        is_dark_mode = hasattr(self.parent_window, 'dark_mode') and self.parent_window.dark_mode
+        style_message_box(msg_box, is_dark_mode)
+        reply = msg_box.exec()
         if reply == QMessageBox.Yes:
             # Remover do arquivo
             self.archived_cards.remove(card)
@@ -594,14 +613,25 @@ class ArchivedDialog(QDialog):
             
         card = self.filtered_cards[row]
         
-        reply = QMessageBox.warning(self, _("warning", "Atenção"), 
-                                    _("delete_permanently_confirm", "Tem certeza que deseja deletar permanentemente '{title}'? Esta ação não pode ser desfeita!").format(title=card.get('titulo', '')),
-                                    QMessageBox.Yes | QMessageBox.No)
+        msg_box = QMessageBox(self)
+        msg_box.setWindowTitle(_("warning", "Atenção"))
+        msg_box.setText(_("delete_permanently_confirm", "Tem certeza que deseja deletar permanentemente '{title}'? Esta ação não pode ser desfeita!").format(title=card.get('titulo', '')))
+        msg_box.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+        msg_box.setDefaultButton(QMessageBox.No)
+        msg_box.setIcon(QMessageBox.Warning)
+        is_dark_mode = hasattr(self.parent_window, 'dark_mode') and self.parent_window.dark_mode
+        style_message_box(msg_box, is_dark_mode)
+        reply = msg_box.exec()
         if reply == QMessageBox.Yes:
             self.archived_cards.remove(card)
             self.save_archive()
             self.load_archived()
-            QMessageBox.information(self, _("deleted_permanently", "Deletado"), _("deleted_permanently", "Card removido permanentemente!"))
+            info_box = QMessageBox(self)
+            info_box.setWindowTitle(_("deleted_permanently", "Deletado"))
+            info_box.setText(_("deleted_permanently", "Card removido permanentemente!"))
+            info_box.setIcon(QMessageBox.Information)
+            style_message_box(info_box, is_dark_mode)
+            info_box.exec()
             
     def export_csv(self):
         """Exporta para CSV"""
@@ -2482,9 +2512,16 @@ class PostItCard(QFrame):
             
     def archive_card(self):
         """Arquiva este card"""
-        reply = QMessageBox.question(self, _("archive", "Arquivar"), 
-                                     _("confirm_archive", "Arquivar '{title}'?").format(title=self.titulo),
-                                     QMessageBox.Yes | QMessageBox.No)
+        msg_box = QMessageBox(self)
+        msg_box.setWindowTitle(_("archive", "Arquivar"))
+        msg_box.setText(_("confirm_archive", "Arquivar '{title}'?").format(title=self.titulo))
+        msg_box.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+        msg_box.setDefaultButton(QMessageBox.No)
+        
+        is_dark_mode = hasattr(self.parent_column.window, 'dark_mode') and self.parent_column.window.dark_mode
+        style_message_box(msg_box, is_dark_mode)
+        
+        reply = msg_box.exec()
         if reply == QMessageBox.Yes:
             # Adicionar data de arquivamento
             archive_data = self.data.copy()
@@ -2594,9 +2631,17 @@ class PostItCard(QFrame):
             
     def remove_self(self):
         """Remove este cartão"""
-        reply = QMessageBox.question(self, _("confirm", "Confirmar"), 
-                                     _("confirm_delete_card", "Remover card '{title}'?").format(title=self.titulo),
-                                     QMessageBox.Yes | QMessageBox.No)
+        msg_box = QMessageBox(self)
+        msg_box.setWindowTitle(_("confirm", "Confirmar"))
+        msg_box.setText(_("confirm_delete_card", "Remover card '{title}'?").format(title=self.titulo))
+        msg_box.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+        msg_box.setDefaultButton(QMessageBox.No)
+        
+        # Aplicar estilo baseado no tema
+        is_dark_mode = hasattr(self.parent_column.window, 'dark_mode') and self.parent_column.window.dark_mode
+        style_message_box(msg_box, is_dark_mode)
+        
+        reply = msg_box.exec()
         if reply == QMessageBox.Yes:
             self.parent_column.remove_card(self)
 
@@ -3098,22 +3143,26 @@ class KanbanColumn(QFrame):
     
     def remove_column(self):
         """Remove a coluna"""
+        is_dark_mode = hasattr(self.window, 'dark_mode') and self.window.dark_mode
+        
         if len(self.cards) > 0:
-            reply = QMessageBox.question(
-                self,
-                "Remover Coluna",
-                f"A coluna '{self.titulo}' tem {len(self.cards)} card(s).\n\nRemover mesmo assim?",
-                QMessageBox.Yes | QMessageBox.No
-            )
+            msg_box1 = QMessageBox(self)
+            msg_box1.setWindowTitle("Remover Coluna")
+            msg_box1.setText(f"A coluna '{self.titulo}' tem {len(self.cards)} card(s).\n\nRemover mesmo assim?")
+            msg_box1.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+            msg_box1.setDefaultButton(QMessageBox.No)
+            style_message_box(msg_box1, is_dark_mode)
+            reply = msg_box1.exec()
             if reply == QMessageBox.No:
                 return
         
-        reply = QMessageBox.question(
-            self,
-            "Confirmar",
-            f"Remover coluna '{self.titulo}'?",
-            QMessageBox.Yes | QMessageBox.No
-        )
+        msg_box2 = QMessageBox(self)
+        msg_box2.setWindowTitle("Confirmar")
+        msg_box2.setText(f"Remover coluna '{self.titulo}'?")
+        msg_box2.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+        msg_box2.setDefaultButton(QMessageBox.No)
+        style_message_box(msg_box2, is_dark_mode)
+        reply = msg_box2.exec()
         
         if reply == QMessageBox.Yes:
             self.window.remove_column(self)
@@ -4650,9 +4699,14 @@ class AgendaDialog(QDialog):
         if row >= len(self.appointments):
             return
         appointment = self.appointments[row]
-        reply = QMessageBox.question(self, "Confirmar", 
-            f"Excluir compromisso '{appointment.get('title', '')}'?",
-            QMessageBox.Yes | QMessageBox.No)
+        msg_box = QMessageBox(self)
+        msg_box.setWindowTitle("Confirmar")
+        msg_box.setText(f"Excluir compromisso '{appointment.get('title', '')}'?")
+        msg_box.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+        msg_box.setDefaultButton(QMessageBox.No)
+        is_dark_mode = hasattr(self.parent_window, 'dark_mode') and self.parent_window.dark_mode
+        style_message_box(msg_box, is_dark_mode)
+        reply = msg_box.exec()
         if reply == QMessageBox.Yes:
             self.appointments.pop(row)
             self.save_data()
@@ -4787,9 +4841,14 @@ class AgendaDialog(QDialog):
         if row >= len(self.contacts):
             return
         contact = self.contacts[row]
-        reply = QMessageBox.question(self, "Confirmar", 
-            f"Excluir contato '{contact.get('name', '')}'?",
-            QMessageBox.Yes | QMessageBox.No)
+        msg_box = QMessageBox(self)
+        msg_box.setWindowTitle("Confirmar")
+        msg_box.setText(f"Excluir contato '{contact.get('name', '')}'?")
+        msg_box.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+        msg_box.setDefaultButton(QMessageBox.No)
+        is_dark_mode = hasattr(self.parent_window, 'dark_mode') and self.parent_window.dark_mode
+        style_message_box(msg_box, is_dark_mode)
+        reply = msg_box.exec()
         if reply == QMessageBox.Yes:
             self.contacts.pop(row)
             self.save_data()
@@ -5199,6 +5258,53 @@ class ContactDialog(QDialog):
             "notes": self.notes_input.toPlainText()
         }
 
+
+def style_message_box(msg_box, is_dark_mode):
+    """Aplica estilo ao QMessageBox baseado no tema"""
+    if is_dark_mode:
+        msg_box.setStyleSheet("""
+            QMessageBox {
+                background-color: #1a1a1a;
+                color: #e0e0e0;
+            }
+            QMessageBox QLabel {
+                background-color: transparent;
+                color: #e0e0e0;
+            }
+            QMessageBox QPushButton {
+                background-color: #1e3a5f;
+                color: white;
+                padding: 8px 20px;
+                border-radius: 5px;
+                font-weight: bold;
+                min-width: 80px;
+            }
+            QMessageBox QPushButton:hover {
+                background-color: #152d4a;
+            }
+        """)
+    else:
+        msg_box.setStyleSheet("""
+            QMessageBox {
+                background-color: white;
+                color: black;
+            }
+            QMessageBox QLabel {
+                background-color: transparent;
+                color: black;
+            }
+            QMessageBox QPushButton {
+                background-color: #1e3a5f;
+                color: white;
+                padding: 8px 20px;
+                border-radius: 5px;
+                font-weight: bold;
+                min-width: 80px;
+            }
+            QMessageBox QPushButton:hover {
+                background-color: #152d4a;
+            }
+        """)
 
 class KanbanWindow(QMainWindow):
     """Janela principal do Kanban"""
@@ -7207,10 +7313,15 @@ class KanbanWindow(QMainWindow):
             QMessageBox.information(self, _("info", "Info"), "Nenhum card concluído para arquivar!")
             return
             
-        reply = QMessageBox.question(self, _("confirm", "Confirmar"), 
-                                     f"Arquivar {len(completed_col.cards)} card(s) concluído(s) da coluna '{completed_col.titulo}'?\n\n"
-                                     f"Os cards serão movidos para o arquivo e poderão ser visualizados em 'Ver Arquivados'.",
-                                     QMessageBox.Yes | QMessageBox.No)
+        msg_box = QMessageBox(self)
+        msg_box.setWindowTitle(_("confirm", "Confirmar"))
+        msg_box.setText(f"Arquivar {len(completed_col.cards)} card(s) concluído(s) da coluna '{completed_col.titulo}'?\n\n"
+                       f"Os cards serão movidos para o arquivo e poderão ser visualizados em 'Ver Arquivados'.")
+        msg_box.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+        msg_box.setDefaultButton(QMessageBox.No)
+        is_dark_mode = hasattr(self, 'dark_mode') and self.dark_mode
+        style_message_box(msg_box, is_dark_mode)
+        reply = msg_box.exec()
         if reply == QMessageBox.Yes:
             # Carregar arquivo de arquivamento existente
             archived_cards = []
@@ -7871,8 +7982,78 @@ Data: {datetime.now().strftime("%d/%m/%Y %H:%M")}
         buttons.button(QDialogButtonBox.Ok).setText("Enviar Feedback")
         buttons.button(QDialogButtonBox.Cancel).setText("Cancelar")
         
+        def send_feedback_email(feedback_data):
+            """Envia feedback por email"""
+            if not FEEDBACK_EMAIL_CONFIG.get("enabled", False):
+                return False, "Envio por email desabilitado"
+            
+            try:
+                # Criar mensagem
+                msg = MIMEMultipart()
+                sender_name = FEEDBACK_EMAIL_CONFIG.get("sender_name", "PinFlow Pro")
+                sender_email = FEEDBACK_EMAIL_CONFIG["sender_email"]
+                sender_password = FEEDBACK_EMAIL_CONFIG["sender_password"]
+                recipient_email = FEEDBACK_EMAIL_CONFIG["recipient_email"]
+                
+                msg['From'] = f"{sender_name} <{sender_email}>"
+                msg['To'] = recipient_email
+                msg['Subject'] = f"📬 PinFlow Pro - Feedback: {feedback_data['type']}"
+                
+                # Corpo do email
+                body = f"""
+PinFlow Pro - Novo Feedback Recebido
+{'='*50}
+
+Tipo: {feedback_data['type']}
+Data/Hora: {feedback_data['timestamp']}
+
+Nome: {feedback_data['name'] or 'Não informado'}
+Email: {feedback_data['email'] or 'Não informado'}
+
+Mensagem:
+{'-'*50}
+{feedback_data['message']}
+{'-'*50}
+
+Informações do Sistema:
+{feedback_data['system_info'] or 'Não disponível'}
+"""
+                
+                msg.attach(MIMEText(body, 'plain', 'utf-8'))
+                
+                # Conectar e enviar
+                # Remover espaços da senha (caso tenha)
+                clean_password = sender_password.replace(" ", "")
+                
+                print(f"🔍 Tentando conectar ao SMTP: {FEEDBACK_EMAIL_CONFIG['smtp_server']}:{FEEDBACK_EMAIL_CONFIG['smtp_port']}")
+                server = smtplib.SMTP(FEEDBACK_EMAIL_CONFIG["smtp_server"], FEEDBACK_EMAIL_CONFIG["smtp_port"])
+                print("🔍 Iniciando TLS...")
+                server.starttls()
+                print(f"🔍 Fazendo login com: {sender_email}")
+                server.login(sender_email, clean_password)
+                print(f"🔍 Enviando email para: {recipient_email}")
+                server.send_message(msg)
+                server.quit()
+                print("✅ Email enviado com sucesso!")
+                
+                return True, "Email enviado com sucesso"
+            except smtplib.SMTPAuthenticationError as e:
+                error_msg = f"Erro de autenticação. Verifique email e senha de app: {str(e)}"
+                print(f"❌ {error_msg}")
+                return False, error_msg
+            except smtplib.SMTPException as e:
+                error_msg = f"Erro SMTP: {str(e)}"
+                print(f"❌ {error_msg}")
+                return False, error_msg
+            except Exception as e:
+                error_msg = f"Erro ao enviar email: {str(e)}"
+                print(f"❌ {error_msg}")
+                import traceback
+                traceback.print_exc()
+                return False, error_msg
+        
         def save_feedback():
-            """Salva feedback em arquivo"""
+            """Salva feedback em arquivo e envia por email"""
             feedback_data = {
                 "timestamp": datetime.now().strftime("%d/%m/%Y %H:%M:%S"),
                 "name": name_input.text().strip(),
@@ -7895,23 +8076,56 @@ Data: {datetime.now().strftime("%d/%m/%Y %H:%M")}
             timestamp_file = datetime.now().strftime("%Y%m%d_%H%M%S")
             feedback_file = feedback_dir / f"feedback_{timestamp_file}.json"
             
+            file_saved = False
+            email_sent = False
+            error_msg = ""
+            
+            # Tentar salvar arquivo
             try:
                 with open(feedback_file, "w", encoding="utf-8") as f:
                     json.dump(feedback_data, f, indent=2, ensure_ascii=False)
-                
+                file_saved = True
+            except Exception as e:
+                error_msg = f"Erro ao salvar arquivo: {str(e)}"
+            
+            # Tentar enviar por email
+            if FEEDBACK_EMAIL_CONFIG.get("enabled", False):
+                email_ok, email_result = send_feedback_email(feedback_data)
+                email_sent = email_ok
+                if not email_ok:
+                    if error_msg:
+                        error_msg += f"\n{email_result}"
+                    else:
+                        error_msg = email_result
+            
+            # Mensagem para o usuário
+            if file_saved and email_sent:
                 QMessageBox.information(
                     dialog,
                     "✅ Feedback Enviado!",
                     "Obrigado pelo seu feedback!\n\n"
-                    "Sua opinião foi salva e será analisada para melhorias futuras.\n\n"
-                    f"Arquivo: {feedback_file}"
+                    "Sua opinião foi salva e enviada por email.\n"
+                    "Será analisada para melhorias futuras."
                 )
                 dialog.accept()
-            except Exception as e:
+            elif file_saved:
+                # Arquivo salvo mas email não foi enviado
+                QMessageBox.warning(
+                    dialog,
+                    "⚠️ Feedback Salvo",
+                    "Obrigado pelo seu feedback!\n\n"
+                    "Sua opinião foi salva localmente.\n\n"
+                    f"⚠️ Email não enviado:\n{error_msg}\n\n"
+                    "O feedback ainda será analisado através do arquivo local.\n\n"
+                    "Verifique a configuração de email no código."
+                )
+                dialog.accept()
+            else:
+                # Erro ao salvar
                 QMessageBox.critical(
                     dialog,
-                    "Erro",
-                    f"Erro ao salvar feedback:\n{str(e)}"
+                    "❌ Erro",
+                    f"Erro ao salvar feedback:\n{error_msg}"
                 )
         
         buttons.accepted.connect(save_feedback)
