@@ -1668,10 +1668,15 @@ class PostItCard(QFrame):
         """)
         
         # === SEÇÃO 1: ABRIR ARQUIVOS ===
-        if self.caminho and os.path.exists(self.caminho):
-            open_action = QAction(_("menu_open_file", "📂 Abrir Arquivo/Pasta"), self)
-            open_action.triggered.connect(lambda: os.startfile(self.caminho))
-            menu.addAction(open_action)
+        if self.caminho:
+            try:
+                caminho_normalizado = os.path.normpath(self.caminho)
+                if os.path.exists(caminho_normalizado) and os.path.isabs(caminho_normalizado):
+                    open_action = QAction(_("menu_open_file", "📂 Abrir Arquivo/Pasta"), self)
+                    open_action.triggered.connect(lambda: os.startfile(caminho_normalizado))
+                    menu.addAction(open_action)
+            except:
+                pass
             
             open_folder_action = QAction(_("menu_open_folder", "📁 Abrir Pasta Contendo"), self)
             open_folder_action.triggered.connect(self.open_folder)
@@ -2123,18 +2128,35 @@ class PostItCard(QFrame):
         
     def open_folder(self):
         """Abre a pasta onde o arquivo está localizado"""
-        if not self.caminho or not os.path.exists(self.caminho):
+        if not self.caminho:
             QMessageBox.warning(self, _("warning", "Aviso"), _("error", "Caminho não existe!"))
             return
         
-        # Se é pasta, abre ela
-        if os.path.isdir(self.caminho):
-            os.startfile(self.caminho)
-        # Se é arquivo, abre a pasta pai e seleciona o arquivo
-        else:
-            folder = os.path.dirname(self.caminho)
-            # Abre o Explorer e seleciona o arquivo
-            os.system(f'explorer /select,"{self.caminho}"')
+        # SEGURANÇA: Validar caminho para prevenir path traversal
+        try:
+            # Normalizar caminho
+            caminho_normalizado = os.path.normpath(self.caminho)
+            
+            # Verificar se o caminho existe
+            if not os.path.exists(caminho_normalizado):
+                QMessageBox.warning(self, _("warning", "Aviso"), _("error", "Caminho não existe!"))
+                return
+            
+            # Verificar se é um caminho absoluto válido (prevenir path traversal)
+            if not os.path.isabs(caminho_normalizado):
+                QMessageBox.warning(self, _("warning", "Aviso"), "Caminho inválido!")
+                return
+            
+            # Se é pasta, abre ela
+            if os.path.isdir(caminho_normalizado):
+                os.startfile(caminho_normalizado)
+            # Se é arquivo, abre a pasta pai e seleciona o arquivo
+            else:
+                folder = os.path.dirname(caminho_normalizado)
+                # Abre o Explorer e seleciona o arquivo (usar caminho normalizado)
+                os.system(f'explorer /select,"{caminho_normalizado}"')
+        except Exception as e:
+            QMessageBox.warning(self, _("warning", "Aviso"), f"Erro ao abrir caminho: {str(e)}")
             
     def archive_card(self):
         """Arquiva este card"""
@@ -4634,8 +4656,16 @@ class KanbanWindow(QMainWindow):
         help_btn.setToolTip("Manual completo com todas as funcionalidades")
         self.help_btn = help_btn  # Guardar referência
         
+        # Botão Feedback
+        feedback_btn = QPushButton("💬 Feedback")
+        feedback_btn.clicked.connect(self.show_feedback_dialog)
+        feedback_btn.setCursor(Qt.PointingHandCursor)
+        feedback_btn.setStyleSheet(btn_style)
+        feedback_btn.setToolTip("Enviar sua opinião e sugestões para melhorar o PinFlow Pro")
+        self.feedback_btn = feedback_btn  # Guardar referência
+        
         # GUARDAR REFERÊNCIAS DOS BOTÕES PARA ATUALIZAR CORES DEPOIS
-        self.toolbar_buttons = [new_column_btn, gantt_btn, dashboard_btn, backup_btn, agenda_btn, help_btn]
+        self.toolbar_buttons = [new_column_btn, gantt_btn, dashboard_btn, backup_btn, agenda_btn, help_btn, feedback_btn]
         
         # Transparência
         transparency_label = QLabel("💎 Transparência:")
@@ -4658,6 +4688,7 @@ class KanbanWindow(QMainWindow):
         toolbar_layout.addWidget(dashboard_btn)
         toolbar_layout.addWidget(backup_btn)
         toolbar_layout.addWidget(help_btn)
+        toolbar_layout.addWidget(feedback_btn)
         
         # Botão Licença (se habilitado)
         if LICENSE_ENABLED and self.license_manager:
@@ -6568,6 +6599,142 @@ class KanbanWindow(QMainWindow):
         dialog.setLayout(layout)
         dialog.exec()
         
+    def show_feedback_dialog(self):
+        """Abre diálogo de feedback"""
+        dialog = QDialog(self)
+        dialog.setWindowTitle("💬 Feedback - PinFlow Pro")
+        dialog.setModal(True)
+        dialog.setMinimumSize(600, 500)
+        
+        layout = QVBoxLayout()
+        
+        # Título
+        title = QLabel("💬 Envie Sua Opinião")
+        title.setFont(QFont("Segoe UI", 16, QFont.Bold))
+        title.setStyleSheet("color: #1e3a5f; padding: 10px;")
+        layout.addWidget(title)
+        
+        # Descrição
+        desc = QLabel("Sua opinião é muito importante para melhorarmos o PinFlow Pro!\n\nCompartilhe sugestões, reporte problemas ou diga o que você mais gosta no sistema.")
+        desc.setWordWrap(True)
+        desc.setStyleSheet("padding: 10px; color: #666;")
+        layout.addWidget(desc)
+        
+        # Nome (opcional)
+        name_layout = QHBoxLayout()
+        name_layout.addWidget(QLabel("Seu nome (opcional):"))
+        name_input = QLineEdit()
+        # Tentar pegar nome do cliente se houver licença
+        if LICENSE_ENABLED and hasattr(self, 'license_manager') and self.license_manager:
+            try:
+                license_info = self.license_manager.get_license_info()
+                if license_info and license_info.get('customer_name'):
+                    name_input.setText(license_info.get('customer_name'))
+            except:
+                pass
+        name_layout.addWidget(name_input)
+        layout.addLayout(name_layout)
+        
+        # Email (opcional)
+        email_layout = QHBoxLayout()
+        email_layout.addWidget(QLabel("Email (opcional):"))
+        email_input = QLineEdit()
+        email_input.setPlaceholderText("seu@email.com")
+        email_layout.addWidget(email_input)
+        layout.addLayout(email_layout)
+        
+        # Tipo de feedback
+        type_layout = QHBoxLayout()
+        type_layout.addWidget(QLabel("Tipo:"))
+        type_combo = QComboBox()
+        type_combo.addItems([
+            "💡 Sugestão de Melhoria",
+            "🐛 Reportar Problema",
+            "⭐ Elogio",
+            "❓ Dúvida",
+            "📝 Outro"
+        ])
+        type_layout.addWidget(type_combo)
+        layout.addLayout(type_layout)
+        
+        # Mensagem
+        layout.addWidget(QLabel("Sua mensagem:"))
+        message_input = QTextEdit()
+        message_input.setPlaceholderText("Descreva sua sugestão, problema ou opinião...")
+        message_input.setMinimumHeight(200)
+        layout.addWidget(message_input)
+        
+        # Informações do sistema (ocultas, mas incluídas)
+        system_info = QLabel()
+        system_info.setVisible(False)
+        try:
+            import platform
+            system_info_text = f"""
+Sistema: {platform.system()} {platform.release()}
+Versão Python: {platform.python_version()}
+PySide6: {PySide6.__version__}
+Data: {datetime.now().strftime("%d/%m/%Y %H:%M")}
+"""
+            system_info.setText(system_info_text)
+        except:
+            pass
+        layout.addWidget(system_info)
+        
+        # Botões
+        buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        buttons.button(QDialogButtonBox.Ok).setText("Enviar Feedback")
+        buttons.button(QDialogButtonBox.Cancel).setText("Cancelar")
+        
+        def save_feedback():
+            """Salva feedback em arquivo"""
+            feedback_data = {
+                "timestamp": datetime.now().strftime("%d/%m/%Y %H:%M:%S"),
+                "name": name_input.text().strip(),
+                "email": email_input.text().strip(),
+                "type": type_combo.currentText(),
+                "message": message_input.toPlainText().strip(),
+                "system_info": system_info.text() if system_info.text() else ""
+            }
+            
+            # Validar mensagem
+            if not feedback_data["message"]:
+                QMessageBox.warning(dialog, "Atenção", "Por favor, digite sua mensagem.")
+                return
+            
+            # Salvar feedback em arquivo
+            feedback_dir = Path(DATA_DIR) / "feedback"
+            feedback_dir.mkdir(exist_ok=True)
+            
+            # Nome do arquivo com timestamp
+            timestamp_file = datetime.now().strftime("%Y%m%d_%H%M%S")
+            feedback_file = feedback_dir / f"feedback_{timestamp_file}.json"
+            
+            try:
+                with open(feedback_file, "w", encoding="utf-8") as f:
+                    json.dump(feedback_data, f, indent=2, ensure_ascii=False)
+                
+                QMessageBox.information(
+                    dialog,
+                    "✅ Feedback Enviado!",
+                    "Obrigado pelo seu feedback!\n\n"
+                    "Sua opinião foi salva e será analisada para melhorias futuras.\n\n"
+                    f"Arquivo: {feedback_file}"
+                )
+                dialog.accept()
+            except Exception as e:
+                QMessageBox.critical(
+                    dialog,
+                    "Erro",
+                    f"Erro ao salvar feedback:\n{str(e)}"
+                )
+        
+        buttons.accepted.connect(save_feedback)
+        buttons.rejected.connect(dialog.reject)
+        layout.addWidget(buttons)
+        
+        dialog.setLayout(layout)
+        dialog.exec()
+    
     def create_backup(self):
         """Cria backup dos dados"""
         try:
