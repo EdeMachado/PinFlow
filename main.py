@@ -200,6 +200,111 @@ class ArchivedDialog(QDialog):
         self.setModal(True)
         self.setMinimumSize(1000, 600)
         
+        # Aplicar estilo baseado no tema
+        is_dark_mode = hasattr(self.parent_window, 'dark_mode') and self.parent_window.dark_mode
+        if is_dark_mode:
+            self.setStyleSheet("""
+                QDialog {
+                    background-color: #1a1a1a;
+                    color: #e0e0e0;
+                }
+                QLabel {
+                    background-color: transparent;
+                    color: #e0e0e0;
+                }
+                QGroupBox {
+                    background-color: #2a2a2a;
+                    color: #e0e0e0;
+                    border: 1px solid #3d3d3d;
+                    border-radius: 5px;
+                    margin-top: 10px;
+                    padding-top: 10px;
+                }
+                QGroupBox::title {
+                    subcontrol-origin: margin;
+                    left: 10px;
+                    padding: 0 5px;
+                    color: #e0e0e0;
+                }
+                QLineEdit, QDateEdit, QComboBox {
+                    background-color: #2a2a2a;
+                    color: #e0e0e0;
+                    border: 1px solid #3d3d3d;
+                    padding: 5px;
+                    border-radius: 3px;
+                }
+                QTableWidget {
+                    background-color: #2a2a2a;
+                    color: #e0e0e0;
+                    gridline-color: #3d3d3d;
+                    border: 1px solid #3d3d3d;
+                }
+                QTableWidget::item {
+                    background-color: #2a2a2a;
+                    color: #e0e0e0;
+                }
+                QTableWidget::item:alternate {
+                    background-color: #222222;
+                }
+                QHeaderView::section {
+                    background-color: #1a1a1a;
+                    color: #e0e0e0;
+                    border: 1px solid #3d3d3d;
+                    padding: 5px;
+                }
+            """)
+        else:
+            self.setStyleSheet("""
+                QDialog {
+                    background-color: white;
+                    color: black;
+                }
+                QLabel {
+                    background-color: transparent;
+                    color: black;
+                }
+                QGroupBox {
+                    background-color: white;
+                    color: black;
+                    border: 1px solid #ccc;
+                    border-radius: 5px;
+                    margin-top: 10px;
+                    padding-top: 10px;
+                }
+                QGroupBox::title {
+                    subcontrol-origin: margin;
+                    left: 10px;
+                    padding: 0 5px;
+                    color: black;
+                }
+                QLineEdit, QDateEdit, QComboBox {
+                    background-color: white;
+                    color: black;
+                    border: 1px solid #ccc;
+                    padding: 5px;
+                    border-radius: 3px;
+                }
+                QTableWidget {
+                    background-color: white;
+                    color: black;
+                    gridline-color: #d0d0d0;
+                    border: 1px solid #ccc;
+                }
+                QTableWidget::item {
+                    background-color: white;
+                    color: black;
+                }
+                QTableWidget::item:alternate {
+                    background-color: #f5f5f5;
+                }
+                QHeaderView::section {
+                    background-color: #f0f0f0;
+                    color: black;
+                    border: 1px solid #ccc;
+                    padding: 5px;
+                }
+            """)
+        
         layout = QVBoxLayout()
         
         # Header
@@ -219,7 +324,10 @@ class ArchivedDialog(QDialog):
         
         for label in [self.total_label, self.week_label, self.month_label]:
             label.setFont(QFont("Segoe UI", 10, QFont.Bold))
-            label.setStyleSheet("padding: 10px; background-color: #e0e0e0; border-radius: 5px;")
+            if is_dark_mode:
+                label.setStyleSheet("padding: 10px; background-color: #2a2a2a; color: #e0e0e0; border-radius: 5px;")
+            else:
+                label.setStyleSheet("padding: 10px; background-color: #e0e0e0; color: black; border-radius: 5px;")
             stats_layout.addWidget(label)
             
         self.stats_group.setLayout(stats_layout)
@@ -283,14 +391,7 @@ class ArchivedDialog(QDialog):
         self.table.horizontalHeader().setSectionResizeMode(4, QHeaderView.ResizeToContents)
         self.table.horizontalHeader().setSectionResizeMode(5, QHeaderView.ResizeToContents)
         self.table.setAlternatingRowColors(True)
-        self.table.setStyleSheet("""
-            QTableWidget {
-                gridline-color: #d0d0d0;
-            }
-            QTableWidget::item:alternate {
-                background-color: #f5f5f5;
-            }
-        """)
+        # O estilo já foi aplicado no dialog acima
         layout.addWidget(self.table)
         
         # Botões inferiores
@@ -588,6 +689,152 @@ class CardDialog(QDialog):
         self.setMinimumHeight(400)
         self.setMaximumHeight(900)  # Limitar altura máxima
         
+        # Aplicar estilo baseado no tema
+        is_dark_mode = False
+        if self.parent():
+            # Tentar obter dark_mode do parent
+            parent = self.parent()
+            if hasattr(parent, 'parent_column') and hasattr(parent.parent_column, 'window') and hasattr(parent.parent_column.window, 'dark_mode'):
+                # Se o parent é um PostItCard, acessar através de parent_column.window
+                is_dark_mode = parent.parent_column.window.dark_mode
+            elif hasattr(parent, 'dark_mode'):
+                is_dark_mode = parent.dark_mode
+            elif hasattr(parent, 'window') and hasattr(parent.window, 'dark_mode'):
+                is_dark_mode = parent.window.dark_mode
+            elif hasattr(parent, 'parent_window') and hasattr(parent.parent_window, 'dark_mode'):
+                is_dark_mode = parent.parent_window.dark_mode
+        
+        if is_dark_mode:
+            self.setStyleSheet("""
+                QDialog {
+                    background-color: #1a1a1a;
+                    color: #e0e0e0;
+                }
+                QLabel {
+                    background-color: transparent;
+                    color: #e0e0e0;
+                }
+                QLineEdit {
+                    background-color: #2a2a2a;
+                    color: #e0e0e0;
+                    border: 1px solid #3d3d3d;
+                    padding: 5px;
+                    border-radius: 3px;
+                }
+                QTextEdit {
+                    background-color: #2a2a2a;
+                    color: #e0e0e0;
+                    border: 1px solid #3d3d3d;
+                    border-radius: 3px;
+                }
+                QComboBox {
+                    background-color: #2a2a2a;
+                    color: #e0e0e0;
+                    border: 1px solid #3d3d3d;
+                    padding: 5px;
+                    border-radius: 3px;
+                }
+                QGroupBox {
+                    background-color: #2a2a2a;
+                    color: #e0e0e0;
+                    border: 1px solid #3d3d3d;
+                    border-radius: 5px;
+                    margin-top: 10px;
+                    padding-top: 10px;
+                }
+                QGroupBox::title {
+                    subcontrol-origin: margin;
+                    left: 10px;
+                    padding: 0 5px;
+                    color: #e0e0e0;
+                }
+                QPushButton {
+                    background-color: #1e3a5f;
+                    color: white;
+                    padding: 8px 20px;
+                    border-radius: 5px;
+                    font-weight: bold;
+                }
+                QPushButton:hover {
+                    background-color: #152d4a;
+                }
+                QCheckBox {
+                    color: #e0e0e0;
+                }
+                QDateEdit, QTimeEdit {
+                    background-color: #2a2a2a;
+                    color: #e0e0e0;
+                    border: 1px solid #3d3d3d;
+                    padding: 5px;
+                    border-radius: 3px;
+                }
+            """)
+        else:
+            self.setStyleSheet("""
+                QDialog {
+                    background-color: white;
+                    color: black;
+                }
+                QLabel {
+                    background-color: transparent;
+                    color: black;
+                }
+                QLineEdit {
+                    background-color: white;
+                    color: black;
+                    border: 1px solid #ccc;
+                    padding: 5px;
+                    border-radius: 3px;
+                }
+                QTextEdit {
+                    background-color: white;
+                    color: black;
+                    border: 1px solid #ccc;
+                    border-radius: 3px;
+                }
+                QComboBox {
+                    background-color: white;
+                    color: black;
+                    border: 1px solid #ccc;
+                    padding: 5px;
+                    border-radius: 3px;
+                }
+                QGroupBox {
+                    background-color: white;
+                    color: black;
+                    border: 1px solid #ccc;
+                    border-radius: 5px;
+                    margin-top: 10px;
+                    padding-top: 10px;
+                }
+                QGroupBox::title {
+                    subcontrol-origin: margin;
+                    left: 10px;
+                    padding: 0 5px;
+                    color: black;
+                }
+                QPushButton {
+                    background-color: #1e3a5f;
+                    color: white;
+                    padding: 8px 20px;
+                    border-radius: 5px;
+                    font-weight: bold;
+                }
+                QPushButton:hover {
+                    background-color: #152d4a;
+                }
+                QCheckBox {
+                    color: black;
+                }
+                QDateEdit, QTimeEdit {
+                    background-color: white;
+                    color: black;
+                    border: 1px solid #ccc;
+                    padding: 5px;
+                    border-radius: 3px;
+                }
+            """)
+        
         # Layout principal com scroll
         main_layout = QVBoxLayout()
         
@@ -653,6 +900,7 @@ class CardDialog(QDialog):
                 border: 2px solid #ccc;
                 border-radius: 4px;
                 background-color: white;
+                color: black;
             }
             QPushButton:checked {
                 background-color: #2196F3;
@@ -1648,24 +1896,56 @@ class PostItCard(QFrame):
     def show_menu(self):
         """Mostra menu de opções ao clicar na engrenagem (COMPLETO IGUAL POST-IT)"""
         menu = QMenu(self)
-        menu.setStyleSheet("""
-            QMenu {
-                background-color: white;
-                border: 1px solid #ccc;
-                font-size: 12px;
-            }
-            QMenu::item {
-                padding: 10px 40px 10px 20px;
-            }
-            QMenu::item:selected {
-                background-color: #e3f2fd;
-            }
-            QMenu::separator {
-                height: 1px;
-                background-color: #e0e0e0;
-                margin: 5px 0px;
-            }
-        """)
+        
+        # Verificar se está em modo escuro
+        is_dark_mode = hasattr(self.parent_column.window, 'dark_mode') and self.parent_column.window.dark_mode
+        
+        if is_dark_mode:
+            # MODO ESCURO
+            menu.setStyleSheet("""
+                QMenu {
+                    background-color: #1a1a1a;
+                    border: 1px solid #3d3d3d;
+                    font-size: 12px;
+                    color: #e0e0e0;
+                }
+                QMenu::item {
+                    padding: 10px 40px 10px 20px;
+                    color: #e0e0e0;
+                }
+                QMenu::item:selected {
+                    background-color: #3d3d3d;
+                    color: #ffffff;
+                }
+                QMenu::separator {
+                    height: 1px;
+                    background-color: #3d3d3d;
+                    margin: 5px 0px;
+                }
+            """)
+        else:
+            # MODO CLARO
+            menu.setStyleSheet("""
+                QMenu {
+                    background-color: white;
+                    border: 1px solid #ccc;
+                    font-size: 12px;
+                    color: black;
+                }
+                QMenu::item {
+                    padding: 10px 40px 10px 20px;
+                    color: black;
+                }
+                QMenu::item:selected {
+                    background-color: #e3f2fd;
+                    color: black;
+                }
+                QMenu::separator {
+                    height: 1px;
+                    background-color: #e0e0e0;
+                    margin: 5px 0px;
+                }
+            """)
         
         # === SEÇÃO 1: ABRIR ARQUIVOS ===
         if self.caminho:
@@ -1744,6 +2024,20 @@ class PostItCard(QFrame):
         dialog.setModal(True)
         dialog.setFixedSize(380, 200)
         
+        # Garantir estilo claro para o dialog
+        dialog.setStyleSheet("""
+            QDialog {
+                background-color: white;
+                color: black;
+            }
+            QPushButton {
+                border: 2px solid #ddd;
+            }
+            QPushButton:hover {
+                border: 3px solid #333;
+            }
+        """)
+        
         layout = QVBoxLayout()
         layout.setSpacing(5)
         layout.setContentsMargins(10, 10, 10, 10)
@@ -1819,6 +2113,34 @@ class PostItCard(QFrame):
         dialog = QDialog(self)
         dialog.setWindowTitle(_("card_size_dialog", "Tamanho do Card"))
         dialog.setModal(True)
+        
+        # Garantir estilo claro para o dialog
+        dialog.setStyleSheet("""
+            QDialog {
+                background-color: white;
+                color: black;
+            }
+            QRadioButton {
+                background-color: white;
+                color: black;
+                padding: 8px;
+                font-size: 12px;
+            }
+            QRadioButton::indicator {
+                width: 18px;
+                height: 18px;
+            }
+            QPushButton {
+                background-color: #1e3a5f;
+                color: white;
+                padding: 8px 20px;
+                border-radius: 5px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #152d4a;
+            }
+        """)
         
         layout = QVBoxLayout()
         
@@ -2543,18 +2865,54 @@ class KanbanColumn(QFrame):
     def show_column_menu(self):
         """Menu de opções da coluna"""
         menu = QMenu(self)
-        menu.setStyleSheet("""
-            QMenu {
-                background-color: white;
-                border: 1px solid #ccc;
-            }
-            QMenu::item {
-                padding: 8px 30px;
-            }
-            QMenu::item:selected {
-                background-color: #e3f2fd;
-            }
-        """)
+        
+        # Verificar se está em modo escuro
+        is_dark_mode = hasattr(self.window, 'dark_mode') and self.window.dark_mode
+        
+        if is_dark_mode:
+            menu.setStyleSheet("""
+                QMenu {
+                    background-color: #1a1a1a;
+                    border: 1px solid #3d3d3d;
+                    color: #e0e0e0;
+                    font-size: 12px;
+                }
+                QMenu::item {
+                    padding: 8px 30px;
+                    color: #e0e0e0;
+                }
+                QMenu::item:selected {
+                    background-color: #3d3d3d;
+                    color: #ffffff;
+                }
+                QMenu::separator {
+                    height: 1px;
+                    background-color: #3d3d3d;
+                    margin: 5px 0px;
+                }
+            """)
+        else:
+            menu.setStyleSheet("""
+                QMenu {
+                    background-color: white;
+                    border: 1px solid #ccc;
+                    color: black;
+                    font-size: 12px;
+                }
+                QMenu::item {
+                    padding: 8px 30px;
+                    color: black;
+                }
+                QMenu::item:selected {
+                    background-color: #e3f2fd;
+                    color: black;
+                }
+                QMenu::separator {
+                    height: 1px;
+                    background-color: #e0e0e0;
+                    margin: 5px 0px;
+                }
+            """)
         
         # Editar nome
         edit_action = QAction(_("menu_edit_column_name", "✏️ Editar Nome"), self)
@@ -2582,6 +2940,43 @@ class KanbanColumn(QFrame):
         dialog.setWindowTitle(_("choose_column_color", "🎨 Escolha uma cor para a coluna"))
         dialog.setModal(True)
         dialog.setFixedSize(450, 150)
+        
+        # Aplicar estilo baseado no tema
+        is_dark_mode = hasattr(self.window, 'dark_mode') and self.window.dark_mode
+        if is_dark_mode:
+            dialog.setStyleSheet("""
+                QDialog {
+                    background-color: #1a1a1a;
+                    color: #e0e0e0;
+                }
+                QLabel {
+                    background-color: transparent;
+                    color: #e0e0e0;
+                }
+                QPushButton {
+                    border: 2px solid #3d3d3d;
+                }
+                QPushButton:hover {
+                    border: 3px solid #555;
+                }
+            """)
+        else:
+            dialog.setStyleSheet("""
+                QDialog {
+                    background-color: white;
+                    color: black;
+                }
+                QLabel {
+                    background-color: transparent;
+                    color: black;
+                }
+                QPushButton {
+                    border: 2px solid #ddd;
+                }
+                QPushButton:hover {
+                    border: 3px solid #333;
+                }
+            """)
         
         layout = QVBoxLayout()
         layout.setSpacing(10)
@@ -2631,15 +3026,30 @@ class KanbanColumn(QFrame):
             btn.clicked.connect(lambda checked, c=color_hex: self.apply_column_color(c, dialog))
             colors_layout.addWidget(btn)
         
-        layout.addWidget(QLabel("Selecione uma cor:"))
+        label = QLabel("Selecione uma cor:")
+        layout.addWidget(label)
         layout.addLayout(colors_layout)
         
         # Botão cancelar
         cancel_btn = QPushButton("✖ Cancelar")
         cancel_btn.clicked.connect(dialog.reject)
-        cancel_btn.setStyleSheet("""
-            QPushButton {
-                padding: 8px;
+        if is_dark_mode:
+            cancel_btn.setStyleSheet("""
+                QPushButton {
+                    padding: 8px;
+                    background-color: #3d3d3d;
+                    color: #e0e0e0;
+                    border: 1px solid #555;
+                    border-radius: 4px;
+                }
+                QPushButton:hover {
+                    background-color: #4d4d4d;
+                }
+            """)
+        else:
+            cancel_btn.setStyleSheet("""
+                QPushButton {
+                    padding: 8px;
                 background-color: #f0f0f0;
                 border: 1px solid #ccc;
                 border-radius: 4px;
@@ -2728,23 +3138,51 @@ class KanbanColumn(QFrame):
         """Aceita drag de arquivos do Windows e cards internos"""
         if event.mimeData().hasUrls() or event.mimeData().hasText():
             event.acceptProposedAction()
+            # Verificar se está em modo escuro
+            is_dark_mode = hasattr(self.window, 'dark_mode') and self.window.dark_mode
+            if is_dark_mode:
+                # MODO ESCURO - highlight escuro
+                self.setStyleSheet(f"""
+                    KanbanColumn {{
+                        background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                            stop:0 #2a3a2a, stop:1 #3d4d3d);
+                        border: 3px dashed {self.cor};
+                        border-radius: 10px;
+                    }}
+                """)
+            else:
+                # MODO CLARO - highlight claro
+                self.setStyleSheet(f"""
+                    KanbanColumn {{
+                        background-color: #e8f5e9;
+                        border: 3px dashed {self.cor};
+                        border-radius: 10px;
+                    }}
+                """)
+            
+    def dragLeaveEvent(self, event):
+        """Remove highlight - restaura estilo normal baseado no tema"""
+        # Verificar se está em modo escuro
+        is_dark_mode = hasattr(self.window, 'dark_mode') and self.window.dark_mode
+        if is_dark_mode:
+            # MODO ESCURO - restaurar estilo escuro
             self.setStyleSheet(f"""
                 KanbanColumn {{
-                    background-color: #e8f5e9;
-                    border: 3px dashed {self.cor};
+                    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                        stop:0 #1a1a1a, stop:1 #2d2d2d);
+                    border: 2px solid #3d3d3d;
                     border-radius: 10px;
                 }}
             """)
-            
-    def dragLeaveEvent(self, event):
-        """Remove highlight"""
-        self.setStyleSheet(f"""
-            KanbanColumn {{
-                background-color: #f5f5f5;
-                border: 2px dashed #ccc;
-                border-radius: 10px;
-            }}
-        """)
+        else:
+            # MODO CLARO - restaurar estilo claro
+            self.setStyleSheet(f"""
+                KanbanColumn {{
+                    background-color: #f5f5f5;
+                    border: 2px dashed #ccc;
+                    border-radius: 10px;
+                }}
+            """)
         
     def dropEvent(self, event):
         """Processa drop de arquivos/pastas ou cards"""
@@ -2926,6 +3364,47 @@ class DashboardDialog(QDialog):
         self.setModal(False)
         self.setMinimumSize(900, 650)
         
+        # Aplicar estilo baseado no tema
+        is_dark_mode = hasattr(self.parent_window, 'dark_mode') and self.parent_window.dark_mode
+        if is_dark_mode:
+            self.setStyleSheet("""
+                QDialog {
+                    background-color: #1a1a1a;
+                    color: #e0e0e0;
+                }
+                QLabel {
+                    background-color: transparent;
+                    color: #e0e0e0;
+                }
+                QScrollArea {
+                    background-color: #1a1a1a;
+                    border: 1px solid #3d3d3d;
+                }
+                QFrame {
+                    background-color: #2a2a2a;
+                    color: #e0e0e0;
+                }
+            """)
+        else:
+            self.setStyleSheet("""
+                QDialog {
+                    background-color: white;
+                    color: black;
+                }
+                QLabel {
+                    background-color: transparent;
+                    color: black;
+                }
+                QScrollArea {
+                    background-color: white;
+                    border: 1px solid #ddd;
+                }
+                QFrame {
+                    background-color: white;
+                    color: black;
+                }
+            """)
+        
         layout = QVBoxLayout()
         
         # Header
@@ -3097,22 +3576,37 @@ class DashboardDialog(QDialog):
         """Cria um card de estatística"""
         card = QFrame()
         card.setFrameStyle(QFrame.Box | QFrame.Raised)
-        card.setStyleSheet(f"""
-            QFrame {{
-                background-color: white;
-                border: 3px solid {color};
-                border-radius: 10px;
-                padding: 15px;
-                margin: 5px;
-            }}
-        """)
+        
+        # Aplicar estilo baseado no tema
+        is_dark_mode = hasattr(self.parent_window, 'dark_mode') and self.parent_window.dark_mode
+        if is_dark_mode:
+            card.setStyleSheet(f"""
+                QFrame {{
+                    background-color: #2a2a2a;
+                    border: 3px solid {color};
+                    border-radius: 10px;
+                    padding: 15px;
+                    margin: 5px;
+                }}
+            """)
+        else:
+            card.setStyleSheet(f"""
+                QFrame {{
+                    background-color: white;
+                    border: 3px solid {color};
+                    border-radius: 10px;
+                    padding: 15px;
+                    margin: 5px;
+                }}
+            """)
         
         layout = QVBoxLayout()
         
         # Título
         title_label = QLabel(title)
         title_label.setFont(QFont("Arial", 14, QFont.Bold))
-        title_label.setStyleSheet(f"color: {color}; margin-bottom: 10px;")
+        # Aplicar estilo baseado no tema
+        title_label.setStyleSheet(f"color: {color}; margin-bottom: 10px; background-color: transparent;")
         layout.addWidget(title_label)
         
         # Items
@@ -3120,7 +3614,11 @@ class DashboardDialog(QDialog):
             item_layout = QHBoxLayout()
             
             name_label = QLabel(item_name)
-            name_label.setStyleSheet("font-size: 12px; color: #333;")
+            # Aplicar estilo baseado no tema
+            if is_dark_mode:
+                name_label.setStyleSheet("font-size: 12px; color: #e0e0e0;")
+            else:
+                name_label.setStyleSheet("font-size: 12px; color: #333;")
             
             value_label = QLabel(str(item_value))
             value_label.setFont(QFont("Arial", 12, QFont.Bold))
@@ -3135,14 +3633,25 @@ class DashboardDialog(QDialog):
                 
                 bar = QFrame()
                 bar.setFixedHeight(8)
-                bar.setStyleSheet(f"""
-                    QFrame {{
-                        background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-                            stop:0 {color}, stop:{percent/100} {color}, 
-                            stop:{percent/100} #e0e0e0, stop:1 #e0e0e0);
-                        border-radius: 4px;
-                    }}
-                """)
+                # Aplicar estilo baseado no tema
+                if is_dark_mode:
+                    bar.setStyleSheet(f"""
+                        QFrame {{
+                            background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                                stop:0 {color}, stop:{percent/100} {color}, 
+                                stop:{percent/100} #3d3d3d, stop:1 #3d3d3d);
+                            border-radius: 4px;
+                        }}
+                    """)
+                else:
+                    bar.setStyleSheet(f"""
+                        QFrame {{
+                            background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                                stop:0 {color}, stop:{percent/100} {color}, 
+                                stop:{percent/100} #e0e0e0, stop:1 #e0e0e0);
+                            border-radius: 4px;
+                        }}
+                    """)
                 
                 item_layout.addWidget(name_label, 3)
                 item_layout.addWidget(bar, 4)
@@ -3215,6 +3724,61 @@ class GanttDialog(QDialog):
         self.setWindowTitle(_("gantt_title", "📊 Visão Gantt - Cronograma Visual"))
         self.setModal(False)
         self.setMinimumSize(1200, 700)
+        
+        # Aplicar estilo baseado no tema
+        is_dark_mode = hasattr(self.parent_window, 'dark_mode') and self.parent_window.dark_mode
+        if is_dark_mode:
+            self.setStyleSheet("""
+                QDialog {
+                    background-color: #1a1a1a;
+                    color: #e0e0e0;
+                }
+                QLabel {
+                    background-color: transparent;
+                    color: #e0e0e0;
+                }
+                QComboBox {
+                    background-color: #2a2a2a;
+                    color: #e0e0e0;
+                    border: 1px solid #3d3d3d;
+                    padding: 5px;
+                    border-radius: 3px;
+                }
+                QScrollArea {
+                    background-color: #1a1a1a;
+                    border: 1px solid #3d3d3d;
+                }
+                QWidget {
+                    background-color: #2a2a2a;
+                    color: #e0e0e0;
+                }
+            """)
+        else:
+            self.setStyleSheet("""
+                QDialog {
+                    background-color: white;
+                    color: black;
+                }
+                QLabel {
+                    background-color: transparent;
+                    color: black;
+                }
+                QComboBox {
+                    background-color: white;
+                    color: black;
+                    border: 1px solid #ccc;
+                    padding: 5px;
+                    border-radius: 3px;
+                }
+                QScrollArea {
+                    background-color: white;
+                    border: 1px solid #ddd;
+                }
+                QWidget {
+                    background-color: white;
+                    color: black;
+                }
+            """)
         
         layout = QVBoxLayout()
         
@@ -3409,9 +3973,13 @@ class GanttDialog(QDialog):
         
         # Gerar marcadores de data (a cada 7 dias)
         current_date = min_date
+        is_dark_mode = hasattr(self.parent_window, 'dark_mode') and self.parent_window.dark_mode
         while current_date <= max_date:
             date_label = QLabel(current_date.toString("dd/MM"))
-            date_label.setStyleSheet("font-size: 10px; color: #666; font-weight: bold;")
+            if is_dark_mode:
+                date_label.setStyleSheet("font-size: 10px; color: #999; font-weight: bold;")
+            else:
+                date_label.setStyleSheet("font-size: 10px; color: #666; font-weight: bold;")
             date_label.setMinimumWidth(100)
             date_label.setAlignment(Qt.AlignCenter)
             header_layout.addWidget(date_label)
@@ -3465,7 +4033,12 @@ class GanttDialog(QDialog):
         if not start_date or not end_date:
             # Sem datas válidas
             no_date_label = QLabel("⚠ Sem datas")
-            no_date_label.setStyleSheet("color: #999; font-style: italic; padding: 5px;")
+            # Aplicar estilo baseado no tema
+            is_dark_mode = hasattr(self.parent_window, 'dark_mode') and self.parent_window.dark_mode
+            if is_dark_mode:
+                no_date_label.setStyleSheet("color: #999; font-style: italic; padding: 5px;")
+            else:
+                no_date_label.setStyleSheet("color: #999; font-style: italic; padding: 5px;")
             timeline_layout.addWidget(no_date_label)
         else:
             # Calcular posições
@@ -3517,15 +4090,29 @@ class GanttDialog(QDialog):
         row_layout.addWidget(timeline_container)
         
         row_widget.setLayout(row_layout)
-        row_widget.setStyleSheet("""
-            QWidget {
-                background-color: white;
-                border-bottom: 1px solid #e0e0e0;
-            }
-            QWidget:hover {
-                background-color: #f9f9f9;
-            }
-        """)
+        
+        # Aplicar estilo baseado no tema
+        is_dark_mode = hasattr(self.parent_window, 'dark_mode') and self.parent_window.dark_mode
+        if is_dark_mode:
+            row_widget.setStyleSheet("""
+                QWidget {
+                    background-color: #2a2a2a;
+                    border-bottom: 1px solid #3d3d3d;
+                }
+                QWidget:hover {
+                    background-color: #333333;
+                }
+            """)
+        else:
+            row_widget.setStyleSheet("""
+                QWidget {
+                    background-color: white;
+                    border-bottom: 1px solid #e0e0e0;
+                }
+                QWidget:hover {
+                    background-color: #f9f9f9;
+                }
+            """)
         
         return row_widget
         
@@ -3565,6 +4152,109 @@ class AgendaDialog(QDialog):
         self.setWindowTitle("📅 Agenda - PinFlow Pro")
         self.setModal(False)
         self.setMinimumSize(1000, 700)
+        
+        # Aplicar estilo baseado no tema
+        is_dark_mode = hasattr(self.parent_window, 'dark_mode') and self.parent_window.dark_mode
+        if is_dark_mode:
+            self.setStyleSheet("""
+                QDialog {
+                    background-color: #1a1a1a;
+                    color: #e0e0e0;
+                }
+                QLabel {
+                    background-color: transparent;
+                    color: #e0e0e0;
+                }
+                QTabWidget::pane {
+                    background-color: #1a1a1a;
+                    border: 1px solid #3d3d3d;
+                }
+                QTabBar::tab {
+                    background-color: #2a2a2a;
+                    color: #e0e0e0;
+                    border: 1px solid #3d3d3d;
+                    padding: 8px 20px;
+                }
+                QTabBar::tab:selected {
+                    background-color: #3d3d3d;
+                }
+                QTableWidget {
+                    background-color: #2a2a2a;
+                    color: #e0e0e0;
+                    gridline-color: #3d3d3d;
+                    border: 1px solid #3d3d3d;
+                }
+                QTableWidget::item {
+                    background-color: #2a2a2a;
+                    color: #e0e0e0;
+                }
+                QTableWidget::item:alternate {
+                    background-color: #222222;
+                }
+                QHeaderView::section {
+                    background-color: #1a1a1a;
+                    color: #e0e0e0;
+                    border: 1px solid #3d3d3d;
+                    padding: 5px;
+                }
+                QLineEdit, QDateEdit, QComboBox {
+                    background-color: #2a2a2a;
+                    color: #e0e0e0;
+                    border: 1px solid #3d3d3d;
+                    padding: 5px;
+                    border-radius: 3px;
+                }
+            """)
+        else:
+            self.setStyleSheet("""
+                QDialog {
+                    background-color: white;
+                    color: black;
+                }
+                QLabel {
+                    background-color: transparent;
+                    color: black;
+                }
+                QTabWidget::pane {
+                    background-color: white;
+                    border: 1px solid #ccc;
+                }
+                QTabBar::tab {
+                    background-color: #f0f0f0;
+                    color: black;
+                    border: 1px solid #ccc;
+                    padding: 8px 20px;
+                }
+                QTabBar::tab:selected {
+                    background-color: white;
+                }
+                QTableWidget {
+                    background-color: white;
+                    color: black;
+                    gridline-color: #d0d0d0;
+                    border: 1px solid #ccc;
+                }
+                QTableWidget::item {
+                    background-color: white;
+                    color: black;
+                }
+                QTableWidget::item:alternate {
+                    background-color: #f5f5f5;
+                }
+                QHeaderView::section {
+                    background-color: #f0f0f0;
+                    color: black;
+                    border: 1px solid #ccc;
+                    padding: 5px;
+                }
+                QLineEdit, QDateEdit, QComboBox {
+                    background-color: white;
+                    color: black;
+                    border: 1px solid #ccc;
+                    padding: 5px;
+                    border-radius: 3px;
+                }
+            """)
         
         layout = QVBoxLayout()
         
@@ -4164,6 +4854,69 @@ class AppointmentDialog(QDialog):
         self.setModal(True)
         self.setMinimumWidth(500)
         
+        # Aplicar estilo baseado no tema
+        parent_agenda = self.parent()
+        is_dark_mode = False
+        if parent_agenda and hasattr(parent_agenda, 'parent_window') and parent_agenda.parent_window:
+            is_dark_mode = hasattr(parent_agenda.parent_window, 'dark_mode') and parent_agenda.parent_window.dark_mode
+        
+        if is_dark_mode:
+            self.setStyleSheet("""
+                QDialog {
+                    background-color: #1a1a1a;
+                    color: #e0e0e0;
+                }
+                QLabel {
+                    background-color: transparent;
+                    color: #e0e0e0;
+                }
+                QLineEdit, QTextEdit, QDateEdit, QTimeEdit, QComboBox {
+                    background-color: #2a2a2a;
+                    color: #e0e0e0;
+                    border: 1px solid #3d3d3d;
+                    padding: 5px;
+                    border-radius: 3px;
+                }
+                QPushButton {
+                    background-color: #1e3a5f;
+                    color: white;
+                    padding: 8px 20px;
+                    border-radius: 5px;
+                    font-weight: bold;
+                }
+                QPushButton:hover {
+                    background-color: #152d4a;
+                }
+            """)
+        else:
+            self.setStyleSheet("""
+                QDialog {
+                    background-color: white;
+                    color: black;
+                }
+                QLabel {
+                    background-color: transparent;
+                    color: black;
+                }
+                QLineEdit, QTextEdit, QDateEdit, QTimeEdit, QComboBox {
+                    background-color: white;
+                    color: black;
+                    border: 1px solid #ccc;
+                    padding: 5px;
+                    border-radius: 3px;
+                }
+                QPushButton {
+                    background-color: #1e3a5f;
+                    color: white;
+                    padding: 8px 20px;
+                    border-radius: 5px;
+                    font-weight: bold;
+                }
+                QPushButton:hover {
+                    background-color: #152d4a;
+                }
+            """)
+        
         layout = QVBoxLayout()
         
         # Data
@@ -4325,6 +5078,69 @@ class ContactDialog(QDialog):
         self.setWindowTitle("Novo Contato" if not self.contact_data else "Editar Contato")
         self.setModal(True)
         self.setMinimumWidth(500)
+        
+        # Aplicar estilo baseado no tema
+        parent_agenda = self.parent()
+        is_dark_mode = False
+        if parent_agenda and hasattr(parent_agenda, 'parent_window') and parent_agenda.parent_window:
+            is_dark_mode = hasattr(parent_agenda.parent_window, 'dark_mode') and parent_agenda.parent_window.dark_mode
+        
+        if is_dark_mode:
+            self.setStyleSheet("""
+                QDialog {
+                    background-color: #1a1a1a;
+                    color: #e0e0e0;
+                }
+                QLabel {
+                    background-color: transparent;
+                    color: #e0e0e0;
+                }
+                QLineEdit, QTextEdit {
+                    background-color: #2a2a2a;
+                    color: #e0e0e0;
+                    border: 1px solid #3d3d3d;
+                    padding: 5px;
+                    border-radius: 3px;
+                }
+                QPushButton {
+                    background-color: #1e3a5f;
+                    color: white;
+                    padding: 8px 20px;
+                    border-radius: 5px;
+                    font-weight: bold;
+                }
+                QPushButton:hover {
+                    background-color: #152d4a;
+                }
+            """)
+        else:
+            self.setStyleSheet("""
+                QDialog {
+                    background-color: white;
+                    color: black;
+                }
+                QLabel {
+                    background-color: transparent;
+                    color: black;
+                }
+                QLineEdit, QTextEdit {
+                    background-color: white;
+                    color: black;
+                    border: 1px solid #ccc;
+                    padding: 5px;
+                    border-radius: 3px;
+                }
+                QPushButton {
+                    background-color: #1e3a5f;
+                    color: white;
+                    padding: 8px 20px;
+                    border-radius: 5px;
+                    font-weight: bold;
+                }
+                QPushButton:hover {
+                    background-color: #152d4a;
+                }
+            """)
         
         layout = QVBoxLayout()
         
@@ -4641,19 +5457,19 @@ class KanbanWindow(QMainWindow):
         backup_btn.setToolTip(_("create_backup_tooltip", "Criar backup dos dados"))
         
         # Botão Agenda
-        agenda_btn = QPushButton("📅 Agenda")
+        agenda_btn = QPushButton(f"📅 {_('agenda', 'Agenda')}")
         agenda_btn.clicked.connect(self.show_agenda)
         agenda_btn.setCursor(Qt.PointingHandCursor)
         agenda_btn.setStyleSheet(btn_style)
-        agenda_btn.setToolTip("Gerenciar compromissos e contatos")
+        agenda_btn.setToolTip(_("agenda_tooltip", "Gerenciar compromissos e contatos"))
         self.agenda_btn = agenda_btn  # Guardar referência
         
         # Botão Ajuda/Manual
-        help_btn = QPushButton("❓ Ajuda")
+        help_btn = QPushButton(f"❓ {_('help', 'Ajuda')}")
         help_btn.clicked.connect(self.show_help_manual)
         help_btn.setCursor(Qt.PointingHandCursor)
         help_btn.setStyleSheet(btn_style)
-        help_btn.setToolTip("Manual completo com todas as funcionalidades")
+        help_btn.setToolTip(_("help_tooltip", "Manual completo com todas as funcionalidades"))
         self.help_btn = help_btn  # Guardar referência
         
         # Botão Feedback
@@ -4670,12 +5486,64 @@ class KanbanWindow(QMainWindow):
         # Transparência
         transparency_label = QLabel("💎 Transparência:")
         
+        # Botão - para transparência
+        transparency_minus_btn = QPushButton("-")
+        transparency_minus_btn.setMaximumWidth(30)
+        transparency_minus_btn.setMaximumHeight(30)
+        transparency_minus_btn.setMinimumWidth(30)
+        transparency_minus_btn.setMinimumHeight(30)
+        transparency_minus_btn.setToolTip("Diminuir transparência")
+        transparency_minus_btn.setCursor(Qt.PointingHandCursor)
+        transparency_minus_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #1e3a5f;
+                color: white;
+                border: none;
+                border-radius: 5px;
+                font-weight: bold;
+                font-size: 14px;
+            }
+            QPushButton:hover {
+                background-color: #152d4a;
+            }
+            QPushButton:pressed {
+                background-color: #0f1f35;
+            }
+        """)
+        transparency_minus_btn.clicked.connect(lambda: self.transparency_slider.setValue(max(30, self.transparency_slider.value() - 10)))
+        
         self.transparency_slider = QSlider(Qt.Horizontal)
         self.transparency_slider.setMinimum(30)
         self.transparency_slider.setMaximum(100)
         self.transparency_slider.setValue(100)
         self.transparency_slider.setMaximumWidth(150)
         self.transparency_slider.valueChanged.connect(self.change_transparency)
+        
+        # Botão + para transparência
+        transparency_plus_btn = QPushButton("+")
+        transparency_plus_btn.setMaximumWidth(30)
+        transparency_plus_btn.setMaximumHeight(30)
+        transparency_plus_btn.setMinimumWidth(30)
+        transparency_plus_btn.setMinimumHeight(30)
+        transparency_plus_btn.setToolTip("Aumentar transparência")
+        transparency_plus_btn.setCursor(Qt.PointingHandCursor)
+        transparency_plus_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #1e3a5f;
+                color: white;
+                border: none;
+                border-radius: 5px;
+                font-weight: bold;
+                font-size: 14px;
+            }
+            QPushButton:hover {
+                background-color: #152d4a;
+            }
+            QPushButton:pressed {
+                background-color: #0f1f35;
+            }
+        """)
+        transparency_plus_btn.clicked.connect(lambda: self.transparency_slider.setValue(min(100, self.transparency_slider.value() + 10)))
         
         self.transparency_value_label = QLabel("100%")
         self.transparency_value_label.setMinimumWidth(40)
@@ -4703,7 +5571,9 @@ class KanbanWindow(QMainWindow):
             self.toolbar_buttons.append(license_btn)
         toolbar_layout.addStretch()
         toolbar_layout.addWidget(transparency_label)
+        toolbar_layout.addWidget(transparency_minus_btn)
         toolbar_layout.addWidget(self.transparency_slider)
+        toolbar_layout.addWidget(transparency_plus_btn)
         toolbar_layout.addWidget(self.transparency_value_label)
         
         # Área de colunas com scroll horizontal
@@ -5112,6 +5982,12 @@ class KanbanWindow(QMainWindow):
         if hasattr(self, 'backup_btn'):
             self.backup_btn.setText(f"💾 {_('backup', 'Backup')}")
             self.backup_btn.setToolTip(_("create_backup_tooltip", "Criar backup dos dados"))
+        if hasattr(self, 'agenda_btn'):
+            self.agenda_btn.setText(f"📅 {_('agenda', 'Agenda')}")
+            self.agenda_btn.setToolTip(_("agenda_tooltip", "Gerenciar compromissos e contatos"))
+        if hasattr(self, 'help_btn'):
+            self.help_btn.setText(f"❓ {_('help', 'Ajuda')}")
+            self.help_btn.setToolTip(_("help_tooltip", "Manual completo com todas as funcionalidades"))
         if hasattr(self, 'license_btn'):
             self.license_btn.setText(f"🔐 {_('license', 'Licença')}")
             self.license_btn.setToolTip(_("activate_license", "Ativar ou verificar licença"))
@@ -5247,6 +6123,57 @@ class KanbanWindow(QMainWindow):
         dialog.setWindowTitle("Nova Coluna")
         dialog.setModal(True)
         dialog.setMinimumWidth(400)
+        
+        # Aplicar estilo baseado no tema
+        is_dark_mode = hasattr(self, 'dark_mode') and self.dark_mode
+        if is_dark_mode:
+            dialog.setStyleSheet("""
+                QDialog {
+                    background-color: #1a1a1a;
+                    color: #e0e0e0;
+                }
+                QLabel {
+                    background-color: transparent;
+                    color: #e0e0e0;
+                }
+                QLineEdit {
+                    background-color: #2a2a2a;
+                    color: #e0e0e0;
+                    border: 1px solid #3d3d3d;
+                    padding: 5px;
+                    border-radius: 3px;
+                }
+                QPushButton {
+                    border: 2px solid #3d3d3d;
+                }
+                QPushButton:hover {
+                    border: 3px solid #555;
+                }
+            """)
+        else:
+            dialog.setStyleSheet("""
+                QDialog {
+                    background-color: white;
+                    color: black;
+                }
+                QLabel {
+                    background-color: transparent;
+                    color: black;
+                }
+                QLineEdit {
+                    background-color: white;
+                    color: black;
+                    border: 1px solid #ccc;
+                    padding: 5px;
+                    border-radius: 3px;
+                }
+                QPushButton {
+                    border: 2px solid #ddd;
+                }
+                QPushButton:hover {
+                    border: 3px solid #333;
+                }
+            """)
         
         layout = QVBoxLayout()
         
@@ -5420,6 +6347,99 @@ class KanbanWindow(QMainWindow):
         dialog.setWindowTitle(_("system_config_title", "⚙️ Configurações do Sistema - PinFlow Pro"))
         dialog.setMinimumWidth(500)
         dialog.setMinimumHeight(400)
+        
+        # Aplicar estilo baseado no tema
+        is_dark_mode = hasattr(self, 'dark_mode') and self.dark_mode
+        if is_dark_mode:
+            dialog.setStyleSheet("""
+                QDialog {
+                    background-color: #1a1a1a;
+                    color: #e0e0e0;
+                }
+                QLabel {
+                    background-color: transparent;
+                    color: #e0e0e0;
+                }
+                QTabWidget::pane {
+                    background-color: #1a1a1a;
+                    border: 1px solid #3d3d3d;
+                }
+                QTabBar::tab {
+                    background-color: #2a2a2a;
+                    color: #e0e0e0;
+                    border: 1px solid #3d3d3d;
+                    padding: 8px 20px;
+                }
+                QTabBar::tab:selected {
+                    background-color: #3d3d3d;
+                }
+                QGroupBox {
+                    background-color: #2a2a2a;
+                    color: #e0e0e0;
+                    border: 1px solid #3d3d3d;
+                    border-radius: 5px;
+                    margin-top: 10px;
+                    padding-top: 10px;
+                }
+                QGroupBox::title {
+                    subcontrol-origin: margin;
+                    left: 10px;
+                    padding: 0 5px;
+                    color: #e0e0e0;
+                }
+                QComboBox, QPushButton {
+                    background-color: #2a2a2a;
+                    color: #e0e0e0;
+                    border: 1px solid #3d3d3d;
+                    padding: 5px;
+                    border-radius: 3px;
+                }
+            """)
+        else:
+            dialog.setStyleSheet("""
+                QDialog {
+                    background-color: white;
+                    color: black;
+                }
+                QLabel {
+                    background-color: transparent;
+                    color: black;
+                }
+                QTabWidget::pane {
+                    background-color: white;
+                    border: 1px solid #ccc;
+                }
+                QTabBar::tab {
+                    background-color: #f0f0f0;
+                    color: black;
+                    border: 1px solid #ccc;
+                    padding: 8px 20px;
+                }
+                QTabBar::tab:selected {
+                    background-color: white;
+                }
+                QGroupBox {
+                    background-color: white;
+                    color: black;
+                    border: 1px solid #ccc;
+                    border-radius: 5px;
+                    margin-top: 10px;
+                    padding-top: 10px;
+                }
+                QGroupBox::title {
+                    subcontrol-origin: margin;
+                    left: 10px;
+                    padding: 0 5px;
+                    color: black;
+                }
+                QComboBox, QPushButton {
+                    background-color: white;
+                    color: black;
+                    border: 1px solid #ccc;
+                    padding: 5px;
+                    border-radius: 3px;
+                }
+            """)
         
         layout = QVBoxLayout()
         layout.setSpacing(15)
@@ -6150,6 +7170,7 @@ class KanbanWindow(QMainWindow):
             self.toggle_btn.setText(f"🟢 {_('always_on_top_off', 'Always On Top: OFF')}")
         self.show()
         
+    
     def change_transparency(self, value):
         """Muda transparência da janela"""
         self.setWindowOpacity(value / 100.0)
@@ -6288,12 +7309,58 @@ class KanbanWindow(QMainWindow):
         dialog.setModal(True)
         dialog.setMinimumSize(900, 700)
         
+        # Aplicar estilo baseado no tema
+        is_dark_mode = hasattr(self, 'dark_mode') and self.dark_mode
+        if is_dark_mode:
+            dialog.setStyleSheet("""
+                QDialog {
+                    background-color: #1a1a1a;
+                    color: #e0e0e0;
+                }
+                QLabel {
+                    background-color: transparent;
+                    color: #e0e0e0;
+                }
+                QScrollArea {
+                    background-color: #1a1a1a;
+                    border: 1px solid #3d3d3d;
+                    border-radius: 5px;
+                }
+                QWidget {
+                    background-color: #1a1a1a;
+                    color: #e0e0e0;
+                }
+            """)
+        else:
+            dialog.setStyleSheet("""
+                QDialog {
+                    background-color: white;
+                    color: black;
+                }
+                QLabel {
+                    background-color: transparent;
+                    color: black;
+                }
+                QScrollArea {
+                    background-color: white;
+                    border: 1px solid #ddd;
+                    border-radius: 5px;
+                }
+                QWidget {
+                    background-color: white;
+                    color: black;
+                }
+            """)
+        
         layout = QVBoxLayout()
         
         # Título
         title = QLabel("📚 MANUAL COMPLETO - PINFLOW PRO")
         title.setFont(QFont("Segoe UI", 18, QFont.Bold))
-        title.setStyleSheet("color: #1e3a5f; padding: 10px;")
+        if is_dark_mode:
+            title.setStyleSheet("color: #ffffff; padding: 10px; background-color: transparent;")
+        else:
+            title.setStyleSheet("color: #1e3a5f; padding: 10px; background-color: transparent;")
         layout.addWidget(title)
         
         # Área de scroll com conteúdo
@@ -6314,7 +7381,10 @@ class KanbanWindow(QMainWindow):
         # ========== SEÇÃO 1: KANBAN BÁSICO ==========
         section1 = QLabel("📋 1. KANBAN BÁSICO")
         section1.setFont(QFont("Segoe UI", 14, QFont.Bold))
-        section1.setStyleSheet("color: #1e3a5f; margin-top: 10px;")
+        if is_dark_mode:
+            section1.setStyleSheet("color: #ffffff; margin-top: 10px; background-color: transparent;")
+        else:
+            section1.setStyleSheet("color: #1e3a5f; margin-top: 10px; background-color: transparent;")
         content_layout.addWidget(section1)
         
         help_text1 = QLabel("""
@@ -6334,13 +7404,19 @@ class KanbanWindow(QMainWindow):
         • <b>Remover Card:</b> Clique na engrenagem ⚙️ → "🗑️ Eliminar Nota" (ou Alt+Del)<br>
         """)
         help_text1.setWordWrap(True)
-        help_text1.setStyleSheet("padding: 10px; background-color: #f5f5f5; border-radius: 5px;")
+        if is_dark_mode:
+            help_text1.setStyleSheet("padding: 10px; background-color: #2a2a2a; color: #e0e0e0; border-radius: 5px;")
+        else:
+            help_text1.setStyleSheet("padding: 10px; background-color: #f5f5f5; color: black; border-radius: 5px;")
         content_layout.addWidget(help_text1)
         
         # ========== SEÇÃO 2: APARÊNCIA DOS CARDS ==========
         section2 = QLabel("🎨 2. APARÊNCIA DOS CARDS")
         section2.setFont(QFont("Segoe UI", 14, QFont.Bold))
-        section2.setStyleSheet("color: #1e3a5f; margin-top: 10px;")
+        if is_dark_mode:
+            section2.setStyleSheet("color: #ffffff; margin-top: 10px; background-color: transparent;")
+        else:
+            section2.setStyleSheet("color: #1e3a5f; margin-top: 10px; background-color: transparent;")
         content_layout.addWidget(section2)
         
         help_text2 = QLabel("""
@@ -6362,13 +7438,19 @@ class KanbanWindow(QMainWindow):
         • Edite o card para mudar a prioridade<br>
         """)
         help_text2.setWordWrap(True)
-        help_text2.setStyleSheet("padding: 10px; background-color: #f5f5f5; border-radius: 5px;")
+        if is_dark_mode:
+            help_text2.setStyleSheet("padding: 10px; background-color: #2a2a2a; color: #e0e0e0; border-radius: 5px;")
+        else:
+            help_text2.setStyleSheet("padding: 10px; background-color: #f5f5f5; color: black; border-radius: 5px;")
         content_layout.addWidget(help_text2)
         
         # ========== SEÇÃO 3: ARQUIVOS E ANEXOS ==========
         section3 = QLabel("📁 3. ARQUIVOS E ANEXOS")
         section3.setFont(QFont("Segoe UI", 14, QFont.Bold))
-        section3.setStyleSheet("color: #1e3a5f; margin-top: 10px;")
+        if is_dark_mode:
+            section3.setStyleSheet("color: #ffffff; margin-top: 10px; background-color: transparent;")
+        else:
+            section3.setStyleSheet("color: #1e3a5f; margin-top: 10px; background-color: transparent;")
         content_layout.addWidget(section3)
         
         help_text3 = QLabel("""
@@ -6384,13 +7466,19 @@ class KanbanWindow(QMainWindow):
         • Ou clique diretamente no caminho exibido no card<br>
         """)
         help_text3.setWordWrap(True)
-        help_text3.setStyleSheet("padding: 10px; background-color: #f5f5f5; border-radius: 5px;")
+        if is_dark_mode:
+            help_text3.setStyleSheet("padding: 10px; background-color: #2a2a2a; color: #e0e0e0; border-radius: 5px;")
+        else:
+            help_text3.setStyleSheet("padding: 10px; background-color: #f5f5f5; color: black; border-radius: 5px;")
         content_layout.addWidget(help_text3)
         
         # ========== SEÇÃO 4: ALERTAS ==========
         section4 = QLabel("⏰ 4. SISTEMA DE ALERTAS")
         section4.setFont(QFont("Segoe UI", 14, QFont.Bold))
-        section4.setStyleSheet("color: #1e3a5f; margin-top: 10px;")
+        if is_dark_mode:
+            section4.setStyleSheet("color: #ffffff; margin-top: 10px; background-color: transparent;")
+        else:
+            section4.setStyleSheet("color: #1e3a5f; margin-top: 10px; background-color: transparent;")
         content_layout.addWidget(section4)
         
         help_text4 = QLabel("""
@@ -6404,13 +7492,19 @@ class KanbanWindow(QMainWindow):
         • O card parará de piscar e voltará à cor normal<br>
         """)
         help_text4.setWordWrap(True)
-        help_text4.setStyleSheet("padding: 10px; background-color: #f5f5f5; border-radius: 5px;")
+        if is_dark_mode:
+            help_text4.setStyleSheet("padding: 10px; background-color: #2a2a2a; color: #e0e0e0; border-radius: 5px;")
+        else:
+            help_text4.setStyleSheet("padding: 10px; background-color: #f5f5f5; color: black; border-radius: 5px;")
         content_layout.addWidget(help_text4)
         
         # ========== SEÇÃO 5: AGENDA ==========
         section5 = QLabel("📅 5. AGENDA INTEGRADA")
         section5.setFont(QFont("Segoe UI", 14, QFont.Bold))
-        section5.setStyleSheet("color: #1e3a5f; margin-top: 10px;")
+        if is_dark_mode:
+            section5.setStyleSheet("color: #ffffff; margin-top: 10px; background-color: transparent;")
+        else:
+            section5.setStyleSheet("color: #1e3a5f; margin-top: 10px; background-color: transparent;")
         content_layout.addWidget(section5)
         
         help_text5 = QLabel("""
@@ -6438,13 +7532,19 @@ class KanbanWindow(QMainWindow):
         • Quando a data/hora do compromisso chegam, o card vinculado recebe alerta automático<br>
         """)
         help_text5.setWordWrap(True)
-        help_text5.setStyleSheet("padding: 10px; background-color: #f5f5f5; border-radius: 5px;")
+        if is_dark_mode:
+            help_text5.setStyleSheet("padding: 10px; background-color: #2a2a2a; color: #e0e0e0; border-radius: 5px;")
+        else:
+            help_text5.setStyleSheet("padding: 10px; background-color: #f5f5f5; color: black; border-radius: 5px;")
         content_layout.addWidget(help_text5)
         
         # ========== SEÇÃO 6: BUSCA E FILTROS ==========
         section6 = QLabel("🔍 6. BUSCA E FILTROS")
         section6.setFont(QFont("Segoe UI", 14, QFont.Bold))
-        section6.setStyleSheet("color: #1e3a5f; margin-top: 10px;")
+        if is_dark_mode:
+            section6.setStyleSheet("color: #ffffff; margin-top: 10px; background-color: transparent;")
+        else:
+            section6.setStyleSheet("color: #1e3a5f; margin-top: 10px; background-color: transparent;")
         content_layout.addWidget(section6)
         
         help_text6 = QLabel("""
@@ -6460,13 +7560,19 @@ class KanbanWindow(QMainWindow):
         • As tags aparecem no card e podem ser usadas na busca<br>
         """)
         help_text6.setWordWrap(True)
-        help_text6.setStyleSheet("padding: 10px; background-color: #f5f5f5; border-radius: 5px;")
+        if is_dark_mode:
+            help_text6.setStyleSheet("padding: 10px; background-color: #2a2a2a; color: #e0e0e0; border-radius: 5px;")
+        else:
+            help_text6.setStyleSheet("padding: 10px; background-color: #f5f5f5; color: black; border-radius: 5px;")
         content_layout.addWidget(help_text6)
         
         # ========== SEÇÃO 7: FERRAMENTAS AVANÇADAS ==========
         section7 = QLabel("📊 7. FERRAMENTAS AVANÇADAS")
         section7.setFont(QFont("Segoe UI", 14, QFont.Bold))
-        section7.setStyleSheet("color: #1e3a5f; margin-top: 10px;")
+        if is_dark_mode:
+            section7.setStyleSheet("color: #ffffff; margin-top: 10px; background-color: transparent;")
+        else:
+            section7.setStyleSheet("color: #1e3a5f; margin-top: 10px; background-color: transparent;")
         content_layout.addWidget(section7)
         
         help_text7 = QLabel("""
@@ -6494,13 +7600,19 @@ class KanbanWindow(QMainWindow):
         • Restaure cards arquivados quando necessário<br>
         """)
         help_text7.setWordWrap(True)
-        help_text7.setStyleSheet("padding: 10px; background-color: #f5f5f5; border-radius: 5px;")
+        if is_dark_mode:
+            help_text7.setStyleSheet("padding: 10px; background-color: #2a2a2a; color: #e0e0e0; border-radius: 5px;")
+        else:
+            help_text7.setStyleSheet("padding: 10px; background-color: #f5f5f5; color: black; border-radius: 5px;")
         content_layout.addWidget(help_text7)
         
         # ========== SEÇÃO 8: CONFIGURAÇÕES ==========
         section8 = QLabel("⚙️ 8. CONFIGURAÇÕES")
         section8.setFont(QFont("Segoe UI", 14, QFont.Bold))
-        section8.setStyleSheet("color: #1e3a5f; margin-top: 10px;")
+        if is_dark_mode:
+            section8.setStyleSheet("color: #ffffff; margin-top: 10px; background-color: transparent;")
+        else:
+            section8.setStyleSheet("color: #1e3a5f; margin-top: 10px; background-color: transparent;")
         content_layout.addWidget(section8)
         
         help_text8 = QLabel("""
@@ -6528,13 +7640,19 @@ class KanbanWindow(QMainWindow):
         • Ative/desative pelo menu do sistema<br>
         """)
         help_text8.setWordWrap(True)
-        help_text8.setStyleSheet("padding: 10px; background-color: #f5f5f5; border-radius: 5px;")
+        if is_dark_mode:
+            help_text8.setStyleSheet("padding: 10px; background-color: #2a2a2a; color: #e0e0e0; border-radius: 5px;")
+        else:
+            help_text8.setStyleSheet("padding: 10px; background-color: #f5f5f5; color: black; border-radius: 5px;")
         content_layout.addWidget(help_text8)
         
         # ========== SEÇÃO 9: ATALHOS DE TECLADO ==========
         section9 = QLabel("⌨️ 9. ATALHOS DE TECLADO")
         section9.setFont(QFont("Segoe UI", 14, QFont.Bold))
-        section9.setStyleSheet("color: #1e3a5f; margin-top: 10px;")
+        if is_dark_mode:
+            section9.setStyleSheet("color: #ffffff; margin-top: 10px; background-color: transparent;")
+        else:
+            section9.setStyleSheet("color: #1e3a5f; margin-top: 10px; background-color: transparent;")
         content_layout.addWidget(section9)
         
         help_text9 = QLabel("""
@@ -6555,13 +7673,19 @@ class KanbanWindow(QMainWindow):
         • <b>Arrastar Arquivo:</b> Anexar arquivo/pasta ao card<br>
         """)
         help_text9.setWordWrap(True)
-        help_text9.setStyleSheet("padding: 10px; background-color: #f5f5f5; border-radius: 5px;")
+        if is_dark_mode:
+            help_text9.setStyleSheet("padding: 10px; background-color: #2a2a2a; color: #e0e0e0; border-radius: 5px;")
+        else:
+            help_text9.setStyleSheet("padding: 10px; background-color: #f5f5f5; color: black; border-radius: 5px;")
         content_layout.addWidget(help_text9)
         
         # ========== SEÇÃO 10: DICAS E TRUQUES ==========
         section10 = QLabel("💡 10. DICAS E TRUQUES")
         section10.setFont(QFont("Segoe UI", 14, QFont.Bold))
-        section10.setStyleSheet("color: #1e3a5f; margin-top: 10px;")
+        if is_dark_mode:
+            section10.setStyleSheet("color: #ffffff; margin-top: 10px; background-color: transparent;")
+        else:
+            section10.setStyleSheet("color: #1e3a5f; margin-top: 10px; background-color: transparent;")
         content_layout.addWidget(section10)
         
         help_text10 = QLabel("""
@@ -6583,7 +7707,10 @@ class KanbanWindow(QMainWindow):
         • Exporte para CSV se precisar trabalhar com os dados em outras ferramentas<br>
         """)
         help_text10.setWordWrap(True)
-        help_text10.setStyleSheet("padding: 10px; background-color: #f5f5f5; border-radius: 5px;")
+        if is_dark_mode:
+            help_text10.setStyleSheet("padding: 10px; background-color: #2a2a2a; color: #e0e0e0; border-radius: 5px;")
+        else:
+            help_text10.setStyleSheet("padding: 10px; background-color: #f5f5f5; color: black; border-radius: 5px;")
         content_layout.addWidget(help_text10)
         
         content_widget.setLayout(content_layout)
@@ -6605,6 +7732,65 @@ class KanbanWindow(QMainWindow):
         dialog.setWindowTitle("💬 Feedback - PinFlow Pro")
         dialog.setModal(True)
         dialog.setMinimumSize(600, 500)
+        
+        # Aplicar estilo baseado no tema
+        is_dark_mode = hasattr(self, 'dark_mode') and self.dark_mode
+        if is_dark_mode:
+            dialog.setStyleSheet("""
+                QDialog {
+                    background-color: #1a1a1a;
+                    color: #e0e0e0;
+                }
+                QLabel {
+                    background-color: transparent;
+                    color: #e0e0e0;
+                }
+                QLineEdit, QTextEdit, QComboBox {
+                    background-color: #2a2a2a;
+                    color: #e0e0e0;
+                    border: 1px solid #3d3d3d;
+                    padding: 5px;
+                    border-radius: 3px;
+                }
+                QPushButton {
+                    background-color: #1e3a5f;
+                    color: white;
+                    padding: 8px 20px;
+                    border-radius: 5px;
+                    font-weight: bold;
+                }
+                QPushButton:hover {
+                    background-color: #152d4a;
+                }
+            """)
+        else:
+            dialog.setStyleSheet("""
+                QDialog {
+                    background-color: white;
+                    color: black;
+                }
+                QLabel {
+                    background-color: transparent;
+                    color: black;
+                }
+                QLineEdit, QTextEdit, QComboBox {
+                    background-color: white;
+                    color: black;
+                    border: 1px solid #ccc;
+                    padding: 5px;
+                    border-radius: 3px;
+                }
+                QPushButton {
+                    background-color: #1e3a5f;
+                    color: white;
+                    padding: 8px 20px;
+                    border-radius: 5px;
+                    font-weight: bold;
+                }
+                QPushButton:hover {
+                    background-color: #152d4a;
+                }
+            """)
         
         layout = QVBoxLayout()
         
